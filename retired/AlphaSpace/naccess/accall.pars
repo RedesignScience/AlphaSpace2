@@ -1,0 +1,26 @@
+c
+c Parameters uses in ACCALL.F
+c     --  PARAMETERS: maxa = max atoms per residue
+c     --	      maxr = max number of "standard" residue types 
+c     --              maxs = max number of atoms in PDB file
+c     --              maxx = max number of residues in PDB file
+c     --              maxc = max number of chains	
+c
+      integer        maxa, maxr, maxs, maxx, maxc
+      parameter    (
+     -               maxa=100,   
+     -               maxr=100,
+     -               maxs=8000000,
+     -               maxx=800000,
+     -               maxc=20
+     -             )
+c=============================================================
+c
+c SOLVA LOCAL PARAMETERS:  
+c ncube = maximum number of cubes allowed for placing of atoms
+c nac   = maximum number of atoms per cube
+c nint  = maximum number of sphere intersections
+c                   
+      integer     ncube,       nac,     nint     
+      parameter ( ncube=20000, nac=150, nint=2500 )  
+

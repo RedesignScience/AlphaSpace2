@@ -1,0 +1,370 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>AS package &#8212; AlphaSpace a documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     'a',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="as-package">
+<h1>AS package<a class="headerlink" href="#as-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-AS.AS_Cluster">
+<span id="as-as-cluster-module"></span><h2>AS.AS_Cluster module<a class="headerlink" href="#module-AS.AS_Cluster" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="AS.AS_Cluster.AS_Cluster">
+<em class="property">class </em><code class="descclassname">AS.AS_Cluster.</code><code class="descname">AS_Cluster</code><span class="sig-paren">(</span><em>receptor</em>, <em>config</em>, <em>snapshot_idx=0</em>, <em>parent=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/AS/AS_Cluster.html#AS_Cluster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Cluster.AS_Cluster" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="AS.AS_Cluster.AS_Cluster.build_beta_atoms">
+<code class="descname">build_beta_atoms</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/AS/AS_Cluster.html#AS_Cluster.build_beta_atoms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Cluster.AS_Cluster.build_beta_atoms" title="Permalink to this definition">¶</a></dt>
+<dd><p>cluster all alpha atoms into either beta atoms or pocket atoms (gamma)
+:param into: str, ‘gamma’ or ‘beta’
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="AS.AS_Cluster.AS_Cluster.calculate_contact">
+<code class="descname">calculate_contact</code><span class="sig-paren">(</span><em>coordinates</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/AS/AS_Cluster.html#AS_Cluster.calculate_contact"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Cluster.AS_Cluster.calculate_contact" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculate which point in the alpha cluster is in contact with the given coordinates
+:param coordinates: Array
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="AS.AS_Cluster.AS_Cluster.get_cluster_centroid">
+<code class="descname">get_cluster_centroid</code><span class="sig-paren">(</span><em>cluster</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/AS/AS_Cluster.html#AS_Cluster.get_cluster_centroid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Cluster.AS_Cluster.get_cluster_centroid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="AS.AS_Cluster.AS_Cluster.get_lining_atoms">
+<code class="descname">get_lining_atoms</code><span class="sig-paren">(</span><em>index_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/AS/AS_Cluster.html#AS_Cluster.get_lining_atoms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Cluster.AS_Cluster.get_lining_atoms" title="Permalink to this definition">¶</a></dt>
+<dd><p>get a set of surface lining atoms in the given cluster of alpha atoms
+:type index_list: list</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="AS.AS_Cluster.AS_Cluster.get_lining_residues">
+<code class="descname">get_lining_residues</code><span class="sig-paren">(</span><em>index_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/AS/AS_Cluster.html#AS_Cluster.get_lining_residues"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Cluster.AS_Cluster.get_lining_residues" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="AS.AS_Cluster.AS_Cluster.screen_by_contact">
+<code class="descname">screen_by_contact</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/AS/AS_Cluster.html#AS_Cluster.screen_by_contact"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Cluster.AS_Cluster.screen_by_contact" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="AS.AS_Cluster.AS_Cluster.tessellation">
+<code class="descname">tessellation</code><span class="sig-paren">(</span><em>config</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/AS/AS_Cluster.html#AS_Cluster.tessellation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Cluster.AS_Cluster.tessellation" title="Permalink to this definition">¶</a></dt>
+<dd><p>perform tessellation in order to generate the cluster of alpha atoms.
+:param config: object</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="AS.AS_Cluster.AS_Pocket">
+<em class="property">class </em><code class="descclassname">AS.AS_Cluster.</code><code class="descname">AS_Pocket</code><span class="sig-paren">(</span><em>contact_score</em>, <em>total_score</em>, <em>parent</em>, <em>index=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/AS/AS_Cluster.html#AS_Pocket"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Cluster.AS_Pocket" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="AS.AS_Cluster.AS_Pocket.get_contact_score">
+<code class="descname">get_contact_score</code><span class="sig-paren">(</span><em>component='all'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/AS/AS_Cluster.html#AS_Pocket.get_contact_score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Cluster.AS_Pocket.get_contact_score" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="AS.AS_Cluster.AS_Pocket.get_total_score">
+<code class="descname">get_total_score</code><span class="sig-paren">(</span><em>component='all'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/AS/AS_Cluster.html#AS_Pocket.get_total_score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Cluster.AS_Pocket.get_total_score" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-AS.AS_Config">
+<span id="as-as-config-module"></span><h2>AS.AS_Config module<a class="headerlink" href="#module-AS.AS_Config" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="AS.AS_Config.AS_Config">
+<em class="property">class </em><code class="descclassname">AS.AS_Config.</code><code class="descname">AS_Config</code><a class="reference internal" href="_modules/AS/AS_Config.html#AS_Config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Config.AS_Config" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="AS.AS_Config.AS_Config.default">
+<code class="descname">default</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/AS/AS_Config.html#AS_Config.default"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Config.AS_Config.default" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="AS.AS_Config.AS_Config.get_color_RBG">
+<code class="descname">get_color_RBG</code><span class="sig-paren">(</span><em>color_idx</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/AS/AS_Config.html#AS_Config.get_color_RBG"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Config.AS_Config.get_color_RBG" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-AS.AS_Funct">
+<span id="as-as-funct-module"></span><h2>AS.AS_Funct module<a class="headerlink" href="#module-AS.AS_Funct" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="AS.AS_Funct.checkContact">
+<code class="descclassname">AS.AS_Funct.</code><code class="descname">checkContact</code><span class="sig-paren">(</span><em>coord_list_1</em>, <em>coord_list_2</em>, <em>threshold</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/AS/AS_Funct.html#checkContact"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Funct.checkContact" title="Permalink to this definition">¶</a></dt>
+<dd><p>check which one in the coordinate list is in contact with the second coordinate
+:param coord_list_1: list of array N*3
+:param coord_list_2: list of array M*3
+:param threshold: float
+:return: array</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="AS.AS_Funct.getGridVolume">
+<code class="descclassname">AS.AS_Funct.</code><code class="descname">getGridVolume</code><span class="sig-paren">(</span><em>coord_list</em>, <em>threshold=1.6</em>, <em>resolution=0.05</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/AS/AS_Funct.html#getGridVolume"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Funct.getGridVolume" title="Permalink to this definition">¶</a></dt>
+<dd><p>calculate the volume of a point set using grid point approximation
+:param coord_list: array N * 3
+:param threshold: float
+:param resolution: float
+:return: float</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="AS.AS_Funct.getTetrahedronVolume">
+<code class="descclassname">AS.AS_Funct.</code><code class="descname">getTetrahedronVolume</code><span class="sig-paren">(</span><em>coord_list</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/AS/AS_Funct.html#getTetrahedronVolume"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Funct.getTetrahedronVolume" title="Permalink to this definition">¶</a></dt>
+<dd><p>generate the volume
+:param coord_list: list
+:return: float</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-AS.AS_Session">
+<span id="as-as-session-module"></span><h2>AS.AS_Session module<a class="headerlink" href="#module-AS.AS_Session" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="AS.AS_Session.AS_Session">
+<em class="property">class </em><code class="descclassname">AS.AS_Session.</code><code class="descname">AS_Session</code><span class="sig-paren">(</span><em>receptor=None</em>, <em>binder=None</em>, <em>guess_receptor_binder=True</em>, <em>guess_by_order=True</em>, <em>config=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/AS/AS_Session.html#AS_Session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Session.AS_Session" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="AS.AS_Session.AS_Session.get_pockets">
+<code class="descname">get_pockets</code><span class="sig-paren">(</span><em>snapshot_idx: int = 0</em>, <em>force: bool = False</em><span class="sig-paren">)</span> &#x2192; list<a class="reference internal" href="_modules/AS/AS_Session.html#AS_Session.get_pockets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Session.AS_Session.get_pockets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="AS.AS_Session.AS_Session.guess_receptor_binder">
+<code class="descname">guess_receptor_binder</code><span class="sig-paren">(</span><em>traj: object</em>, <em>by_order: bool = True</em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="_modules/AS/AS_Session.html#AS_Session.guess_receptor_binder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Session.AS_Session.guess_receptor_binder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Divide receptor trajectory based on connectivity, set larger molecule as receptor.
+This process automatically removes water and other solvents
+:param traj: target trajectory
+:param by_order: bool, if False, guess by appearances in file
+:return: bool, if any macro molecule were found.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="AS.AS_Session.AS_Session.molecules">
+<code class="descname">molecules</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/AS/AS_Session.html#AS_Session.molecules"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Session.AS_Session.molecules" title="Permalink to this definition">¶</a></dt>
+<dd><p>iterate over receptor and binder, if there is any
+:return: iter</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="AS.AS_Session.AS_Session.run">
+<code class="descname">run</code><span class="sig-paren">(</span><em>snapshot_idx=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/AS/AS_Session.html#AS_Session.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Session.AS_Session.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Private method, please use run</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="AS.AS_Session.AS_Session.screen_by_ligand_contact">
+<code class="descname">screen_by_ligand_contact</code><span class="sig-paren">(</span><em>snapshot_idx: int = 0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/AS/AS_Session.html#AS_Session.screen_by_ligand_contact"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Session.AS_Session.screen_by_ligand_contact" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="AS.AS_Session.AS_Session.set_binder">
+<code class="descname">set_binder</code><span class="sig-paren">(</span><em>binder: object</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/AS/AS_Session.html#AS_Session.set_binder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Session.AS_Session.set_binder" title="Permalink to this definition">¶</a></dt>
+<dd><p>set binder (ligand) in session
+:param binder: object, trajectory
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="AS.AS_Session.AS_Session.set_others">
+<code class="descname">set_others</code><span class="sig-paren">(</span><em>others: object</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/AS/AS_Session.html#AS_Session.set_others"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Session.AS_Session.set_others" title="Permalink to this definition">¶</a></dt>
+<dd><p>set other molecules: water etc
+:param others: object, trajectory
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="AS.AS_Session.AS_Session.set_receptor">
+<code class="descname">set_receptor</code><span class="sig-paren">(</span><em>receptor: object</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/AS/AS_Session.html#AS_Session.set_receptor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Session.AS_Session.set_receptor" title="Permalink to this definition">¶</a></dt>
+<dd><p>set receptor (protein) in session
+:param receptor: object, trajectory
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="AS.AS_Session.AS_Session.show_binder">
+<code class="descname">show_binder</code><span class="sig-paren">(</span><em>snapshot_idx=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/AS/AS_Session.html#AS_Session.show_binder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Session.AS_Session.show_binder" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="AS.AS_Session.AS_Session.show_pocket">
+<code class="descname">show_pocket</code><span class="sig-paren">(</span><em>snapshot_idx=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/AS/AS_Session.html#AS_Session.show_pocket"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Session.AS_Session.show_pocket" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="AS.AS_Session.AS_Session.show_pocket_lable">
+<code class="descname">show_pocket_lable</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/AS/AS_Session.html#AS_Session.show_pocket_lable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Session.AS_Session.show_pocket_lable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="AS.AS_Session.AS_Session.show_receptor">
+<code class="descname">show_receptor</code><span class="sig-paren">(</span><em>snapshot_idx=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/AS/AS_Session.html#AS_Session.show_receptor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Session.AS_Session.show_receptor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="AS.AS_Session.AS_Session.view_snapshot">
+<code class="descname">view_snapshot</code><span class="sig-paren">(</span><em>snapshot_idx: int = 0</em><span class="sig-paren">)</span> &#x2192; object<a class="reference internal" href="_modules/AS/AS_Session.html#AS_Session.view_snapshot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Session.AS_Session.view_snapshot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-AS.AS_Struct">
+<span id="as-as-struct-module"></span><h2>AS.AS_Struct module<a class="headerlink" href="#module-AS.AS_Struct" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="AS.AS_Struct.AS_Structure">
+<em class="property">class </em><code class="descclassname">AS.AS_Struct.</code><code class="descname">AS_Structure</code><span class="sig-paren">(</span><em>trajectory</em>, <em>structure_type=2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/AS/AS_Struct.html#AS_Structure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Struct.AS_Structure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="AS.AS_Struct.AS_Structure.atom">
+<code class="descname">atom</code><span class="sig-paren">(</span><em>idx</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/AS/AS_Struct.html#AS_Structure.atom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Struct.AS_Structure.atom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gives an atom with idx
+:param idx: int
+:return: Atom</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="AS.AS_Struct.AS_Structure.atoms">
+<code class="descname">atoms</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/AS/AS_Struct.html#AS_Structure.atoms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Struct.AS_Structure.atoms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Atom iterator
+:return: iter</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="AS.AS_Struct.AS_Structure.calculate_contact">
+<code class="descname">calculate_contact</code><span class="sig-paren">(</span><em>binder</em>, <em>snapshot_idx=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/AS/AS_Struct.html#AS_Structure.calculate_contact"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Struct.AS_Structure.calculate_contact" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the contact index of the alpha cluster against the designated binder.
+The contact distance cutoff can be set in config
+:param binder: object, AS_Struct
+:param snapshot_idx: int</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="AS.AS_Struct.AS_Structure.get_cluster">
+<code class="descname">get_cluster</code><span class="sig-paren">(</span><em>snapshot_idx</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/AS/AS_Struct.html#AS_Structure.get_cluster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Struct.AS_Structure.get_cluster" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="AS.AS_Struct.AS_Structure.residue">
+<code class="descname">residue</code><span class="sig-paren">(</span><em>idx</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/AS/AS_Struct.html#AS_Structure.residue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Struct.AS_Structure.residue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gives a residue with idx
+:param idx: int
+:return: Residue</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="AS.AS_Struct.AS_Structure.residues">
+<code class="descname">residues</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/AS/AS_Struct.html#AS_Structure.residues"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#AS.AS_Struct.AS_Structure.residues" title="Permalink to this definition">¶</a></dt>
+<dd><p>Residue iterator
+:return: iter</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-AS">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-AS" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">AlphaSpace</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Haotian Li.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/AS.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

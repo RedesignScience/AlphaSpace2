@@ -1,0 +1,97 @@
+#AlphaSpace 1.0 
+#sample option input file
+
+
+output_dir = .
+### name of the output directory (note: no quotes, can be absolute path or path from cwd) 
+
+output_to_screen = False
+### write output to screen in addition to writing to "log.txt"
+
+lig_resid_file = lig_resid.pdb
+###file to read the resid list to write contact score features by residue
+
+use_TER = True
+### use "TER" to split protein and ligand, otherwise uses "HETATM" and chain ID
+
+do_reverse = False
+### swap the protein and the ligand (i.e. map the surface of the ligand)
+
+
+
+use_naccess = False
+### use Naccess program to calculate ASAs 
+
+use_NP_wt = True
+### use ASAs for non-polar weighting of alpha-spaces for pocket scoring
+
+use_exact_ACSA = True 
+### use exact pocket ASAs for non-polar weighting (more expensive calculation)
+
+
+
+get_face = True
+### calculate the interface atom list
+
+screen_by_face = True 
+### select pockets that include atoms from the interface atom list
+
+screen_face_perc = 0.5
+### minimum percentage of atoms that must be in the interface atom list 
+
+
+
+screen_by_lig_cntct = False 
+### select only pockets in "contact" with the ligand
+expand_around_cntct = False
+### expand selection to include all pockets overlapping the "contact" pockets 
+
+screen_by_seam = False
+### select pocket that contain atoms from >1 protein chain
+expand_around_seam = False
+### exapnd selection to include all pockets overlapping the "seam" pockets
+
+
+screen_by_score = False
+min_score = 100
+### select only pockets above a minimum score
+
+
+
+screen_by_perc_rank = False
+min_perc_rank = 0.9
+### select only pockets above of minimum percentage ranking
+
+
+
+screen_out_subsurf = False
+max_desolv_perc = 0.95
+### screen out pocket if too much of the alpha-cluster ASA is desolvated by the pocket
+### (i.e. pocket is beneath the surface) (more expensive calculation)
+
+
+
+screen_by_res = False 
+res_file = screen_resID.pdb 
+### select all pockets containing any atom from any residue within the residue pdb file
+
+
+
+pocket_communities = True
+tight_option = True
+### calculate and output the pocket communities
+### "tight" option uses additional 8.5A core clustering and aux/minor pocket distance cutoff
+
+
+
+contact_score = True
+### calculate contact score features by residue in "lig_resid_file"
+
+beta_cluster = True
+### recluster the alpha-clusters as a single beta_cluster
+
+get_beta_vol = False 
+###calculate and write the beta-cluster volume (total and occupied)
+
+
+

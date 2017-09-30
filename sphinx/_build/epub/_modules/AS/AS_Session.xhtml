@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+  <head>
+    <meta charset="utf-8" />
+    <title>AS.AS_Session</title>
+    <link rel="stylesheet" href="../../_static/epub.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" /> 
+  </head>
+  <body>
+
+    <div class="document">
+      <div class="documentwrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for AS.AS_Session</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">AS.AS_Struct</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">AS.AS_Config</span> <span class="k">import</span> <span class="n">AS_Config</span>
+<span class="kn">from</span> <span class="nn">AS.AS_Cluster</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">nglview</span> <span class="k">as</span> <span class="nn">nv</span>
+<span class="kn">import</span> <span class="nn">multiprocessing</span> <span class="k">as</span> <span class="nn">mp</span>
+
+
+<span class="c1"># noinspection PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit</span>
+<div class="viewcode-block" id="AS_Session"><a class="viewcode-back" href="../../AS.xhtml#AS.AS_Session.AS_Session">[docs]</a><span class="k">class</span> <span class="nc">AS_Session</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">receptor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">binder</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">guess_receptor_binder</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">guess_by_order</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Container for an AlphaSpace session, have child container receptor and binder</span>
+<span class="sd">        :param receptor: object</span>
+<span class="sd">        :param binder: object</span>
+<span class="sd">        :param guess_by_order: book</span>
+<span class="sd">        :param guess_receptor_binder: bool, guess is based on molecule size</span>
+<span class="sd">        :param config: object,AS_config</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">guess_receptor_binder</span> <span class="ow">and</span> <span class="n">receptor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">binder</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">guess_receptor_binder</span><span class="p">(</span><span class="n">receptor</span><span class="p">,</span> <span class="n">guess_by_order</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_receptor</span><span class="p">(</span><span class="n">receptor</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_binder</span><span class="p">(</span><span class="n">binder</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">AS_Config</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">others</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">view</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_frames</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">n_frames</span>
+
+    <span class="k">def</span> <span class="nf">_tessellation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Perform tessellation of a receptor snapshot</span>
+<span class="sd">        :param snapshot_idx: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">clusters</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">AS_Cluster</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">trajectory</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span>
+                                                          <span class="n">snapshot_idx</span><span class="p">)</span>
+
+<div class="viewcode-block" id="AS_Session.molecules"><a class="viewcode-back" href="../../AS.xhtml#AS.AS_Session.AS_Session.molecules">[docs]</a>    <span class="k">def</span> <span class="nf">molecules</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        iterate over receptor and binder, if there is any</span>
+<span class="sd">        :return: iter</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">binder</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">m</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">continue</span></div>
+
+<div class="viewcode-block" id="AS_Session.guess_receptor_binder"><a class="viewcode-back" href="../../AS.xhtml#AS.AS_Session.AS_Session.guess_receptor_binder">[docs]</a>    <span class="k">def</span> <span class="nf">guess_receptor_binder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">traj</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">by_order</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Divide receptor trajectory based on connectivity, set larger molecule as receptor.</span>
+<span class="sd">        This process automatically removes water and other solvents</span>
+<span class="sd">        :param traj: target trajectory</span>
+<span class="sd">        :param by_order: bool, if False, guess by appearances in file</span>
+<span class="sd">        :return: bool, if any macro molecule were found.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">molecule_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># remove solvent and divide into molecules. This will guess which one is the</span>
+        <span class="k">for</span> <span class="n">molecule</span> <span class="ow">in</span> <span class="n">traj</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">find_molecules</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">molecule</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">molecule</span><span class="p">))</span><span class="o">.</span><span class="n">residue</span><span class="o">.</span><span class="n">is_water</span><span class="p">:</span>
+                <span class="n">molecule_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">molecule</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">by_order</span><span class="p">:</span>
+            <span class="n">molecule_list</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="nb">len</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">molecule_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_receptor</span><span class="p">(</span><span class="n">traj</span><span class="o">.</span><span class="n">atom_slice</span><span class="p">([</span><span class="n">atom</span><span class="o">.</span><span class="n">index</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">molecule_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]]))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_binder</span><span class="p">(</span><span class="n">traj</span><span class="o">.</span><span class="n">atom_slice</span><span class="p">([</span><span class="n">atom</span><span class="o">.</span><span class="n">index</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">molecule_list</span><span class="p">[</span><span class="mi">1</span><span class="p">]]))</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">molecule_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_receptor</span><span class="p">(</span><span class="n">traj</span><span class="o">.</span><span class="n">atom_slice</span><span class="p">([</span><span class="n">atom</span><span class="o">.</span><span class="n">index</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">molecule_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]]))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">binder</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="AS_Session.set_binder"><a class="viewcode-back" href="../../AS.xhtml#AS.AS_Session.AS_Session.set_binder">[docs]</a>    <span class="k">def</span> <span class="nf">set_binder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">binder</span><span class="p">:</span> <span class="nb">object</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        set binder (ligand) in session</span>
+<span class="sd">        :param binder: object, trajectory</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">binder</span> <span class="o">=</span> <span class="n">AS_Structure</span><span class="p">(</span><span class="n">binder</span><span class="p">,</span> <span class="n">structure_type</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AS_Session.set_receptor"><a class="viewcode-back" href="../../AS.xhtml#AS.AS_Session.AS_Session.set_receptor">[docs]</a>    <span class="k">def</span> <span class="nf">set_receptor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">receptor</span><span class="p">:</span> <span class="nb">object</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        set receptor (protein) in session</span>
+<span class="sd">        :param receptor: object, trajectory</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span> <span class="o">=</span> <span class="n">AS_Structure</span><span class="p">(</span><span class="n">receptor</span><span class="p">,</span> <span class="n">structure_type</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AS_Session.set_others"><a class="viewcode-back" href="../../AS.xhtml#AS.AS_Session.AS_Session.set_others">[docs]</a>    <span class="k">def</span> <span class="nf">set_others</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">others</span><span class="p">:</span> <span class="nb">object</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        set other molecules: water etc</span>
+<span class="sd">        :param others: object, trajectory</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">others</span> <span class="o">=</span> <span class="n">AS_Structure</span><span class="p">(</span><span class="n">others</span><span class="p">,</span> <span class="n">structure_type</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AS_Session.run"><a class="viewcode-back" href="../../AS.xhtml#AS.AS_Session.AS_Session.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Private method, please use run</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tessellation</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="o">=</span><span class="n">snapshot_idx</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">binder</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">calculate_contact</span><span class="p">(</span><span class="n">binder</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">binder</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="o">=</span><span class="n">snapshot_idx</span><span class="p">)</span></div>
+
+    <span class="c1"># def run(self, cpu: int = 1):</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#     run the AlphaSpace main program</span>
+    <span class="c1">#     :param cpu: int, number of cpu you want to use, default use all</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#     if cpu != 1:</span>
+    <span class="c1">#         cpu = mp.cpu_count()</span>
+    <span class="c1">#     pool = mp.Pool(cpu)</span>
+    <span class="c1">#     pool.map(self._run, range(self.n_frames))</span>
+
+<div class="viewcode-block" id="AS_Session.screen_by_ligand_contact"><a class="viewcode-back" href="../../AS.xhtml#AS.AS_Session.AS_Session.screen_by_ligand_contact">[docs]</a>    <span class="k">def</span> <span class="nf">screen_by_ligand_contact</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">clusters</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span><span class="o">.</span><span class="n">screen_by_contact</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_pocket</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AS_Session.view_snapshot"><a class="viewcode-back" href="../../AS.xhtml#AS.AS_Session.AS_Session.view_snapshot">[docs]</a>    <span class="k">def</span> <span class="nf">view_snapshot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_receptor</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_binder</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_pocket</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">view</span></div>
+
+<div class="viewcode-block" id="AS_Session.show_receptor"><a class="viewcode-back" href="../../AS.xhtml#AS.AS_Session.AS_Session.show_receptor">[docs]</a>    <span class="k">def</span> <span class="nf">show_receptor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">snapshot_idx</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">view</span> <span class="o">=</span> <span class="n">nv</span><span class="o">.</span><span class="n">show_mdtraj</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">trajectory</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">],</span><span class="n">gui</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">receptor_view</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">view</span><span class="o">.</span><span class="n">component_0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">receptor_view</span><span class="o">.</span><span class="n">clear_representations</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">receptor_view</span><span class="o">.</span><span class="n">add_surface</span><span class="p">(</span><span class="n">selection</span><span class="o">=</span><span class="s1">&#39;protein&#39;</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AS_Session.show_pocket_lable"><a class="viewcode-back" href="../../AS.xhtml#AS.AS_Session.AS_Session.show_pocket_lable">[docs]</a>    <span class="k">def</span> <span class="nf">show_pocket_lable</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">view</span><span class="o">.</span><span class="n">component_2</span><span class="o">.</span><span class="n">add_representation</span><span class="p">(</span><span class="n">repr_type</span> <span class="o">=</span> <span class="s1">&#39;label&#39;</span><span class="p">,</span><span class="n">lableType</span> <span class="o">=</span> <span class="s1">&#39;residueindex&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AS_Session.show_binder"><a class="viewcode-back" href="../../AS.xhtml#AS.AS_Session.AS_Session.show_binder">[docs]</a>    <span class="k">def</span> <span class="nf">show_binder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">snapshot_idx</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">binder_view</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">view</span><span class="o">.</span><span class="n">add_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">binder</span><span class="o">.</span><span class="n">trajectory</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="AS_Session.show_pocket"><a class="viewcode-back" href="../../AS.xhtml#AS.AS_Session.AS_Session.show_pocket">[docs]</a>    <span class="k">def</span> <span class="nf">show_pocket</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">snapshot_idx</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pocket_view</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">view</span><span class="o">.</span><span class="n">add_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">clusters</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span><span class="o">.</span><span class="n">traj</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pocket_view</span><span class="o">.</span><span class="n">clear_representations</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pocket_view</span><span class="o">.</span><span class="n">add_representation</span><span class="p">(</span><span class="n">repr_type</span><span class="o">=</span><span class="s1">&#39;ball+stick&#39;</span><span class="p">,</span> <span class="n">selection</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;residueindex&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AS_Session.get_pockets"><a class="viewcode-back" href="../../AS.xhtml#AS.AS_Session.AS_Session.get_pockets">[docs]</a>    <span class="k">def</span> <span class="nf">get_pockets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">force</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">clusters</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span><span class="o">.</span><span class="n">pockets</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">force</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">clusters</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span><span class="o">.</span><span class="n">_build_pockets</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">clusters</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span><span class="o">.</span><span class="n">pockets</span></div></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">mdtraj</span>
+
+    <span class="n">test_binder_path</span> <span class="o">=</span> <span class="s1">&#39;/Users/haotian/Dropbox/pycharm_project/AlphaSpace/TestPDB/lig.pdb&#39;</span>
+    <span class="n">test_receptor_path</span> <span class="o">=</span> <span class="s1">&#39;/Users/haotian/Dropbox/pycharm_project/AlphaSpace/TestPDB/prot.pdb&#39;</span>
+
+    <span class="n">lig_traj</span> <span class="o">=</span> <span class="n">mdtraj</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">test_binder_path</span><span class="p">)</span>
+    <span class="n">prot_traj</span> <span class="o">=</span> <span class="n">mdtraj</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">test_receptor_path</span><span class="p">)</span>
+
+    <span class="nb">complex</span> <span class="o">=</span> <span class="n">AS_Session</span><span class="p">()</span>
+    <span class="nb">complex</span><span class="o">.</span><span class="n">set_receptor</span><span class="p">(</span><span class="n">prot_traj</span><span class="p">)</span>
+    <span class="nb">complex</span><span class="o">.</span><span class="n">set_binder</span><span class="p">(</span><span class="n">lig_traj</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+  </body>
+</html>
