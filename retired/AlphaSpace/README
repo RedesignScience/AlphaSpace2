@@ -1,9 +1,0 @@
-
-
-run "python Alphaspace.py complex.pdb" 
-
-or
-
-run "python Alphaspace.py protein.pdb ligand.pdb" 
-
-
