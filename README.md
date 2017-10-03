@@ -36,6 +36,6 @@ python -m ipykernel install --sys-prefix
 ## Running first AlphaSpace session
 
 Type in `jupyter notebook` in your terminal to start the notebook.
-You can import AlphaSpace using `from AS`
+You can import AlphaSpace using `from AS import *`
 Make sure the AS folder is in your script directory
 
