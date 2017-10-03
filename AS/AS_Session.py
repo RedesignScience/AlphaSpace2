@@ -35,7 +35,7 @@ class AS_Session(object):
         :param snapshot_idx: int
         """
         self.receptor.clusters[snapshot_idx] = AS_Cluster(self.receptor.trajectory[snapshot_idx], self.config,
-                                                          snapshot_idx)
+                                                          snapshot_idx,parent=self.receptor)
 
     def molecules(self):
         """
@@ -83,7 +83,7 @@ class AS_Session(object):
         :param binder: object, trajectory
         :return:
         """
-        self.binder = AS_Structure(binder, structure_type=1)
+        self.binder = AS_Structure(binder, structure_type=1,)
 
     def set_receptor(self, receptor: object):
         """
@@ -155,8 +155,8 @@ class AS_Session(object):
 if __name__ == '__main__':
     import mdtraj
 
-    test_binder_path = '/Users/haotian/Dropbox/pycharm_project/AlphaSpace/TestPDB/lig.pdb'
-    test_receptor_path = '/Users/haotian/Dropbox/pycharm_project/AlphaSpace/TestPDB/prot.pdb'
+    test_binder_path = '/Users/haotian/Dropbox/pycharm_project/AlphaSpace/Test_system/lig.pdb'
+    test_receptor_path = '/Users/haotian/Dropbox/pycharm_project/AlphaSpace/Test_system/prot.pdb'
 
     lig_traj = mdtraj.load(test_binder_path)
     prot_traj = mdtraj.load(test_receptor_path)

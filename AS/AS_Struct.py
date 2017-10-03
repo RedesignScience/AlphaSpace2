@@ -19,6 +19,11 @@ class AS_Structure:
         self.n_residues = self.topology.n_residues
         self.clusters = [None for _ in range(len(self))]
 
+        self.is_polar = np.array(
+            [(str(atom.element) in ['nitrogen', 'oxygen', 'sulfur']) for atom in self.topology.atoms])
+
+        self.contact_cluster = [[None for i in range(self.n_residues) ] for j in range(self.n_frames)]
+
 
     def __len__(self):
         """
@@ -90,3 +95,26 @@ class AS_Structure:
         """
         if binder:
             self.clusters[snapshot_idx].calculate_contact(binder.trajectory.xyz[snapshot_idx])
+
+
+    def assign_cluster_contact(self,AS_Cluster,snapshot_idx):
+        contact_matrix = AS_Cluster._get_binder_contact(self.trajectory[snapshot_idx])
+        for residue in self.topology.residues:
+            self.contact_cluster[snapshot_idx][residue.index] = AS_Cluster._take_contact_list(binder_pocket_contact_matrix=contact_matrix,
+                                                                                              binder_residue=residue)
+
+
+    def get_residue_contact_pocket(self,AS_Cluster,residue_index):
+        if self.contact_cluster[AS_Cluster.snapshot_idx][0] is None:
+            self.assign_cluster_contact(AS_Cluster,AS_Cluster.snapshot_idx)
+        contact_pocket_index = self.contact_cluster[AS_Cluster.snapshot_idx][residue_index]
+        for i in contact_pocket_index:
+            yield AS_Cluster.pocket(i)
+
+
+
+
+
+
+
+
