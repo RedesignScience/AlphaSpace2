@@ -24,6 +24,7 @@ def checkContact(coord_list_1,coord_list_2,threshold=None):
     """
     if threshold is None:
         threshold = AS_Config().contact_threshold
+    print(coord_list_1.shape,coord_list_2.shape)
     distance_matrix = cdist(coord_list_1,coord_list_2)
     return np.where(distance_matrix < threshold)
 

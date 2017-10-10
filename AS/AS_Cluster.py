@@ -10,24 +10,28 @@ from mdtraj import shrake_rupley
 
 # noinspection PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyTypeChecker
 class AS_Cluster(object):
-    def __init__(self, receptor, config, snapshot_idx=0, parent=None):
+    def __init__(self, receptor, snapshot_idx=0):
         """
-        Container for alpha, beta, gamma atoms
-        :param receptor_snapshot: coordinates of parent receptor
-        :param config: configuration file
+        Container for alpha, beta atoms and pocket
+        :param receptor: AS_Struct
+        :param snapshot_idx: int
         """
-        self.config = config
-        self.receptor_traj = receptor
+
+        self.receptor_traj = receptor.trajectory[snapshot_idx]
         self.receptor_top = receptor.top
         self.snapshot_idx = snapshot_idx
-        self.parent = parent
+        self.parent = receptor
+        self.config = receptor.config
+
         self.top = Topology()
-        # create empty initial chain and residue as atom containers
+
         self.top.add_chain()
         self.top.add_residue(name='ASC', chain=self.top.chain(0))
-        xyz = np.zeros([1, 0, 3])
-        self.traj = Trajectory(xyz, self.top)
-        self.is_polar = self.parent.is_polar
+
+        self.traj = Trajectory(np.zeros([1, 0, 3]), self.top)
+
+        self.is_polar = receptor.is_polar
+
         self.binder_contact = None
 
         self.tessellation(self.config)
@@ -114,14 +118,13 @@ class AS_Cluster(object):
     def build_beta_atoms(self):
         """
         cluster all alpha atoms into either beta atoms or pocket atoms (gamma)
-        :param into: str, 'gamma' or 'beta'
-        :return:
+        :return: fcluster
         """
         zmat = linkage(self.traj.xyz[0], method='average')
-        cluster = fcluster(zmat, self.config.beta_cluster_cutoff / 10, criterion='distance')
+        return fcluster(zmat, self.config.beta_cluster_cutoff / 10, criterion='distance')
 
     def _get_contact_matrix(self, traj):
-        contact = checkContact(self.traj.xyz[0], traj.xyz, threshold=self.config.contact_threshold / 10)
+        contact = checkContact(self.traj.xyz[0], traj.xyz[0], threshold=self.config.contact_threshold / 10)
         return contact
 
     def calculate_contact_space(self, traj=None, contact_matrix=None):
@@ -135,8 +138,6 @@ class AS_Cluster(object):
             contact_matrix = self._get_contact_matrix(traj)
         np.put(self.alpha_atom_contact, contact_matrix[0], 1)
         self.alpha_atom_space_contact = np.transpose(np.transpose(self.alpha_atom_score) * self.alpha_atom_contact)
-
-
 
     def _get_binder_contact(self, binder_traj, force=False):
         if self.binder_contact is None or force:
@@ -207,21 +208,19 @@ class AS_Cluster(object):
     def _build_pockets(self):
         pockets = []
         for p_residue in self.top.residues:
-            alpha_atom_idx = self.pocket_alpha_atoms[p_residue.index]
-            p_total_score = np.sum(np.take(self.alpha_atom_score, alpha_atom_idx, axis=0), axis=0)
+            pocket_alpha_atom_idx = self.pocket_alpha_atoms[p_residue.index]
+            p_total_score = np.sum(np.take(self.alpha_atom_score, pocket_alpha_atom_idx, axis=0), axis=0)
             p_contact_score = np.sum(
                 np.take(self.alpha_atom_score * np.expand_dims(self.alpha_atom_contact, axis=1),
-                        alpha_atom_idx, axis=0), axis=0)
-            lining_atoms = self.get_lining_atoms(alpha_atom_idx)
-            lining_residues = self.get_lining_residues(alpha_atom_idx)
+                        pocket_alpha_atom_idx, axis=0), axis=0)
             pocket = AS_Pocket(contact_score=p_contact_score, total_score=p_total_score, parent=self,
                                index=p_residue.index)
-            pocket.lining_atoms = lining_atoms
-            pocket.lining_residues = lining_residues
+            pocket.lining_atoms = self.get_lining_atoms(pocket_alpha_atom_idx)
+            pocket.lining_residues = self.get_lining_residues(pocket_alpha_atom_idx)
             pockets.append(pocket)
         self.pocket_list = pockets
 
-    def _take_contact_list(self, binder_pocket_contact_matrix, binder_residue):
+    def _get_binder_residue_contact_pocket_list(self, binder_pocket_contact_matrix, binder_residue):
         """
         This takes the contact information from the already calculated contact matrix and returns of array of bool,
         each represent whether the residue is in contact with the particular pocket
