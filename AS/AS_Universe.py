@@ -3,6 +3,7 @@ from AS.AS_Config import AS_Config
 from AS.AS_Cluster import *
 import nglview as nv
 import multiprocessing as mp
+from mdtraj import shrake_rupley
 
 
 # noinspection PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit
@@ -30,18 +31,16 @@ class AS_Session(object):
         self.view = None
         self.n_frames = self.receptor.n_frames
 
-
-
     def __repr__(self):
         return "Receptor of {} residues {} atoms | Binder of {} residues {} atoms".format(self.receptor.n_residues,
                                                                                           self.receptor.n_atoms,
                                                                                           self.binder.n_residues,
                                                                                           self.binder.n_atoms)
-    @property
-    def n_atoms(self):
+
+    def n_atoms(self) -> int:
         """
         return the total number of atoms in receptor and binders
-        :return:
+        :return: int
         """
         return self.receptor.n_atoms + self.binder.n_atoms
 
@@ -64,6 +63,9 @@ class AS_Session(object):
                 yield m
             else:
                 continue
+
+    def pockets(self, snapshot_idx):
+        return self.receptor.clusters[snapshot_idx].pockets
 
     def cluster(self, snapshot_idx=0):
         """
@@ -159,8 +161,6 @@ class AS_Session(object):
             self.receptor.clusters[snapshot_idx]._build_pockets()
         return self.receptor.clusters[snapshot_idx].pockets
 
-
-
     """
     Visualization methods
     """
@@ -187,6 +187,47 @@ class AS_Session(object):
         self.pocket_view = self.view.add_trajectory(self.receptor.clusters[snapshot_idx].traj)
         self.pocket_view.clear_representations()
         self.pocket_view.add_representation(repr_type='ball+stick', selection='all', color='residueindex')
+
+    def _get_face_atoms(self, snapshot_idx=0):
+        """
+        Calculate the snapshot interface atom.
+        The interface atom is defined as whose ASA is reduced with introduction of ligand.
+        :param snapshot_idx: int
+        :return: numpy.array
+        """
+        receptor_snapshot = self.receptor.traj[snapshot_idx]
+
+        complex_snapshot = receptor_snapshot.stack(self.binder.traj[snapshot_idx])
+
+        receptor_snapshot_sasa = shrake_rupley(receptor_snapshot)[0]
+
+        complex_snapshot_sasa = shrake_rupley(complex_snapshot)[0]
+
+        sasa_diff = receptor_snapshot_sasa - complex_snapshot_sasa[:len(receptor_snapshot_sasa)]
+
+        interface_atom_index = np.where(sasa_diff > 0)[0]
+
+        return set(interface_atom_index)
+
+    def _get_face_pockets(self, snapshot_idx=0, interface_atom_index=None):
+        """
+        Get interface pockets
+        :param snapshot_idx: int
+        :return: list of AS_Pocket
+        """
+        pockets = self.get_pockets(snapshot_idx)
+        if interface_atom_index is None:
+            interface_atom_index = self._get_face_atoms(snapshot_idx)
+        for pocket in pockets:
+            pocket_interface_atom_index = interface_atom_index.intersection(pocket.get_lining_atoms())
+            if len(pocket_interface_atom_index) / float(len(pocket.get_lining_atoms())) >= self.config.screen_face_perc:
+                pocket.is_interface = True
+
+        return [p for p in pockets if p.is_interface]
+
+
+
+
 
 
 if __name__ == '__main__':

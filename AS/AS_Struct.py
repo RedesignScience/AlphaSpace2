@@ -13,7 +13,7 @@ class AS_Structure:
         # 0 for receptor, 1 for binder, 3 for unassigned
         self.structure_type = structure_type
         self.top = self.topology = trajectory.topology
-        self.trajectory = trajectory
+        self.traj = self.trajectory = trajectory
         self.n_atoms = self.topology.n_atoms
         self.n_frames = self.trajectory.n_frames
         self.n_residues = self.topology.n_residues
@@ -104,10 +104,10 @@ class AS_Structure:
         self.clusters[snapshot_idx] = AS_Cluster(self, snapshot_idx)
 
     def assign_binder_contact_pocket(self, AS_Cluster, snapshot_idx):
-        contact_matrix = AS_Cluster._get_binder_contact(self.trajectory[snapshot_idx])
+        contact_matrix = AS_Cluster._get_contact_list(self.trajectory[snapshot_idx])
         for residue in self.topology.residues:
-            self.contact_cluster[snapshot_idx][residue.index] = AS_Cluster._get_binder_residue_contact_pocket_list(
-                binder_pocket_contact_matrix=contact_matrix,
+            self.contact_cluster[snapshot_idx][residue.index] = AS_Cluster._get_pockets_by_binder_contact(
+                contact_matrix=contact_matrix,
                 binder_residue=residue)
 
     def get_residue_contact_pocket(self, AS_Cluster, residue_index):
