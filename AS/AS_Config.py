@@ -3,11 +3,11 @@ from colour import Color
 
 class AS_Config(object):
     def __init__(self):
+
+
         self.min_r = 3.2
         self.max_r = 5.4
-
         self.pocket_cluster_distance = 4.7
-
         self.contact_threshold = 3.0
 
         self.screen_by_ligand_contact = True

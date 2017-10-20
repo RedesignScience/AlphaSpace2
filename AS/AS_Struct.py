@@ -94,7 +94,7 @@ class AS_Structure:
         :param snapshot_idx: int
         """
         if binder:
-            self.clusters[snapshot_idx].calculate_contact_space(binder.trajectory[snapshot_idx])
+            self.clusters[snapshot_idx]._get_contact_space()
 
     def generate_cluster(self, snapshot_idx=0):
         """
