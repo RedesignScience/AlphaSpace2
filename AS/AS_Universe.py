@@ -8,7 +8,7 @@ from mdtraj import shrake_rupley
 
 # noinspection PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit
 class AS_Universe(object):
-    def __init__(self,receptor=None,binder=None,guess_receptor_binder=True,guess_by_order=True,config=None):
+    def __init__(self, receptor=None, binder=None, guess_receptor_binder=True, guess_by_order=True, config=None):
         """
         Container for an AlphaSpace session, have child container receptor and binder
         :param receptor: object
@@ -22,20 +22,24 @@ class AS_Universe(object):
             self.config = config
         else:
             self.config = AS_Config()
-        if guess_receptor_binder and receptor is not None and binder is None:
+
+        self.set_receptor(receptor)
+        self.set_binder(binder)
+
+        if guess_receptor_binder:
             self.guess_receptor_binder(receptor,guess_by_order)
-        else:
-            self.set_receptor(receptor)
-            self.set_binder(binder)
+
+
         self.others = None
         self.view = None
-        self.n_frames = self.n_snapshots = self.receptor.n_frames
 
     def __repr__(self):
         return "Receptor of {} residues {} atoms | Binder of {} residues {} atoms".format(self.receptor.n_residues,
                                                                                           self.receptor.n_atoms,
                                                                                           self.binder.n_residues,
                                                                                           self.binder.n_atoms)
+
+
 
     def n_atoms(self) -> int:
         """
@@ -58,16 +62,16 @@ class AS_Universe(object):
         iterate over receptor and binder, if there is any
         :return: iter
         """
-        for m in self.receptor,self.binder:
+        for m in self.receptor, self.binder:
             if m is not None:
                 yield m
             else:
                 continue
 
-    def pockets(self,snapshot_idx):
+    def pockets(self, snapshot_idx):
         return self.receptor.clusters[snapshot_idx].pockets
 
-    def cluster(self,snapshot_idx: int = 0) -> AS_Cluster:
+    def cluster(self, snapshot_idx: int = 0) -> AS_Cluster:
         """
         return list of clusters
         :param snapshot_idx: int
@@ -83,7 +87,14 @@ class AS_Universe(object):
         """
         return self.receptor.clusters
 
-    def guess_receptor_binder(self,traj,by_order: bool = True) -> bool:
+    @property
+    def n_frames(self):
+        if self.receptor is None:
+            return 0
+        else:
+            return self.receptor.trajectory.n_frames
+
+    def guess_receptor_binder(self, traj, by_order: bool = True) -> bool:
         """
         Divide receptor trajectory based on connectivity, set larger molecule as receptor.
         This process automatically removes water and other solvents
@@ -91,6 +102,8 @@ class AS_Universe(object):
         :param by_order: bool, if False, guess by appearances in file
         :return: bool, if any macro molecule were found.
         """
+        if traj is None:
+            return False
         molecule_list = []
         # remove solvent and divide into molecules. This will guess which one is the
         for molecule in traj.topology.find_molecules():
@@ -100,7 +113,7 @@ class AS_Universe(object):
                 continue
 
         if not by_order:
-            molecule_list.sort(key=len,reverse=True)
+            molecule_list.sort(key=len, reverse=True)
         if len(molecule_list) > 1:
             self.set_receptor(traj.atom_slice([atom.index for atom in molecule_list[0]]))
             self.set_binder(traj.atom_slice([atom.index for atom in molecule_list[1]]))
@@ -112,39 +125,62 @@ class AS_Universe(object):
         else:
             return False
 
-    def set_binder(self,binder: object):
+    def set_binder(self, structure: object, append=False):
         """
         set binder (ligand) in session
-        :param binder: object, trajectory
+        :param structure: object, trajectory
         :return:
         """
-        self.binder = AS_Structure(binder,structure_type=1,parent=self)
+        if structure is None:
+            self.binder = None
+            return
 
-    def set_receptor(self,receptor: object):
+        if append and (self.binder is not None):
+            x = self.binder.trajectory + structure
+            self.binder.trajectory = x
+            print(x.n_frames,self.binder.n_frames,structure.n_frames)
+
+        else:
+            self.binder = AS_Structure(structure, structure_type=1, parent=self)
+
+    def set_receptor(self, structure: object, append=False):
         """
         set receptor (protein) in session
         :param receptor: object, trajectory
+        :param append: bool
         :return:
         """
-        self.receptor = AS_Structure(receptor,structure_type=0,parent=self)
+        if structure is None:
+            self.receptor = None
+            return
 
-    def set_others(self,others: object):
+        if append and (self.receptor is not None):
+            x = self.receptor.trajectory + structure
+            self.receptor.trajectory = x
+            print(x.n_frames,self.receptor.n_frames,structure.n_frames)
+
+        else:
+            self.receptor = AS_Structure(structure, structure_type=0, parent=self)
+
+
+
+    def set_others(self, others: object):
         """
         set other molecules: water etc
         :param others: object, trajectory
         :return:
         """
-        self.others = AS_Structure(others,structure_type=0,parent=self)
+        self.others = AS_Structure(others, structure_type=0, parent=self)
 
-    def run(self,snapshot_idx=0):
+    def run(self, snapshot_idx=0):
         """
         Private method, please use run
         """
         self.receptor.generate_cluster(snapshot_idx=snapshot_idx)
         if self.binder:
-            self.receptor.calculate_contact(binder=self.binder,snapshot_idx=snapshot_idx)
+            self.receptor.calculate_contact(binder=self.binder, snapshot_idx=snapshot_idx)
 
-    def run_mp(self,cpu: int = 1):
+    def run_mp(self, cpu: int = 1):
         """
         run the AlphaSpace main program
         :param cpu: int, number of cpu you want to use, default use all
@@ -152,44 +188,42 @@ class AS_Universe(object):
         if cpu != 1:
             cpu = mp.cpu_count()
         pool = mp.Pool(cpu)
-        pool.map(self.run,range(self.n_frames))
+        pool.map(self.run, range(self.n_frames))
 
-    def screen_by_ligand_contact(self,snapshot_idx: int = 0):
+    def screen_by_ligand_contact(self, snapshot_idx: int = 0):
         self.receptor.clusters[snapshot_idx].screen_by_contact()
 
-    def get_pockets(self,snapshot_idx: int = 0,force: bool = False) -> list:
-        if len(self.receptor.clusters[snapshot_idx].pockets) == 0 or force:
-            self.receptor.clusters[snapshot_idx]._build_pockets()
+    def get_pockets(self, snapshot_idx: int = 0) -> list:
         return self.receptor.clusters[snapshot_idx].pockets
 
     """
     Visualization methods
     """
 
-    def view_snapshot(self,snapshot_idx: int = 0) -> object:
+    def view_snapshot(self, snapshot_idx: int = 0) -> object:
         self.show_receptor(snapshot_idx)
         self.show_binder(snapshot_idx)
         self.show_pocket(snapshot_idx)
         return self.view
 
-    def show_receptor(self,snapshot_idx=0):
-        self.view = nv.show_mdtraj(self.receptor.trajectory[snapshot_idx],gui=True)
+    def show_receptor(self, snapshot_idx=0):
+        self.view = nv.show_mdtraj(self.receptor.trajectory[snapshot_idx], gui=True)
         self.receptor_view = self.view.component_0
         self.receptor_view.clear_representations()
-        self.receptor_view.add_surface(selection='protein',opacity=1,color='white')
+        self.receptor_view.add_surface(selection='protein', opacity=1, color='white')
 
     def show_pocket_label(self):
-        self.view.component_2.add_representation(repr_type='label',lableType='residueindex')
+        self.view.component_2.add_representation(repr_type='label', lableType='residueindex')
 
-    def show_binder(self,snapshot_idx=0):
+    def show_binder(self, snapshot_idx=0):
         self.binder_view = self.view.add_trajectory(self.binder.trajectory[snapshot_idx])
 
-    def show_pocket(self,snapshot_idx=0):
+    def show_pocket(self, snapshot_idx=0):
         self.pocket_view = self.view.add_trajectory(self.receptor.clusters[snapshot_idx].traj)
         self.pocket_view.clear_representations()
-        self.pocket_view.add_representation(repr_type='ball+stick',selection='all',color='residueindex')
+        self.pocket_view.add_representation(repr_type='ball+stick', selection='all', color='residueindex')
 
-    def _get_face_atoms(self,snapshot_idx=0):
+    def _get_face_atoms(self, snapshot_idx=0):
         """
         Calculate the snapshot interface atom.
         The interface atom is defined as whose ASA is reduced with introduction of ligand.
@@ -224,7 +258,7 @@ class AS_Universe(object):
                 for pocket in self.cluster(snapshot_idx).pockets:
                     lining_atoms = self.cluster(snapshot_idx)._get_lining_atoms(pocket.get_alpha_index())
                     if len(face_atoms_index.intersection(lining_atoms)) > 0:
-                        face_pocket_alpha_index = face_pocket_alpha_index.union(set(pocket.get_alpha_index))
+                        face_pocket_alpha_index = face_pocket_alpha_index.union(set(pocket.get_alpha_index()))
                 self.cluster(snapshot_idx)._slice(face_pocket_alpha_index)
 
         if self.config.screen_by_score:
@@ -238,7 +272,7 @@ class AS_Universe(object):
         if self.config.screen_by_res:
             for cluster in self.clusters:
                 face_pocket_alpha_index = set()
-                # TODO Finish this section!!!!!
+                # TODO Finish this section
                 for pocket in cluster.pockets:
                     if pocket.get_lining_residues:
                         face_pocket_alpha_index.union(set(pocket.get_alpha_index))

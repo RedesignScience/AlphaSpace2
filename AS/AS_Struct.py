@@ -12,13 +12,8 @@ class AS_Structure:
 
         # 0 for receptor, 1 for binder, 3 for unassigned
         self.structure_type = structure_type
-        self.top = self.topology = trajectory.topology
-        self.traj = self.trajectory = trajectory
-        self.n_atoms = self.topology.n_atoms
-        self.n_frames = self.trajectory.n_frames
-        self.n_residues = self.topology.n_residues
-        self.clusters = [None for _ in range(len(self))]
-
+        self._clusters = {}
+        self.trajectory = trajectory
         self.parent = parent
         self.config = self.parent.config
         self.is_polar = np.array(
@@ -40,28 +35,58 @@ class AS_Structure:
         else:
             return "Unknown part trajectory of {} residues in {} snapshots".format(self.topology.n_residues, len(self))
 
+    @property
+    def top(self):
+
+        return self.trajectory.topology
+
+    @property
+    def traj(self):
+        return self.trajectory
+
+    @property
+    def n_atoms(self):
+        return self.trajectory.n_atoms
+
+    @property
+    def n_frames(self):
+        return self.trajectory.n_frames
+
+    @property
+    def n_residues(self):
+        return self.topology.n_residues
+
+    @property
+    def topology(self):
+        return self.trajectory.topology
+
+
     def cluster(self, snapshot_idx):
         return self.clusters[snapshot_idx]
 
+    @property
     def clusters(self):
-        return self.clusters
+        return self._clusters
 
+    @property
     def n_clusters(self):
-        return self.n_frames
+        return self.trajectory.n_frames
 
+    @property
     def residues(self):
         """
         Residue iterator
         :return: iter
         """
-        return self.topology.residues()
+        return self.topology.residues
 
+    @property
     def atoms(self):
         """
         Atom iterator
         :return: iter
         """
-        return self.topology.atoms()
+        return self.topology.atoms
 
     def residue(self, idx):
         """
@@ -70,6 +95,8 @@ class AS_Structure:
         :return: Residue
         """
         return self.topology.residue(idx)
+
+
 
     def atom(self, idx):
         """
@@ -101,6 +128,7 @@ class AS_Structure:
         Perform tessellation of a receptor snapshot
         :param snapshot_idx: int
         """
+
         self.clusters[snapshot_idx] = AS_Cluster(self, snapshot_idx)
 
     def assign_binder_contact_pocket(self, AS_Cluster, snapshot_idx):
