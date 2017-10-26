@@ -35,16 +35,12 @@ class AS_Cluster(object):
         self.xyz = self.traj.xyz
 
         # Link pocket name change to trajectory object
-        self.n_alpha = self.top.n_atoms
-        self.n_pockets = self.top.n_residues
-        self.alphas = self.top._atoms
-        self.pockets = self.top._residues
 
         # Initialize storage array
-        self.contact = np.empty(self.n_alpha, int)
-        self.polar_score = np.empty(self.n_alpha, float)
-        self.nonpolar_score = np.empty(self.n_alpha, float)
-        self.total_score = np.empty(self.n_alpha, float)
+        self.contact = np.empty(self.n_alphas, int)
+        self.polar_score = np.empty(self.n_alphas, float)
+        self.nonpolar_score = np.empty(self.n_alphas, float)
+        self.total_score = np.empty(self.n_alphas, float)
 
         self._tessellation(self.config)
         if self.parent.structure_type == 0:
@@ -68,51 +64,58 @@ class AS_Cluster(object):
         perform tessellation in order to generate the cluster of alpha atoms.
         :param config: object
         """
-        # Generate Raw Tessellation vertices
-        raw_alpha_lining = Delaunay(self.receptor_snapshot.xyz[0]).simplices
+        # Generate Raw Tessellation simplices
+        raw_alpha_lining_idx = Delaunay(self.receptor_snapshot.xyz[0]).simplices
+        # Take coordinates from xyz file
+        raw_alpha_lining_xyz = np.take(self.receptor_snapshot.xyz[0], raw_alpha_lining_idx[:, 0].flatten(), axis=0)
+
+        # generate alpha atom coordinates
         raw_alpha_xyz = Voronoi(self.receptor_snapshot.xyz[0]).vertices
-        raw_lining_xyz = np.take(self.receptor_snapshot.xyz[0], raw_alpha_lining[:, 0].flatten(), axis=0)
 
-        # Calculate Raw alpha sphere radii
-        raw_alpha_sphere_radii = np.linalg.norm(raw_lining_xyz - raw_alpha_xyz, axis=1)
+        # Calculate alpha sphere radii
+        raw_alpha_sphere_radii = np.linalg.norm(raw_alpha_lining_xyz - raw_alpha_xyz, axis=1)
 
-        # Filter the data based on radii
-        filtered_idx = np.where(np.logical_and(config.min_r / 10.0 <= raw_alpha_sphere_radii,
+        # Filter the data based on radii cutoff
+        filtered_alpha_idx = np.where(np.logical_and(config.min_r / 10.0 <= raw_alpha_sphere_radii,
                                                raw_alpha_sphere_radii <= config.max_r / 10.0))[0]
-        filtered_lining = np.take(raw_alpha_lining, filtered_idx, axis=0)
 
-        self.alpha_lining = filtered_lining
 
-        filtered_xyz = np.take(raw_alpha_xyz, filtered_idx, axis=0)
+        self.alpha_lining = np.take(raw_alpha_lining_idx, filtered_alpha_idx, axis=0)
+
+        filtered_alpha_xyz = np.take(raw_alpha_xyz, filtered_alpha_idx, axis=0)
 
         # cluster the remaining vertices to assign index of belonging pockets
-        zmat = linkage(filtered_xyz, method='average')
-        cluster = fcluster(zmat, self.config.pocket_cluster_distance / 10, criterion='distance')  # /10 turn A to nm
+        zmat = linkage(filtered_alpha_xyz, method='average')
+        pocket_idx = fcluster(zmat, self.config.pocket_cluster_distance / 10, criterion='distance')  # /10 turn A to nm
 
-        self.alpha_pocket_index = cluster - 1  # because cluster index start from 1
+        self.alpha_pocket_index = pocket_idx - 1  # because cluster index start from 1
+
+        # print(max(pocket_idx),min(pocket_idx))
 
         # Reorganize into list of pockets
-        self.pocket_alpha_atoms = [[] for _ in range(max(self.alpha_pocket_index) + 1)]
-        for alpha_cluster_i, alpha_atom_idx in sorted(
-                zip(self.alpha_pocket_index, range(len(self.alpha_pocket_index)))):
-            self.pocket_alpha_atoms[alpha_cluster_i].append(alpha_atom_idx)
+        # self.pocket_alpha_atoms = [[] for _ in range(max(cluster))]
+        # for alpha_cluster_i, alpha_atom_idx in sorted(
+        #         zip(self.alpha_pocket_index, range(len(self.alpha_pocket_index)))):
+        #     self.pocket_alpha_atoms[alpha_cluster_i].append(alpha_atom_idx)
 
         # Generate Residue container for pockets and add in atoms as AAC
-        for _ in self.pocket_alpha_atoms[1:]:
+        for _ in range(max(pocket_idx)-1):
             residue = self.top.add_residue(name='ASC', chain=self.top.chain(0))
+            residue.cluster = self
         for i, pocket_index in enumerate(self.alpha_pocket_index):
-            atom = self.top.add_atom('AAC', None, self.top.residue(pocket_index), i)
+            atom = self.top.add_atom('AAC', None, self.top.residue(pocket_index), pocket_index)
+            atom.index = i
 
         update_atom_methods(Atom)
         update_residue_method(Residue)
 
         for pocket in self.pockets:
-            pocket.set_cluster(self)  # assign the parent cluster
+            pocket.cluster = self  # assign the parent cluster
             alpha_index = [alpha.index for alpha in pocket.atoms]
             pocket.lining_atom_idx = self._get_lining_atoms(alpha_index)   # Assign pocket lining atoms
             pocket.lining_residue_idx = self._get_lining_residues(alpha_index)
         # Load trajectories
-        self.traj.xyz = np.expand_dims(filtered_xyz, axis=0)
+        self.traj.xyz = np.expand_dims(filtered_alpha_xyz, axis=0)
         filtered_lining_xyz = np.take(self.receptor_snapshot.xyz[0], self.alpha_lining, axis=0)
         # calculate the polarity of alpha atoms
         self.total_score = np.array([getTetrahedronVolume(i) for i in filtered_lining_xyz])
@@ -126,6 +129,18 @@ class AS_Cluster(object):
         self.nonpolar_score = self.total_score - self.polar_score
 
         self.contact = np.zeros(self.top.n_atoms, dtype=int)
+
+        # centoids = []
+        # for pocket in self.pockets:
+        #     centoid = np.zeros([3])
+        #     for index in [alpha.index for alpha in pocket.atoms]:
+        #         centoid = centoid + self.traj.xyz[0][index]
+        #     centoids.append(centoid/pocket.n_atoms)
+        #
+        # n
+        #
+        # exit()
+
 
     def _get_SASA(self):
         """
@@ -162,30 +177,33 @@ class AS_Cluster(object):
         contact_space = self.contact * self.total_score
         return contact_space
 
-    def _slice(self, alpha_indices: list) -> None:
+    def _slice(self, new_alpha_indices: list) -> None:
         """
-        This updates the alpha atom indexing after removing noncontact ones
-        :param alpha_indices: list or set
+        This updates the alpha atom indexing after removing ones no in indices
+        :param new_alpha_indices: list or set
         :return: None
         """
-        if type(alpha_indices) != list:
-            alpha_indices = list(alpha_indices)
-        alpha_indices.sort()
-        self.traj.atom_slice(alpha_indices, inplace=True)
+        if type(new_alpha_indices) != list:
+            new_alpha_indices = list(new_alpha_indices)
+        new_alpha_indices.sort()
+        self.traj.atom_slice(new_alpha_indices, inplace=True)
         self.top = self.traj.top
 
-        for pocket_idx, pocket in enumerate(self.pockets):
-            pocket.index = pocket_idx
-        for atom_idx, atom in enumerate(self.alphas):
-            atom.index = atom_idx
-        # self.alpha_atom_pocket_index = [atom.residue.index for atom in self.top.atoms]
-        # self.alpha_atom_lining = np.take(self.alpha_atom_lining, index_list, axis=0)
 
-        # update array storage
-        self.contact = np.take(self.contact, alpha_indices, axis=0)
-        self.total_score = np.take(self.total_score, alpha_indices, axis=0)
-        self.polar_score = np.take(self.polar_score, alpha_indices, axis=0)
-        self.nonpolar_score = np.take(self.nonpolar_score, alpha_indices, axis=0)
+        self.alpha_lining = np.take(self.alpha_lining, new_alpha_indices,axis=0)
+        self.contact = np.take(self.contact, new_alpha_indices, axis=0)
+        self.total_score = np.take(self.total_score, new_alpha_indices, axis=0)
+        self.polar_score = np.take(self.polar_score, new_alpha_indices, axis=0)
+        self.nonpolar_score = np.take(self.nonpolar_score, new_alpha_indices, axis=0)
+
+        for pocket_idx, pocket in enumerate(self.pockets):
+            pocket.cluster = self
+            pocket.index = pocket_idx
+        for atom_idx, atom in enumerate(self.top._atoms):
+            atom.index = atom_idx
+
+
+
 
     def _get_lining_atoms(self, index_list: list) -> np.array:
         """
@@ -215,6 +233,25 @@ class AS_Cluster(object):
         xyz = np.take(self.traj.xyz[0], cluster, axis=0)
         return np.mean(xyz, axis=0)
 
+    @property
+    def n_alphas(self):
+        return self.top.n_atoms
+
+    @property
+    def n_pockets(self):
+        return self.top.n_residues
+
+    @property
+    def alphas(self):
+        for atom in self.top._atoms:
+            yield atom
+
+    @property
+    def pockets(self):
+        return self.top.residues
+
+    def pocket(self,index):
+        return self.top.residue(index)
 
 class AS_DPocket:
     def __init__(self, universe):

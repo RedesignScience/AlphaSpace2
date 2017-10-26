@@ -69,7 +69,8 @@ class AS_Universe(object):
                 continue
 
     def pockets(self, snapshot_idx):
-        return self.receptor.clusters[snapshot_idx].pockets
+        return self.receptor._clusters[snapshot_idx].pockets
+
 
     def cluster(self, snapshot_idx: int = 0) -> AS_Cluster:
         """
@@ -77,7 +78,7 @@ class AS_Universe(object):
         :param snapshot_idx: int
         :return: object, AS_Cluster
         """
-        return self.receptor.clusters[snapshot_idx]
+        return self.receptor._clusters[snapshot_idx]
 
     @property
     def clusters(self):
@@ -138,7 +139,6 @@ class AS_Universe(object):
         if append and (self.binder is not None):
             x = self.binder.trajectory + structure
             self.binder.trajectory = x
-            print(x.n_frames,self.binder.n_frames,structure.n_frames)
 
         else:
             self.binder = AS_Structure(structure, structure_type=1, parent=self)
@@ -157,7 +157,6 @@ class AS_Universe(object):
         if append and (self.receptor is not None):
             x = self.receptor.trajectory + structure
             self.receptor.trajectory = x
-            print(x.n_frames,self.receptor.n_frames,structure.n_frames)
 
         else:
             self.receptor = AS_Structure(structure, structure_type=0, parent=self)
@@ -213,13 +212,13 @@ class AS_Universe(object):
         self.receptor_view.add_surface(selection='protein', opacity=1, color='white')
 
     def show_pocket_label(self):
-        self.view.component_2.add_representation(repr_type='label', lableType='residueindex')
+        self.view.component_2.add_representation(repr_type='label', lableType='residueindex',color = 'residueindex')
 
     def show_binder(self, snapshot_idx=0):
         self.binder_view = self.view.add_trajectory(self.binder.trajectory[snapshot_idx])
 
     def show_pocket(self, snapshot_idx=0):
-        self.pocket_view = self.view.add_trajectory(self.receptor.clusters[snapshot_idx].traj)
+        self.pocket_view = self.view.add_trajectory(self.receptor.cluster(snapshot_idx).traj)
         self.pocket_view.clear_representations()
         self.pocket_view.add_representation(repr_type='ball+stick', selection='all', color='residueindex')
 

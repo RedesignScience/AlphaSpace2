@@ -16,24 +16,12 @@ class AS_Structure:
         self.trajectory = trajectory
         self.parent = parent
         self.config = self.parent.config
-        self.is_polar = np.array(
-            [(str(atom.element) in ['nitrogen', 'oxygen', 'sulfur']) for atom in self.topology.atoms])
         self.contact_cluster = [[None for i in range(self.n_residues)] for j in range(self.n_frames)]
 
-    def __len__(self):
-        """
-        Returns number of frames
-        :return: int
-        """
-        return self.n_frames
-
-    def __repr__(self):
-        if self.structure_type == 0:
-            return "Receptor part trajectory of {} residues in {} snapshots".format(self.topology.n_residues, len(self))
-        elif self.structure_type == 1:
-            return "Binder part trajectory of {} residues in {} snapshots".format(self.topology.n_residues, len(self))
-        else:
-            return "Unknown part trajectory of {} residues in {} snapshots".format(self.topology.n_residues, len(self))
+    @property
+    def is_polar(self):
+        return np.array(
+            [(str(atom.element) in ['nitrogen', 'oxygen', 'sulfur']) for atom in self.topology._atoms])
 
     @property
     def top(self):
@@ -62,11 +50,11 @@ class AS_Structure:
 
 
     def cluster(self, snapshot_idx):
-        return self.clusters[snapshot_idx]
+        return self._clusters[snapshot_idx]
 
     @property
     def clusters(self):
-        return self._clusters
+        return self._clusters.items()
 
     @property
     def n_clusters(self):
@@ -86,7 +74,8 @@ class AS_Structure:
         Atom iterator
         :return: iter
         """
-        return self.topology.atoms
+        for atom in self.top._atoms:
+            yield atom
 
     def residue(self, idx):
         """
@@ -106,6 +95,22 @@ class AS_Structure:
         """
         return self.topology.atom(idx)
 
+    def __len__(self):
+        """
+        Returns number of frames
+        :return: int
+        """
+        return self.n_frames
+
+    def __repr__(self):
+        if self.structure_type == 0:
+            return "Receptor part trajectory of {} residues in {} snapshots".format(self.topology.n_residues, len(self))
+        elif self.structure_type == 1:
+            return "Binder part trajectory of {} residues in {} snapshots".format(self.topology.n_residues, len(self))
+        else:
+            return "Unknown part trajectory of {} residues in {} snapshots".format(self.topology.n_residues, len(self))
+
+
     def __bool__(self):
         """
         Check if empty
@@ -121,7 +126,7 @@ class AS_Structure:
         :param snapshot_idx: int
         """
         if binder:
-            self.clusters[snapshot_idx]._get_contact_space()
+            self._clusters[snapshot_idx]._get_contact_space()
 
     def generate_cluster(self, snapshot_idx=0):
         """
@@ -129,7 +134,7 @@ class AS_Structure:
         :param snapshot_idx: int
         """
 
-        self.clusters[snapshot_idx] = AS_Cluster(self, snapshot_idx)
+        self._clusters[snapshot_idx] = AS_Cluster(self, snapshot_idx)
 
     def assign_binder_contact_pocket(self, AS_Cluster, snapshot_idx):
         contact_matrix = AS_Cluster._get_contact_list(self.trajectory[snapshot_idx])

@@ -89,9 +89,6 @@ def update_atom_methods(target):
 
 def update_residue_method(target):
 
-    def get_alphas(self):
-        return self.atoms
-    target.get_alphas = get_alphas
 
     @property
     def alphas(self):
@@ -109,22 +106,23 @@ def update_residue_method(target):
 
     def get_total_score(self):
         return np.sum([alpha.get_total_score() for alpha in self.get_alphas()])
-
-    def set_cluster(self, cluster):
-        self.cluster = cluster
-    target.set_cluster = set_cluster
+    #
+    # def set_cluster(self, cluster):
+    #     self.cluster = cluster
+    # target.set_cluster = set_cluster
 
     def parent(self):
         return self.cluster
     target.parent = parent
 
-    def get_cluster(self):
-        return self.cluster
-    target.get_cluster = get_cluster
+    # def get_cluster(self):
+    #     return self.cluster
+    # target.get_cluster = get_cluster
 
     def get_contact(self):
         return np.any([alpha.get_contact() for alpha in self.get_alphas()])
     target.get_contact = get_contact
+
 
     def get_alpha_index(self):
         return [atom.index for atom in self.alphas]
@@ -132,6 +130,7 @@ def update_residue_method(target):
 
     def get_lining_atoms(self):
         return self.cluster._get_pocket_lining_atoms(self)
+        # return self.cluster._get_pocket_lining_atoms(self)
     target.get_lining_atoms = get_lining_atoms
 
     def get_lining_residues(self):
