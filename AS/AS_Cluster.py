@@ -21,7 +21,8 @@ class AS_Cluster(object):
         # Parent receptor attribute reference
         self.parent = receptor
         self.receptor_top = receptor.top
-        self.receptor_snapshot = self.parent.trajectory[snapshot_idx]
+
+        self.universe = receptor.parent
         self.config = receptor.config
         self.is_polar = receptor.is_polar
 
@@ -37,21 +38,40 @@ class AS_Cluster(object):
         # Link pocket name change to trajectory object
 
         # Initialize storage array
-        self.contact = np.empty(self.n_alphas, int)
-        self.polar_score = np.empty(self.n_alphas, float)
-        self.nonpolar_score = np.empty(self.n_alphas, float)
-        self.total_score = np.empty(self.n_alphas, float)
+        self._contact = np.empty(self.n_alphas, int)
+
+        self._polar_score = np.empty(self.n_alphas, float)
+        self._nonpolar_score = np.empty(self.n_alphas, float)
+        self._total_score = np.empty(self.n_alphas, float)
 
         self._tessellation(self.config)
-        if self.parent.structure_type == 0:
-            self.oppsite_struct = self.parent.parent.binder
-        elif self.parent.structure_type == 1:
-            self.oppsite_struct = self.parent.parent.receptor
-        else:
-            self.oppsite_struct = None
 
     def __repr__(self):
-        return "Alpha Atom cluster of #{} frame".format(self.snapshot_idx)
+        return "Alpha Atom cluster of #{} frame, {} pockets, {} Alpha Atoms".format(self.snapshot_idx,self.n_pockets,self.n_alphas)
+
+    @property
+    def receptor_snapshot(self):
+        return self.parent.trajectory[self.snapshot_idx]
+
+    @property
+    def n_alphas(self):
+        return self.top.n_atoms
+
+    @property
+    def n_pockets(self):
+        return self.top.n_residues
+
+    @property
+    def alphas(self):
+        for atom in self.top._atoms:
+            yield atom
+
+    @property
+    def pockets(self):
+        return self.top.residues
+
+    def pocket(self,index):
+        return self.top.residue(index)
 
     def alpha(self, i):
         return self.top.atom(i)
@@ -118,17 +138,17 @@ class AS_Cluster(object):
         self.traj.xyz = np.expand_dims(filtered_alpha_xyz, axis=0)
         filtered_lining_xyz = np.take(self.receptor_snapshot.xyz[0], self.alpha_lining, axis=0)
         # calculate the polarity of alpha atoms
-        self.total_score = np.array([getTetrahedronVolume(i) for i in filtered_lining_xyz])
+        self._total_score = np.array([getTetrahedronVolume(i) for i in filtered_lining_xyz])
 
         pocket_sasa = np.take(self._get_SASA(), self.alpha_lining)
 
         polar_ratio = np.average(np.take(self.is_polar, self.alpha_lining), axis=1, weights=pocket_sasa)
 
-        self.polar_score = self.total_score * polar_ratio
+        self._polar_score = self._total_score * polar_ratio
 
-        self.nonpolar_score = self.total_score - self.polar_score
+        self._nonpolar_score = self._total_score - self._polar_score
 
-        self.contact = np.zeros(self.top.n_atoms, dtype=int)
+        self._contact = np.zeros(self.top.n_atoms, dtype=int)
 
         # centoids = []
         # for pocket in self.pockets:
@@ -153,6 +173,8 @@ class AS_Cluster(object):
         joined_traj = self.parent.trajectory[self.snapshot_idx].stack(self.traj)
         parent_sasa = shrake_rupley(self.parent.trajectory[self.snapshot_idx])[0]
 
+        # todo fix the issue where too close of two alpha atoms cause shrake_rupley to crush
+
         joined_sasa = shrake_rupley(joined_traj, change_radii={'VS': 0.17})[0][:len(parent_sasa)]
         return parent_sasa - joined_sasa
 
@@ -163,18 +185,18 @@ class AS_Cluster(object):
         :return: np.array
         """
         if binder_traj is None:
-            binder_traj = self.oppsite_struct.traj
+            binder_traj = self.universe.binder.traj
         contact_matrix = getContactMatrix(self.traj.xyz[0], binder_traj.xyz[0],
                                           threshold=self.config.contact_threshold / 10)
-        self.contact = np.array(np.any(contact_matrix, axis=1))
-        return self.contact
+        self._contact = np.array(np.any(contact_matrix, axis=1))
+        return self._contact
 
     def _get_contact_space(self):
         """
         :return array
         """
-        self._get_contact_list(self.oppsite_struct.traj)
-        contact_space = self.contact * self.total_score
+        self._get_contact_list(self.universe.binder.traj)
+        contact_space = self._contact * self._total_score
         return contact_space
 
     def _slice(self, new_alpha_indices: list) -> None:
@@ -191,10 +213,10 @@ class AS_Cluster(object):
 
 
         self.alpha_lining = np.take(self.alpha_lining, new_alpha_indices,axis=0)
-        self.contact = np.take(self.contact, new_alpha_indices, axis=0)
-        self.total_score = np.take(self.total_score, new_alpha_indices, axis=0)
-        self.polar_score = np.take(self.polar_score, new_alpha_indices, axis=0)
-        self.nonpolar_score = np.take(self.nonpolar_score, new_alpha_indices, axis=0)
+        self._contact = np.take(self._contact, new_alpha_indices, axis=0)
+        self._total_score = np.take(self._total_score, new_alpha_indices, axis=0)
+        self._polar_score = np.take(self._polar_score, new_alpha_indices, axis=0)
+        self._nonpolar_score = np.take(self._nonpolar_score, new_alpha_indices, axis=0)
 
         for pocket_idx, pocket in enumerate(self.pockets):
             pocket.cluster = self
@@ -222,7 +244,7 @@ class AS_Cluster(object):
         # lining_atom_idx = np.take(self.alpha_atom_lining, index_list).flatten()
 
         lining_atom = [self.receptor_top.atom(i) for i in self._get_lining_atoms(index_list)]
-        lining_residue_idx = [atom.residue.index for atom in lining_atom]
+        lining_residue_idx = [atom.residue.index for atom  in lining_atom]
 
         return np.unique(lining_residue_idx)
 
@@ -233,25 +255,6 @@ class AS_Cluster(object):
         xyz = np.take(self.traj.xyz[0], cluster, axis=0)
         return np.mean(xyz, axis=0)
 
-    @property
-    def n_alphas(self):
-        return self.top.n_atoms
-
-    @property
-    def n_pockets(self):
-        return self.top.n_residues
-
-    @property
-    def alphas(self):
-        for atom in self.top._atoms:
-            yield atom
-
-    @property
-    def pockets(self):
-        return self.top.residues
-
-    def pocket(self,index):
-        return self.top.residue(index)
 
 class AS_DPocket:
     def __init__(self, universe):

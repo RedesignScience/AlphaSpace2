@@ -11,8 +11,8 @@ import matplotlib.pyplot as plt
 
 universe = AS_Universe()
 for i in range(1, 1+10):
-    test_ligand_path = '../Test_system/bcl2/lig/{}.pdb'.format(1)
-    test_protein_path = '../Test_system/bcl2/prot/{}.pdb'.format(1)
+    test_ligand_path = '../Test_system/bcl2/lig/{}.pdb'.format(i)
+    test_protein_path = '../Test_system/bcl2/prot/{}.pdb'.format(i)
     ligand = mdtraj.load(test_ligand_path)
     protein = mdtraj.load(test_protein_path)
     universe.set_receptor(protein, append=True)
@@ -25,22 +25,15 @@ for i in range(1, 1+10):
 # universe.set_receptor(mdtraj.load(test_protein_path))
 # universe.set_binder(mdtraj.load(test_ligand_path))
 
-universe.config.screen_by_face = False
-universe.config.screen_by_ligand_contact = False
 
 for i in range(universe.n_frames):
     universe.run(snapshot_idx=i)
 
+universe.config.screen_by_face = True
+universe.config.screen_by_ligand_contact = False
+universe.screen_pockets()
+
 print(sum([universe.cluster(i).n_pockets for i in range(universe.n_frames)]),'total pockets in all frames')
-
-
-# universe.screen_pockets()
-# print(sum([universe.cluster(i).n_pockets for i in range(universe.n_frames)]))
-#
-# for i in range(universe.n_frames):
-#     for pocket in universe.pockets(i):
-#         print(pocket.get_lining_atoms())
-#     print('end of {}'.format(i))
 
 pockets = []
 for i in range(universe.n_frames):
@@ -67,6 +60,7 @@ pocket_diff = squareform(pocket_diff)
 _linkage = linkage(pocket_diff,method='complete')
 clustered_list = list(fcluster(Z=_linkage,t=0.75,criterion='distance'))
 
+print(max(clustered_list))
 
 # print(pocket_diff.shape)
 #

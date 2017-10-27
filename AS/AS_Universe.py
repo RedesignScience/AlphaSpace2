@@ -27,8 +27,7 @@ class AS_Universe(object):
         self.set_binder(binder)
 
         if guess_receptor_binder:
-            self.guess_receptor_binder(receptor,guess_by_order)
-
+            self.guess_receptor_binder(receptor, guess_by_order)
 
         self.others = None
         self.view = None
@@ -39,8 +38,22 @@ class AS_Universe(object):
                                                                                           self.binder.n_residues,
                                                                                           self.binder.n_atoms)
 
+    @property
+    def clusters(self):
+        """
+        return list of clusters
+        :return: list
+        """
+        return self.receptor.clusters
 
+    @property
+    def n_frames(self):
+        if self.receptor is None:
+            return 0
+        else:
+            return self.receptor.trajectory.n_frames
 
+    @property
     def n_atoms(self) -> int:
         """
         return the total number of atoms in receptor and binders
@@ -71,7 +84,6 @@ class AS_Universe(object):
     def pockets(self, snapshot_idx):
         return self.receptor._clusters[snapshot_idx].pockets
 
-
     def cluster(self, snapshot_idx: int = 0) -> AS_Cluster:
         """
         return list of clusters
@@ -79,21 +91,6 @@ class AS_Universe(object):
         :return: object, AS_Cluster
         """
         return self.receptor._clusters[snapshot_idx]
-
-    @property
-    def clusters(self):
-        """
-        return list of clusters
-        :return: list
-        """
-        return self.receptor.clusters
-
-    @property
-    def n_frames(self):
-        if self.receptor is None:
-            return 0
-        else:
-            return self.receptor.trajectory.n_frames
 
     def guess_receptor_binder(self, traj, by_order: bool = True) -> bool:
         """
@@ -104,7 +101,7 @@ class AS_Universe(object):
         :return: bool, if any macro molecule were found.
         """
         if traj is None:
-            return False
+            raise Exception("Cannot guess receptor and binder, no structure detected")
         molecule_list = []
         # remove solvent and divide into molecules. This will guess which one is the
         for molecule in traj.topology.find_molecules():
@@ -130,24 +127,23 @@ class AS_Universe(object):
         """
         set binder (ligand) in session
         :param structure: object, trajectory
+        :param append: Bool, if the new binder should be appended to the preview one, default overwritten.
         :return:
         """
         if structure is None:
             self.binder = None
             return
-
         if append and (self.binder is not None):
             x = self.binder.trajectory + structure
             self.binder.trajectory = x
-
         else:
             self.binder = AS_Structure(structure, structure_type=1, parent=self)
 
     def set_receptor(self, structure: object, append=False):
         """
         set receptor (protein) in session
-        :param receptor: object, trajectory
-        :param append: bool
+        :param structure: object, trajectory
+        :param append: Bool, if the new binder should be appended to the preview one, default overwritten.
         :return:
         """
         if structure is None:
@@ -160,8 +156,6 @@ class AS_Universe(object):
 
         else:
             self.receptor = AS_Structure(structure, structure_type=0, parent=self)
-
-
 
     def set_others(self, others: object):
         """
@@ -193,34 +187,8 @@ class AS_Universe(object):
         self.receptor.clusters[snapshot_idx].screen_by_contact()
 
     def get_pockets(self, snapshot_idx: int = 0) -> list:
-        return self.receptor.clusters[snapshot_idx].pockets
 
-    """
-    Visualization methods
-    """
-
-    def view_snapshot(self, snapshot_idx: int = 0) -> object:
-        self.show_receptor(snapshot_idx)
-        self.show_binder(snapshot_idx)
-        self.show_pocket(snapshot_idx)
-        return self.view
-
-    def show_receptor(self, snapshot_idx=0):
-        self.view = nv.show_mdtraj(self.receptor.trajectory[snapshot_idx], gui=True)
-        self.receptor_view = self.view.component_0
-        self.receptor_view.clear_representations()
-        self.receptor_view.add_surface(selection='protein', opacity=1, color='white')
-
-    def show_pocket_label(self):
-        self.view.component_2.add_representation(repr_type='label', lableType='residueindex',color = 'residueindex')
-
-    def show_binder(self, snapshot_idx=0):
-        self.binder_view = self.view.add_trajectory(self.binder.trajectory[snapshot_idx])
-
-    def show_pocket(self, snapshot_idx=0):
-        self.pocket_view = self.view.add_trajectory(self.receptor.cluster(snapshot_idx).traj)
-        self.pocket_view.clear_representations()
-        self.pocket_view.add_representation(repr_type='ball+stick', selection='all', color='residueindex')
+        return self.pockets(snapshot_idx)
 
     def _get_face_atoms(self, snapshot_idx=0):
         """
@@ -244,13 +212,14 @@ class AS_Universe(object):
         return set(interface_atom_index)
 
     def screen_pockets(self):
-
-        if self.config.screen_by_ligand_contact:
+        if self.receptor.n_clusters < 1:
+            raise Exception("Must process all frames before screening pockets.")
+        if self.config.screen_by_lig_cntct:
             for snapshot_idx in range(self.n_frames):
                 contact = self.cluster(snapshot_idx)._get_contact_list()
                 self.cluster(snapshot_idx)._slice(np.where(contact != 0)[0])
 
-        if self.config.screen_by_face and not self.config.screen_by_ligand_contact:
+        if self.config.screen_by_face and not self.config.screen_by_lig_cntct:
             for snapshot_idx in range(self.n_frames):
                 face_pocket_alpha_index = set()
                 face_atoms_index = self._get_face_atoms(snapshot_idx)
@@ -276,6 +245,35 @@ class AS_Universe(object):
                     if pocket.get_lining_residues:
                         face_pocket_alpha_index.union(set(pocket.get_alpha_index))
                 cluster._slice(face_pocket_alpha_index)
+
+    """
+    Visualization methods
+    """
+
+    def view_snapshot(self, snapshot_idx: int = 0) -> object:
+        self.show_receptor(snapshot_idx)
+        self.show_binder(snapshot_idx)
+        self.show_pocket(snapshot_idx)
+        return self.view
+
+    def show_receptor(self, snapshot_idx=0):
+        self.view = nv.show_mdtraj(self.receptor.trajectory[snapshot_idx], gui=True)
+        self.receptor_view = self.view.component_0
+        self.receptor_view.clear_representations()
+        self.receptor_view.add_surface(selection='protein', opacity=1, color='white')
+
+    def show_pocket_label(self):
+        self.view.component_2.add_representation(repr_type='label', lableType='residueindex', color='residueindex')
+
+    def show_binder(self, snapshot_idx=0):
+        self.binder_view = self.view.add_trajectory(self.binder.trajectory[snapshot_idx])
+
+    def show_pocket(self, snapshot_idx=0):
+        self.pocket_view = self.view.add_trajectory(self.receptor.cluster(snapshot_idx).traj)
+        self.pocket_view.clear_representations()
+        self.pocket_view.add_representation(repr_type='ball+stick', selection='all', color='residueindex')
+
+
 
 
 if __name__ == '__main__':

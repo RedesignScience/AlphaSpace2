@@ -3,28 +3,31 @@ from colour import Color
 
 class AS_Config(object):
     def __init__(self):
-
-
+        # Alpha Sphere screening upper and lower limits
         self.min_r = 3.2
         self.max_r = 5.4
+
+        # clustering distance cutoff atom alpha atom to pocket
         self.pocket_cluster_distance = 4.7
+
+        # Contact cutoff threshold
         self.contact_threshold = 3.0
 
-        self.screen_by_ligand_contact = True
 
-
-        self.screen_by_face = True
-        ### select pockets that include atoms from the interface atom list
-
-        self.screen_face_perc = 0.5
-        ### minimum percentage of atoms that must be in the interface atom list
-
-
-
-        self.screen_by_lig_cntct = False
+        # Screening options
         ### select only pockets in "contact" with the ligand
-        expand_around_cntct = False
+        self.screen_by_lig_cntct = True
+
         ### expand selection to include all pockets overlapping the "contact" pockets
+        expand_around_cntct = False
+
+        ### select pockets that include atoms from the interface atom list
+        self.screen_by_face = True
+
+        ### minimum percentage of atoms that must be in the interface atom list
+        self.screen_face_perc = 0.5
+
+
 
         self.screen_by_seam = False
         ### select pocket that contain atoms from >1 protein chain
@@ -43,17 +46,13 @@ class AS_Config(object):
         ### select only pockets above of minimum percentage ranking
 
 
-
         self.screen_out_subsurf = False
         self.max_desolv_perc = 0.95
         ### screen out pocket if too much of the alpha-cluster ASA is desolvated by the pocket
         ### (i.e. pocket is beneath the surface) (more expensive calculation)
 
-
-
         self.screen_by_res = False
         ### select all pockets containing any atom from any residue within the residue pdb file
-
 
 
         self.pocket_communities = True
@@ -61,10 +60,8 @@ class AS_Config(object):
         ### calculate and output the pocket communities
         ### "tight" option uses additional 8.5A core clustering and aux/minor pocket distance cutoff
 
-
-
         self.contact_score = True
-        ### calculate contact score features by residue in "lig_resid_file"
+        ### calculate contact score features by residue
 
         self.beta_cluster = True
         ### recluster the alpha-clusters as a single beta_cluster
@@ -74,15 +71,14 @@ class AS_Config(object):
         self.get_beta_vol = False
         ###calculate and write the beta-cluster volume (total and occupied)
 
-        self.color_table = ['green', 'yellow', 'pink', 'orange', 'blue', 'purple', 'tan', 'olive', 'lime', 'gold', 'aqua', 'rosybrown', 'coral']
+        self.color_table = ['green', 'yellow', 'pink', 'orange', 'blue', 'purple', 'tan', 'olive', 'lime', 'gold',
+                            'aqua', 'rosybrown', 'coral']
 
     def default(self):
         self.__init__()
 
-
-
-    def get_color_RBG(self,color_idx):
-        return Color(self.color_table[color_idx%len(self.color_table)]).rgb
+    def get_color_RBG(self, color_idx):
+        return Color(self.color_table[color_idx % len(self.color_table)]).rgb
 
 
 if __name__ == '__main__':
@@ -97,5 +93,3 @@ if __name__ == '__main__':
             print(color, 'not available')
 
     print(newcolor)
-
-

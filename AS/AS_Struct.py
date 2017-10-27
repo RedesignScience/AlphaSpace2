@@ -10,13 +10,17 @@ class AS_Structure:
         :param structure_type: int 0 for receptor, 1 for binder, 2 for other
         """
 
-        # 0 for receptor, 1 for binder, 3 for unassigned
+        # 0 for receptor, 1 for binder, 2 for unassigned
         self.structure_type = structure_type
         self._clusters = {}
         self.trajectory = trajectory
         self.parent = parent
         self.config = self.parent.config
         self.contact_cluster = [[None for i in range(self.n_residues)] for j in range(self.n_frames)]
+
+    def __repr__(self):
+        return "{} Structure with {} frames, {} residues, {} atoms".format(
+            ['Receptor','Binder','Misc.'][self.structure_type],self.n_frames,self.n_residues,self.n_atoms)
 
     @property
     def is_polar(self):
@@ -25,7 +29,6 @@ class AS_Structure:
 
     @property
     def top(self):
-
         return self.trajectory.topology
 
     @property
@@ -77,6 +80,23 @@ class AS_Structure:
         for atom in self.top._atoms:
             yield atom
 
+
+    @property
+    def __len__(self):
+        """
+        Returns number of frames
+        :return: int
+        """
+        return self.n_frames
+
+    @property
+    def __bool__(self):
+        """
+        Check if empty
+        :return: bool
+        """
+        return len(self) > 0
+
     def residue(self, idx):
         """
         Gives a residue with idx
@@ -94,29 +114,6 @@ class AS_Structure:
         :return: object atom
         """
         return self.topology.atom(idx)
-
-    def __len__(self):
-        """
-        Returns number of frames
-        :return: int
-        """
-        return self.n_frames
-
-    def __repr__(self):
-        if self.structure_type == 0:
-            return "Receptor part trajectory of {} residues in {} snapshots".format(self.topology.n_residues, len(self))
-        elif self.structure_type == 1:
-            return "Binder part trajectory of {} residues in {} snapshots".format(self.topology.n_residues, len(self))
-        else:
-            return "Unknown part trajectory of {} residues in {} snapshots".format(self.topology.n_residues, len(self))
-
-
-    def __bool__(self):
-        """
-        Check if empty
-        :return: bool
-        """
-        return len(self) > 0
 
     def calculate_contact(self, binder, snapshot_idx=0):
         """
