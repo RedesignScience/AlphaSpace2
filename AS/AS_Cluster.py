@@ -1,11 +1,12 @@
 import numpy as np
 from scipy.spatial import Voronoi, Delaunay
 from scipy.cluster.hierarchy import linkage, fcluster
-from AS.AS_Funct import *
 from mdtraj.core.topology import Topology, Residue, Atom
 from mdtraj.core.trajectory import Trajectory
 from mdtraj.core.element import *
 from mdtraj import shrake_rupley
+from AS_Funct import _tessellation,update_residue_method,update_atom_methods,getTetrahedronVolume,getContactMatrix
+
 
 
 # noinspection PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyTypeChecker
@@ -24,10 +25,10 @@ class AS_Cluster(object):
 
         self.universe = receptor.parent
         self.config = receptor.config
-        self.is_polar = receptor.is_polar
 
         # Initialize Container of topology and coordinate for pockets and alpha atoms
         self.top = Topology()
+
         self.top.add_chain()
         self.top.add_residue(name='ASC', chain=self.top.chain(0))
         self.traj = Trajectory(np.zeros([1, 0, 3]), self.top)
@@ -39,16 +40,26 @@ class AS_Cluster(object):
 
         # Initialize storage array
         self._contact = np.empty(self.n_alphas, int)
-
         self._polar_score = np.empty(self.n_alphas, float)
         self._nonpolar_score = np.empty(self.n_alphas, float)
         self._total_score = np.empty(self.n_alphas, float)
 
+        # self._tessellation(self.config)
+
+
+    def __call__(self, *args, **kwargs):
         self._tessellation(self.config)
+        return self
 
     def __repr__(self):
-        return "Alpha Atom cluster of #{} frame, {} pockets, {} Alpha Atoms".format(self.snapshot_idx,self.n_pockets,self.n_alphas)
+        return "Alpha Atom cluster of #{} frame, {} pockets, {} Alpha Atoms".format(self.snapshot_idx, self.n_pockets,
+                                                                                    self.n_alphas)
 
+
+    @property
+    def is_polar(self):
+
+        return  self.parent.is_polar
     @property
     def receptor_snapshot(self):
         return self.parent.trajectory[self.snapshot_idx]
@@ -70,7 +81,7 @@ class AS_Cluster(object):
     def pockets(self):
         return self.top.residues
 
-    def pocket(self,index):
+    def pocket(self, index):
         return self.top.residue(index)
 
     def alpha(self, i):
@@ -97,8 +108,7 @@ class AS_Cluster(object):
 
         # Filter the data based on radii cutoff
         filtered_alpha_idx = np.where(np.logical_and(config.min_r / 10.0 <= raw_alpha_sphere_radii,
-                                               raw_alpha_sphere_radii <= config.max_r / 10.0))[0]
-
+                                                     raw_alpha_sphere_radii <= config.max_r / 10.0))[0]
 
         self.alpha_lining = np.take(raw_alpha_lining_idx, filtered_alpha_idx, axis=0)
 
@@ -119,7 +129,7 @@ class AS_Cluster(object):
         #     self.pocket_alpha_atoms[alpha_cluster_i].append(alpha_atom_idx)
 
         # Generate Residue container for pockets and add in atoms as AAC
-        for _ in range(max(pocket_idx)-1):
+        for _ in range(max(pocket_idx) - 1):
             residue = self.top.add_residue(name='ASC', chain=self.top.chain(0))
             residue.cluster = self
         for i, pocket_index in enumerate(self.alpha_pocket_index):
@@ -132,7 +142,7 @@ class AS_Cluster(object):
         for pocket in self.pockets:
             pocket.cluster = self  # assign the parent cluster
             alpha_index = [alpha.index for alpha in pocket.atoms]
-            pocket.lining_atom_idx = self._get_lining_atoms(alpha_index)   # Assign pocket lining atoms
+            pocket.lining_atom_idx = self._get_lining_atoms(alpha_index)  # Assign pocket lining atoms
             pocket.lining_residue_idx = self._get_lining_residues(alpha_index)
         # Load trajectories
         self.traj.xyz = np.expand_dims(filtered_alpha_xyz, axis=0)
@@ -161,7 +171,6 @@ class AS_Cluster(object):
         #
         # exit()
 
-
     def _get_SASA(self):
         """
         Calculate the absolute solvent accessible surface area.
@@ -178,7 +187,7 @@ class AS_Cluster(object):
         joined_sasa = shrake_rupley(joined_traj, change_radii={'VS': 0.17})[0][:len(parent_sasa)]
         return parent_sasa - joined_sasa
 
-    def _get_contact_list(self, binder_traj=None):
+    def _get_contact_list(self, binder_traj: object = None) -> np.array:
         """
         get list of alpha atom contact as bool
         :param binder_traj: object
@@ -211,8 +220,7 @@ class AS_Cluster(object):
         self.traj.atom_slice(new_alpha_indices, inplace=True)
         self.top = self.traj.top
 
-
-        self.alpha_lining = np.take(self.alpha_lining, new_alpha_indices,axis=0)
+        self.alpha_lining = np.take(self.alpha_lining, new_alpha_indices, axis=0)
         self._contact = np.take(self._contact, new_alpha_indices, axis=0)
         self._total_score = np.take(self._total_score, new_alpha_indices, axis=0)
         self._polar_score = np.take(self._polar_score, new_alpha_indices, axis=0)
@@ -224,27 +232,24 @@ class AS_Cluster(object):
         for atom_idx, atom in enumerate(self.top._atoms):
             atom.index = atom_idx
 
-
-
-
     def _get_lining_atoms(self, index_list: list) -> np.array:
         """
         get a set of surface lining atoms in the given cluster of alpha atoms
         :type index_list: alpha atom list
         """
-        idx = np.take(self.alpha_lining,index_list,axis=0)
+        idx = np.take(self.alpha_lining, index_list, axis=0)
         total_list = idx.flatten()
 
         return np.unique(total_list)
 
     def _get_pocket_lining_atoms(self, pocket):
-        return self._get_lining_atoms([atom.index for atom in pocket.atoms])
+        return set(self._get_lining_atoms([int(atom.index) for atom in pocket.atoms]))
 
     def _get_lining_residues(self, index_list):
         # lining_atom_idx = np.take(self.alpha_atom_lining, index_list).flatten()
 
         lining_atom = [self.receptor_top.atom(i) for i in self._get_lining_atoms(index_list)]
-        lining_residue_idx = [atom.residue.index for atom  in lining_atom]
+        lining_residue_idx = [atom.residue.index for atom in lining_atom]
 
         return np.unique(lining_residue_idx)
 
@@ -256,34 +261,78 @@ class AS_Cluster(object):
         return np.mean(xyz, axis=0)
 
 
-class AS_DPocket:
-    def __init__(self, universe):
-        self.universe = universe
-        self._pocket_list = []
+class AS_D_Pocket:
+    def __init__(self, parent_universe,pocket_indices = None):
+        """
+        Initialize a mask for information storage of a dpocket, this is user accessible and can only be read from public
+         methods
+        :param parent_universe: AS_Universe, parent universe
+        """
+        self.universe = parent_universe
+        if pocket_indices is not None:
+            self._pocket_indices = pocket_indices  # list of tuple, (snapshot_idx, pocket_idx)
+        self.index = -1  # index of d-pocket in all d-pocket
 
-        self.index = -1
+    @property
+    def _pocket_set(self):
+        return set(self._pocket_indices)
 
     def __getitem__(self, key):
-        return self._pocket_list[key]
+        """
+        Get pocket by index in d pocket
+        :param key: int
+        :return:
+        """
+        snapshot_idx, pocket_idx = self._pocket_indices[key]
+        return self.universe.cluster(snapshot_idx).pocket(pocket_idx)
 
-    def __contains__(self, pocket):
-        return any(p == pocket for p in self._pocket_list)
+    def _index_to_pocket(self, index: tuple) -> object:
+        return self.universe.cluster(snapshot_idx=index[0]).pocket(index[1])
 
-    def __iter__(self):
-        for i in self._pocket_list:
+    def _pocket_to_index(self, pocket: object) -> tuple:
+        return pocket.cluster.snapshot_index, pocket.index
+
+    def __contains__(self, item) -> bool:
+        if type(item) is not tuple:
+            item = self._pocket_to_index(item)
+        return any(p == item for p in self._pocket_indices)
+
+    @property
+    def __iter__(self) -> object:
+        for idx in self._pocket_indices:
+            yield self._index_to_pocket(idx)
+
+    @property
+    def pocket_indices(self) -> tuple:
+        for i in self._pocket_indices:
             yield i
 
-    def add(self, pocket):
+    @property
+    def pockets(self):
+        for pocket_idx in self.pocket_indices:
+            yield self._index_to_pocket(pocket_idx)
+
+    @property
+    def pockets_by_snapshots(self):
+        snapshot_dict = {}
+        for ss_idx, pkt_idx in self._pocket_indices:
+            if ss_idx not in snapshot_dict:
+                snapshot_dict[ss_idx] = []
+            snapshot_dict[ss_idx].append(self._index_to_pocket((ss_idx,pkt_idx)))
+        return snapshot_dict
+
+
+
+    def add(self, item):
         """
         add a pocket to this dpocket
         :param pocket: object, AS_Pocket
         :return: bool, if the pocket isn't already in the dpocket list
         """
-        if any(p == pocket for p in self._pocket_list):
-            return False
-        else:
-            self._pocket_list.append(pocket)
-            return True
+        if type(item) is not tuple:
+            item = self._pocket_to_index(item)
+        if item in self:
+            raise Exception('Pocket {} already exist in Frame {}'.format(item[1], item[0]))
 
     def pop(self, key):
         """
@@ -291,39 +340,47 @@ class AS_DPocket:
         :param key: int
         :return: AS_Pocket
         """
-        return self._pocket_list.pop(key)
+        return self._index_to_pocket(self._pocket_indices.pop(key))
 
-    def n_pockets(self):
+    @property
+    def n_pockets(self) -> int:
         """
         total number of pockets
         :return: int
         """
-        return len(self._pocket_list)
+        return len(self._pocket_indices)
 
-    def get_snapshots(self):
-        """
-        covered snapshot indices in a set
-        :return: set
-        """
-        return iter(set([pocket.snapshot_idx for pocket in self]))
-
-    def n_snapshot(self):
+    @property
+    def n_snapshot(self) -> int:
         """
         total number of covered snapshot
         :return:
         """
-        return len(list(self.get_snapshots()))
+        return len(self.snapshots)
 
-    def pocket_center_xyz(self):
+    @property
+    def snapshots(self) -> list:
         """
-        get the centroid of the each pockets
-        :return: numpy array n_pockets * 3
+        Return snapshot index for all the pockets in this d-pocket
+        :return: list of int
         """
-        return np.array([pocket.get_centroid for pocket in self])
+        return sorted(list(set(zip(self._pocket_indices)[0])))
 
-    def alpha_atom_xyz(self):
+    @property
+    def pocket_scores(self):
         """
-        get the xyz of each alpha_atoms in each pockets
-        :return: np.array N * 3
+        :return: iter of tuple (polar, nonpolar)
         """
-        return np.concatenate([pocket.xyz for pocket in self], axis=0)
+        for pocket in self.pockets:
+            yield pocket.get_polar_score(), pocket.get_nonpolar_score()
+
+    @property
+    def pocket_xyz(self):
+        for pocket in self.pockets:
+            yield pocket.get_centroid()
+
+
+
+
+
+

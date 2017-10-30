@@ -1,9 +1,14 @@
-from AS.AS_Struct import *
-from AS.AS_Config import AS_Config
-from AS.AS_Cluster import *
 import nglview as nv
-import multiprocessing as mp
+import numpy as np
+# import multiprocessing as mp
+import pathos.multiprocessing as mp
 from mdtraj import shrake_rupley
+from AS_Config import AS_Config
+from AS_Struct import AS_Structure
+from AS_Cluster import AS_Cluster,AS_D_Pocket
+from AS_Funct import _tessellation
+
+from asyncio import get_event_loop, wait, ensure_future
 
 
 # noinspection PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit
@@ -26,17 +31,26 @@ class AS_Universe(object):
         self.set_receptor(receptor)
         self.set_binder(binder)
 
-        if guess_receptor_binder:
+        if guess_receptor_binder and receptor:
             self.guess_receptor_binder(receptor, guess_by_order)
 
         self.others = None
         self.view = None
+
+        self._d_pockets = {}
+
+
 
     def __repr__(self):
         return "Receptor of {} residues {} atoms | Binder of {} residues {} atoms".format(self.receptor.n_residues,
                                                                                           self.receptor.n_atoms,
                                                                                           self.binder.n_residues,
                                                                                           self.binder.n_atoms)
+    @property
+    def frames(self):
+        for i in range(self.n_frames):
+            yield i
+
 
     @property
     def clusters(self):
@@ -80,11 +94,32 @@ class AS_Universe(object):
                 yield m
             else:
                 continue
+    @property
+    def d_pockets(self) -> AS_D_Pocket:
+        """
+        calculate the d pockets and give a iterator os AS_D_Pocket
+        :return: object, AS_D_Pocket
+        """
+        if not self._d_pockets:
+            self._d_pockets = list(self.receptor._gen_d_pockets())
+        for p in self._d_pockets:
+            yield p
+
+    def d_pocket(self,i) -> AS_D_Pocket:
+        if not self._d_pockets:
+            self._d_pockets = self.receptor._gen_d_pockets()
+        return self._d_pockets[i]
+
+    def _is_processed(self, snapshot_idx: int) -> bool:
+        if snapshot_idx in self.receptor._clusters:
+            return True
+        else:
+            return False
 
     def pockets(self, snapshot_idx):
         return self.receptor._clusters[snapshot_idx].pockets
 
-    def cluster(self, snapshot_idx: int = 0) -> AS_Cluster:
+    def cluster(self, snapshot_idx: int = 0) -> object:
         """
         return list of clusters
         :param snapshot_idx: int
@@ -169,19 +204,27 @@ class AS_Universe(object):
         """
         Private method, please use run
         """
-        self.receptor.generate_cluster(snapshot_idx=snapshot_idx)
-        if self.binder:
+        cluster = self.receptor.generate_cluster(snapshot_idx=snapshot_idx)
+        cluster._tessellation(self.config)
+        if self.binder is not None:
             self.receptor.calculate_contact(binder=self.binder, snapshot_idx=snapshot_idx)
+        return self.cluster(snapshot_idx)
 
-    def run_mp(self, cpu: int = 1):
+    def run_all(self):
         """
         run the AlphaSpace main program
         :param cpu: int, number of cpu you want to use, default use all
         """
-        if cpu != 1:
-            cpu = mp.cpu_count()
-        pool = mp.Pool(cpu)
-        pool.map(self.run, range(self.n_frames))
+
+        pool = mp.Pool()
+        results = pool.map(self.run, range(self.n_frames))
+
+
+
+
+
+
+
 
     def screen_by_ligand_contact(self, snapshot_idx: int = 0):
         self.receptor.clusters[snapshot_idx].screen_by_contact()
@@ -230,7 +273,7 @@ class AS_Universe(object):
                 self.cluster(snapshot_idx)._slice(face_pocket_alpha_index)
 
         if self.config.screen_by_score:
-            for cluster in self.clusters:
+            for cluster in self.receptor.clusters:
                 face_pocket_alpha_index = set()
                 for pocket in cluster.pockets:
                     if pocket.get_total_score > self.config.min_score:
@@ -238,7 +281,7 @@ class AS_Universe(object):
                 cluster._slice(face_pocket_alpha_index)
 
         if self.config.screen_by_res:
-            for cluster in self.clusters:
+            for cluster in self.receptor.clusters:
                 face_pocket_alpha_index = set()
                 # TODO Finish this section
                 for pocket in cluster.pockets:
@@ -278,9 +321,10 @@ class AS_Universe(object):
 
 if __name__ == '__main__':
     import mdtraj
+    import sys
 
-    test_binder_path = '/Users/haotian/Dropbox/pycharm_project/AlphaSpace/Test_system/lig.pdb'
-    test_receptor_path = '/Users/haotian/Dropbox/pycharm_project/AlphaSpace/Test_system/prot.pdb'
+    test_receptor_path = sys.argv[1]
+    test_binder_path = sys.argv[2]
 
     lig_traj = mdtraj.load(test_binder_path)
     prot_traj = mdtraj.load(test_receptor_path)

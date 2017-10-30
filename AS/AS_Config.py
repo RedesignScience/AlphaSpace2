@@ -74,6 +74,8 @@ class AS_Config(object):
         self.color_table = ['green', 'yellow', 'pink', 'orange', 'blue', 'purple', 'tan', 'olive', 'lime', 'gold',
                             'aqua', 'rosybrown', 'coral']
 
+        self.dpocket_cluster_cutoff = 0.75
+
     def default(self):
         self.__init__()
 
