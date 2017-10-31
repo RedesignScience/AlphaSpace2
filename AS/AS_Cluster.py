@@ -5,8 +5,7 @@ from mdtraj.core.topology import Topology, Residue, Atom
 from mdtraj.core.trajectory import Trajectory
 from mdtraj.core.element import *
 from mdtraj import shrake_rupley
-from AS_Funct import _tessellation,update_residue_method,update_atom_methods,getTetrahedronVolume,getContactMatrix
-
+from AS_Funct import _tessellation, update_residue_method, update_atom_methods, getTetrahedronVolume, getContactMatrix
 
 
 # noinspection PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyTypeChecker
@@ -46,7 +45,6 @@ class AS_Cluster(object):
 
         # self._tessellation(self.config)
 
-
     def __call__(self, *args, **kwargs):
         self._tessellation(self.config)
         return self
@@ -55,33 +53,32 @@ class AS_Cluster(object):
         return "Alpha Atom cluster of #{} frame, {} pockets, {} Alpha Atoms".format(self.snapshot_idx, self.n_pockets,
                                                                                     self.n_alphas)
 
+    @property
+    def is_polar(self) -> np.array:
+        return self.parent.is_polar
 
     @property
-    def is_polar(self):
-
-        return  self.parent.is_polar
-    @property
-    def receptor_snapshot(self):
+    def receptor_snapshot(self) -> object:
         return self.parent.trajectory[self.snapshot_idx]
 
     @property
-    def n_alphas(self):
+    def n_alphas(self) -> int:
         return self.top.n_atoms
 
     @property
-    def n_pockets(self):
+    def n_pockets(self) -> int:
         return self.top.n_residues
 
     @property
-    def alphas(self):
+    def alphas(self) -> object:
         for atom in self.top._atoms:
             yield atom
 
     @property
-    def pockets(self):
+    def pockets(self) -> object:
         return self.top.residues
 
-    def pocket(self, index):
+    def pocket(self, index: int) -> object:
         return self.top.residue(index)
 
     def alpha(self, i):
@@ -148,8 +145,8 @@ class AS_Cluster(object):
         self.traj.xyz = np.expand_dims(filtered_alpha_xyz, axis=0)
         filtered_lining_xyz = np.take(self.receptor_snapshot.xyz[0], self.alpha_lining, axis=0)
         # calculate the polarity of alpha atoms
-        self._total_score = np.array([getTetrahedronVolume(i) for i in filtered_lining_xyz])
-
+        self._total_score = np.array([getTetrahedronVolume(i) for i in filtered_lining_xyz]) * 1000
+        # here the 1000 is to convert nm^3 to A^3
         pocket_sasa = np.take(self._get_SASA(), self.alpha_lining)
 
         polar_ratio = np.average(np.take(self.is_polar, self.alpha_lining), axis=1, weights=pocket_sasa)
@@ -160,16 +157,6 @@ class AS_Cluster(object):
 
         self._contact = np.zeros(self.top.n_atoms, dtype=int)
 
-        # centoids = []
-        # for pocket in self.pockets:
-        #     centoid = np.zeros([3])
-        #     for index in [alpha.index for alpha in pocket.atoms]:
-        #         centoid = centoid + self.traj.xyz[0][index]
-        #     centoids.append(centoid/pocket.n_atoms)
-        #
-        # n
-        #
-        # exit()
 
     def _get_SASA(self):
         """
@@ -262,7 +249,7 @@ class AS_Cluster(object):
 
 
 class AS_D_Pocket:
-    def __init__(self, parent_universe,pocket_indices = None):
+    def __init__(self, parent_universe, pocket_indices=None):
         """
         Initialize a mask for information storage of a dpocket, this is user accessible and can only be read from public
          methods
@@ -272,6 +259,22 @@ class AS_D_Pocket:
         if pocket_indices is not None:
             self._pocket_indices = pocket_indices  # list of tuple, (snapshot_idx, pocket_idx)
         self.index = -1  # index of d-pocket in all d-pocket
+        self._active = True
+
+    @property
+    def is_active(self):
+        return self._active
+
+    def activate(self):
+        self._active = True
+
+    def deactivate(self):
+        self._active = False
+
+    def __bool__(self):
+        return self._active
+
+
 
     @property
     def _pocket_set(self):
@@ -318,10 +321,8 @@ class AS_D_Pocket:
         for ss_idx, pkt_idx in self._pocket_indices:
             if ss_idx not in snapshot_dict:
                 snapshot_dict[ss_idx] = []
-            snapshot_dict[ss_idx].append(self._index_to_pocket((ss_idx,pkt_idx)))
+            snapshot_dict[ss_idx].append(self._index_to_pocket((ss_idx, pkt_idx)))
         return snapshot_dict
-
-
 
     def add(self, item):
         """
@@ -351,7 +352,7 @@ class AS_D_Pocket:
         return len(self._pocket_indices)
 
     @property
-    def n_snapshot(self) -> int:
+    def n_snapshots(self) -> int:
         """
         total number of covered snapshot
         :return:
@@ -364,10 +365,10 @@ class AS_D_Pocket:
         Return snapshot index for all the pockets in this d-pocket
         :return: list of int
         """
-        return sorted(list(set(zip(self._pocket_indices)[0])))
+        return sorted(list(set([i[1] for i in self._pocket_indices])))
 
     @property
-    def pocket_scores(self):
+    def pocket_scores(self) -> tuple:
         """
         :return: iter of tuple (polar, nonpolar)
         """
@@ -375,12 +376,6 @@ class AS_D_Pocket:
             yield pocket.get_polar_score(), pocket.get_nonpolar_score()
 
     @property
-    def pocket_xyz(self):
+    def pocket_xyz(self) -> np.array:
         for pocket in self.pockets:
             yield pocket.get_centroid()
-
-
-
-
-
-

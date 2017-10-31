@@ -3,8 +3,7 @@ from scipy.spatial.distance import cdist
 from AS_Config import AS_Config
 from scipy.spatial import Voronoi, Delaunay
 from scipy.cluster.hierarchy import linkage, fcluster
-from mdtraj.core.topology import Residue,Atom
-from mdtraj.core.element import *
+from mdtraj.core.topology import Residue, Atom
 
 
 def _tessellation(cluster):
@@ -52,7 +51,7 @@ def _tessellation(cluster):
         residue.cluster = cluster
 
     for i, pocket_index in enumerate(cluster.alpha_pocket_index):
-        atom = cluster.top.add_atom('AAC', Element(), cluster.top.residue(pocket_index), pocket_index)
+        atom = cluster.top.add_atom('AAC', None, cluster.top.residue(pocket_index), pocket_index)
         atom.index = i
 
     update_atom_methods(Atom)
@@ -81,6 +80,7 @@ def _tessellation(cluster):
 
     cluster.is_run = True
     return cluster
+
 
 def getTetrahedronVolume(coord_list):
     """
@@ -156,8 +156,6 @@ def update_atom_methods(target):
     def set_contact(self, contact):
         self.contact = contact
 
-
-
     target.get_pocket = get_pocket
     target.set_cluster = set_cluster
     target.cluster = cluster
@@ -171,49 +169,52 @@ def update_residue_method(target):
     @property
     def alphas(self):
         return self.atoms
+
     target.alphas = alphas
 
     def get_polar_score(self):
         return np.sum([alpha.get_polar_score() for alpha in self.alphas])
-    target.get_polar_score = get_polar_score
 
+    target.get_polar_score = get_polar_score
 
     def get_nonpolar_score(self):
         return np.sum([alpha.get_nonpolar_score() for alpha in self.alphas])
+
     target.get_nonpolar_score = get_nonpolar_score
 
     def get_total_score(self):
         return np.sum([alpha.get_total_score() for alpha in self.alphas])
-    target.get_total_score = get_total_score
 
+    target.get_total_score = get_total_score
 
     @property
     def parent(self):
         return self.cluster
-    target.parent = parent
 
+    target.parent = parent
 
     def get_contact(self):
         return np.any([alpha.get_contact() for alpha in self.alphas])
-    target.get_contact = get_contact
 
+    target.get_contact = get_contact
 
     def get_alpha_index(self):
         return [atom.index for atom in self.alphas]
+
     target.get_alpha_index = get_alpha_index
 
     def get_lining_atoms(self):
         return self.cluster._get_pocket_lining_atoms(self)
         # return self.cluster._get_pocket_lining_atoms(self)
+
     target.get_lining_atoms = get_lining_atoms
 
     def get_lining_residues(self):
         return self.cluster._get_pocket_lining_residues(self)
+
     target.get_lining_residues = get_lining_residues
 
     def get_centroid(self):
         return self.cluster._get_cluster_centroid(list(self.get_alpha_index))
+
     target.get_centroid = get_centroid
-
-
-

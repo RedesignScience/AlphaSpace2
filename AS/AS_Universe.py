@@ -289,6 +289,8 @@ class AS_Universe(object):
                         face_pocket_alpha_index.union(set(pocket.get_alpha_index))
                 cluster._slice(face_pocket_alpha_index)
 
+        self._d_pockets = None
+
     """
     Visualization methods
     """
