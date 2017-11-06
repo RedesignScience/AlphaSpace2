@@ -7,6 +7,7 @@ import numpy as np
 from scipy.spatial.distance import squareform
 from scipy.cluster.hierarchy import fcluster, linkage
 import matplotlib.pyplot as plt
+import timeit
 
 
 # initialize universe instance
@@ -19,11 +20,14 @@ for i in range(1, 1 + 10):
     universe.set_receptor(protein, append=True)
     universe.set_binder(ligand, append=True)
 
-# for i in range(universe.n_frames):
-#     universe.run(snapshot_idx=i) # process each frame
 
-universe.config.screen_by_face = True
-universe.config.screen_by_ligand_contact = False
+s = timeit.default_timer()
+universe.run_alphaspace_mp()
+
+
+universe.config.screen_by_lig_cntct = True
+universe.config.screen_by_face = False
+
 universe.screen_pockets()
 
 

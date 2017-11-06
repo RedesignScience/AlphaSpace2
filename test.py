@@ -1,32 +1,56 @@
-import mdtraj
-from AS import AS_Universe
-from multiprocessing import Pool, cpu_count
-import matplotlib
-from timeit import default_timer
+import numpy as np
+import multiprocessing as mp
+import timeit
+import time
 
-test_ligand_path = '/Users/haotian/Dropbox/pycharm_project/AlphaSpace/Test_system/lig.pdb'
-test_protein_path = '/Users/haotian/Dropbox/pycharm_project/AlphaSpace/Test_system/prot.pdb'
+def multiprocess(function, argslist, ncpu):
+    total = len(argslist)
+    done = 0
+    result_queue = mp.Queue(0)
+    jobs = []
+    res = []
+    while argslist != []:
+        if len(mp.active_children()) < ncpu:
+            p = mp.Process(target=function, args=(result_queue, argslist.pop(),))
+            jobs.append(p)
+            p.start()
+            done += 1
+            print("\r",float(done)/total*100,"%") #here is to keep track
+        # here comes my emptying step
+        if len(jobs) == 500:
+            tmp = [result_queue.get() for p in jobs]
+            for r in tmp:
+                res.append(r)
+            result_queue = mp.Queue(0)
+            jobs = []
+
+    tmp = [result_queue.get() for p in jobs]
+    for r in tmp:
+        res.append(r)
+    return res
+
+def test_func( x):
+    time.sleep(3)
+    return x**2
 
 
-traj_path = '/Users/haotian/Dropbox/Structure/Mdm2/prod_100ns_1000ss.mdcrd'
-top_path = '/Users/haotian/Dropbox/Structure/Mdm2/1YCR_solv.prmtop'
-
-#
-# start = default_timer()
-# traj = mdtraj.load(traj_path,top=top_path,stride = 100)
-# print(start - default_timer())
-#
-# universe = AS_Universe(receptor=traj)
+def test_wrapper(q,x):
+    q.put(test_func(x))
 
 
 
+if __name__ == '__main__':
+    start = timeit.default_timer()
+    x_list = [i for i in range(5)]
+    result = multiprocess(test_wrapper,x_list,2)
+    print(result)
+    mp_end_time = timeit.default_timer()
+    print(
+        mp_end_time - start
+    )
+    results = []
+    for i in range(5):
+        result.append(test_func(i))
+    print(timeit.default_timer()- mp_end_time)
 
-start = default_timer()
-lig = mdtraj.load(test_ligand_path)
-prot = mdtraj.load(test_protein_path)
 
-universe = AS_Universe(receptor=prot,binder=lig)
-
-universe.run()
-
-print()
