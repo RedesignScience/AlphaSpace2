@@ -1,12 +1,11 @@
 import nglview as nv
 import numpy as np
-import pathos.multiprocessing as mp
 from mdtraj import shrake_rupley
-from AS_Config import AS_Config
-from AS_Struct import AS_Structure
+
 from AS_Cluster import AS_D_Pocket
+from AS_Config import AS_Config
 from AS_Funct import screen_by_contact
-from asyncio import get_event_loop, wait, ensure_future
+from AS_Struct import AS_Structure
 
 
 # noinspection PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit

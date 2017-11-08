@@ -1,11 +1,4 @@
 import numpy as np
-from scipy.spatial import Voronoi, Delaunay
-from scipy.cluster.hierarchy import linkage, fcluster
-from mdtraj.core.topology import Topology, Residue, Atom
-from mdtraj.core.trajectory import Trajectory
-from mdtraj.core.element import *
-from mdtraj import shrake_rupley
-from AS_Funct import update_residue_method, update_atom_methods, getTetrahedronVolume, getContactMatrix
 
 
 # noinspection PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyTypeChecker
@@ -240,17 +233,18 @@ from AS_Funct import update_residue_method, update_atom_methods, getTetrahedronV
 
 
 class AS_D_Pocket:
-    def __init__(self, parent_universe, pocket_indices=None):
+    def __init__(self, parent_structure, pocket_indices=None):
         """
         Initialize a mask for information storage of a dpocket, this is user accessible and can only be read from public
          methods
         :param parent_universe: AS_Universe, parent universe
         """
-        self.universe = parent_universe
+        self.structure = parent_structure
         if pocket_indices is not None:
             self._pocket_indices = pocket_indices  # list of tuple, (snapshot_idx, pocket_idx)
         self.index = -1  # index of d-pocket in all d-pocket
         self._active = True
+        self._data = self.structure._data
 
     @property
     def is_active(self):
@@ -413,12 +407,12 @@ class AS_Pocket:
 
     @property
     def alphas(self):
-        for i in self._alpha_idx:
+        for i in self.alpha_idx:
             yield AS_AlphaAtom(i, self.parent_structure, self)
 
     @property
     def alpha_idx(self):
-        return self._alpha_idx
+        return np.array(self._alpha_idx,dtype=int)
 
     @property
     def _data(self):
@@ -426,46 +420,56 @@ class AS_Pocket:
 
     @property
     def is_active(self):
-        return self.parent_structure._data.is_active(self._alpha_idx).any()
+        return self.parent_structure._data.is_active(self.alpha_idx).any()
 
     @property
     def xyz(self) -> np.ndarray:
-        return self._data.xyz(self._alpha_idx)
+        return self._data.xyz(self.alpha_idx)
+
+
+    def polar_score(self, decimals = 0)-> float:
+        return float(np.around(np.sum(self._data.polar_score(self.alpha_idx)), decimals=decimals))
+
+
+    def polar_scores(self, decimals = 0) -> np.ndarray:
+        return np.around(self._data.polar_score(self.alpha_idx), decimals=decimals)
+
+
+    def nonpolar_score(self, decimals = 0) -> float:
+        return float(np.around(np.sum(self._data.nonpolar_score(self.alpha_idx)), decimals=decimals))
+
+
+    def nonpolar_scores(self,decimals = 0) -> np.ndarray:
+        return np.around(self._data.nonpolar_score(self.alpha_idx), decimals=decimals)
+
+
+    def total_score(self,decimals = 0):
+        return self.polar_score(decimals = decimals) + self.nonpolar_score(decimals = decimals)
 
     @property
-    def polar_score(self)-> float:
-        return float(np.sum(self._data.polar_score(self._alpha_idx)))
+    def lining_atoms_idx(self):
+        return np.unique(self._data.lining_atoms_idx(self.alpha_idx))
 
     @property
-    def polar_scores(self) -> float:
-        return float(self._data.polar_score(self._alpha_idx))
+    def lining_atoms(self):
+        for idx in self.lining_atoms_idx:
+            yield self.parent_structure.top.atom(idx)
 
     @property
-    def nonpolar_score(self) -> float:
-        return float(np.sum(self._data.nonpolar_score(self._alpha_idx)))
-
-    @property
-    def nonpolar_scores(self) -> np.ndarray:
-        return self._data.nonpolar_score(self._alpha_idx)
-    @property
-    def total_score(self):
-        return self.polar_score + self.nonpolar_score
-
-    @property
-    def lining_atoms(self) -> np.ndarray:
-        return np.unique(self._data.lining_atoms_idx(self._alpha_idx))
+    def lining_residues_idx(self):
+        return     np.unique([atom.residue.index for atom in self.lining_atoms])
 
     @property
     def lining_residues(self) -> np.ndarray:
-        # TODO
-        return np.unique(self._data.lining_atoms_idx(self._alpha_idx))
-
+        residue_idx = self.lining_residues_idx
+        for idx in residue_idx:
+            yield self.parent_structure.top.residue(idx)
     def activate(self):
         self._data.activate(self.alpha_idx)
 
+
     def deactivate(self):
         self._data.deactivate(self.alpha_idx)
-
 
 
 class AS_AlphaAtom:
@@ -529,7 +533,7 @@ class AS_Data(np.ndarray):
     """
     Container object inherited from numpy array object, you can access information directly here
 
-    Column, Content
+    Column, Content,   default value
     0       idx
     1       snapshot_idx
     2       x
@@ -539,14 +543,12 @@ class AS_Data(np.ndarray):
     6       lining_atom_idx_1
     7       lining_atom_idx_1
     8       lining_atom_idx_1
-    9       polar_score 0
-    10      nonpolar_score 0
-    11      is_active 1
-    12      is_contact 0
-    13      pocket_idx
+    9       polar_score        0
+    10      nonpolar_score     0
+    11      is_active          1
+    12      is_contact         0
+    13      pocket_idx         0
     14      radii
-
-
     """
 
     def __new__(cls, array_data, parent_structure=None):
@@ -573,7 +575,7 @@ class AS_Data(np.ndarray):
         return self[np.array(idx), 10]
 
     def lining_atoms_idx(self, idx):
-        return self[np.array(idx), 5:10]
+        return self[np.array(idx,dtype=int), 5:9].astype(int)
 
     def is_active(self, idx):
         return self[np.array(idx), 11]

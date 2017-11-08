@@ -6,7 +6,6 @@ Currently the use of this software is limited to group member of Yingkai Zhang's
 # Getting started
 ##Python version
 3.6+
-support for 2.7 coming soon
 
 ## Dependencies
 jupyter notebook

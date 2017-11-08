@@ -1,12 +1,12 @@
-from scipy.spatial.distance import squareform
-from mdtraj.core.element import *
-from scipy.cluster.hierarchy import linkage,fcluster
-from scipy.spatial import Voronoi,Delaunay
-from scipy.spatial.distance import squareform
-import numpy as np
-from AS_Cluster import AS_D_Pocket,AS_Data,AS_Pocket,AS_AlphaAtom
-from AS_Funct import getTetrahedronVolume,get_sasa,getContactMatrix,checkContact
 from collections import defaultdict
+
+import numpy as np
+from scipy.cluster.hierarchy import linkage, fcluster
+from scipy.spatial import Voronoi, Delaunay
+from scipy.spatial.distance import squareform
+
+from AS_Cluster import AS_D_Pocket, AS_Data, AS_Pocket
+from AS_Funct import getTetrahedronVolume, get_sasa, checkContact
 
 
 class AS_Structure:
@@ -26,6 +26,7 @@ class AS_Structure:
         self.config = self.parent.config
         # self.contact_cluster = [[None for i in range(self.n_residues)] for j in range(self.n_frames)]
         self._data = None
+        self._pockets = None
 
     def _tessellation(self,config: object,snapshot_idx: int) -> np.ndarray:
         # Generate Raw Tessellation simplexes
@@ -144,10 +145,12 @@ class AS_Structure:
             self._pockets[i] = reversed_dict
 
     def pockets(self,snapshot_idx=0):
-        if self._data is None:
+        if self._pockets is None:
             self._gen_pockets()
         for pocket_idx,pocket_content in self._pockets[snapshot_idx].items():
             yield AS_Pocket(pocket_content,snapshot_idx,pocket_idx,self)
+
+
 
 
 
@@ -279,24 +282,26 @@ class AS_Structure:
         Generate d-pocket dictionary of list of indices
         :return: dict of d_pockets
         """
-        if len(self._clusters) != self.n_frames:
-            raise Exception("All Frames must be processed before d pocket generation")
+        assert self._data is not None
 
         pockets = []
+        lining_atoms = []
         for i in range(self.n_frames):
-            pockets.extend(list(self.cluster(snapshot_idx=i).pockets))
+            for pocket in self.pockets(i):
+                pockets.append(pocket)
+                lining_atoms.append(pocket.lining_atoms)
 
-        lining_atoms = [p.get_lining_atoms() for p in pockets]
-        lining_dist = np.zeros((len(lining_atoms),len(lining_atoms)))
+        lining_atom_diff_matrix = np.zeros((len(lining_atoms),len(lining_atoms)))
 
         for i in range(len(lining_atoms)):
             for j in range(i,len(lining_atoms)):
-                lining_dist[i,j] = lining_dist[j,i] = len(
+                lining_atom_diff_matrix[i,j] = lining_atom_diff_matrix[j,i] = len(
                         lining_atoms[i].symmetric_difference(lining_atoms[j])) / len(
                     lining_atoms[i].union(lining_atoms[j]))
-        lining_pdist = squareform(lining_dist)
 
-        clustered_list = list(fcluster(Z=linkage(lining_pdist,method='complete'),t=self.config.dpocket_cluster_cutoff,
+        clustered_list = list(fcluster(Z=linkage(squareform(lining_atom_diff_matrix),
+                                                 method='complete'),
+                                       t=self.config.dpocket_cluster_cutoff,
                                        criterion='distance'))
 
         d_pockets_idx_dict = {}
@@ -308,4 +313,4 @@ class AS_Structure:
             d_pockets_idx_dict[d_pocket_idx].append((snapshot_idx,pocket_idx))
 
         for idx,item in d_pockets_idx_dict.items():
-            yield AS_D_Pocket(parent_universe=self.parent,pocket_indices=item)
+            yield AS_D_Pocket(self,pocket_indices=item)

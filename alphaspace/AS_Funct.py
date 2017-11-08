@@ -1,25 +1,24 @@
 import numpy as np
-from scipy.spatial.distance import cdist
-from AS_Config import AS_Config
-from scipy.spatial import Voronoi, Delaunay
-from scipy.cluster.hierarchy import linkage, fcluster
-from mdtraj.core.topology import Residue, Atom
 from mdtraj.geometry import _geometry
 from mdtraj.geometry.sasa import _ATOMIC_RADII
+from scipy.cluster.hierarchy import linkage, fcluster
+from scipy.spatial import Voronoi, Delaunay
+from scipy.spatial.distance import cdist
 
 
 def getTetrahedronVolume(coord_list):
     """
     generate the volume
-    :param coord_list: list N*4*3
+    :param coord_list: list 4*3
     :return: float
     """
     coord_matrix = np.concatenate((np.array(coord_list), np.ones((4, 1))), axis=1)
+    volume = np.abs(np.linalg.det(coord_matrix) / 6)
 
-    return np.abs(np.linalg.det(coord_matrix) / 6)
+    return volume
 
 
-def getContactMatrix(coord_list_1, coord_list_2, threshold=None):
+def getContactMatrix(coord_list_1, coord_list_2, threshold):
     """
     get M by N bool matrix of if there is a contact.
     :param coord_list_1: np.ndarray
@@ -27,8 +26,6 @@ def getContactMatrix(coord_list_1, coord_list_2, threshold=None):
     :param threshold: float
     :return: np.ndarray
     """
-    if threshold is None:
-        threshold = AS_Config().contact_threshold
     distance_matrix = cdist(coord_list_1, coord_list_2)
     return (distance_matrix < threshold).astype(int)
 
@@ -202,38 +199,6 @@ def screen_by_contact(data, binder_xyz, threshold):
 def _tessellation(queue,arglist):
     assert len(arglist) == 4
 
-    # def get_abs_sasa(atom_coords, alpha_coords, atom_radii):
-    #     """
-    #     Calculate the absolute solvent accessible surface area.
-    #     First calculate the SASA of the receptor by itself, then subtract it with sasa with the AAC.
-    #     AAC are set to resemble Carbon with a radii - 0.17
-    #     :param protein_snapshot: mdtraj object
-    #     :param alpha_coords: np.ndarray n*3
-    #     :return:
-    #     """
-    #     probe_radius = 0.14
-    #     n_sphere_points = 960
-    #     xyz = np.array(np.expand_dims(np.concatenate((atom_coords, alpha_coords), axis=0), axis=0),
-    #                    dtype=np.float32)
-    #     dim1 = xyz.shape[1]
-    #     atom_mapping = np.arange(dim1, dtype=np.int32)
-    #     covered = np.zeros((1, dim1), dtype=np.float32)
-    #     radii = np.array(atom_radii, np.float32) + probe_radius
-    #     _geometry._sasa(xyz, radii, int(n_sphere_points), atom_mapping, covered)
-    #     covered = covered[:, :atom_coords.shape[0]]
-    #
-    #     xyz = np.array(np.expand_dims(atom_coords, axis=0),
-    #                    dtype=np.float32)
-    #     dim1 = xyz.shape[1]
-    #     atom_mapping = np.arange(dim1, dtype=np.int32)
-    #     total = np.zeros((1, dim1), dtype=np.float32)
-    #     radii = np.array(atom_radii[:dim1], np.float32) + probe_radius
-    #     _geometry._sasa(xyz, radii, int(n_sphere_points), atom_mapping, total)
-    #
-    #     assert covered.shape == total.shape
-    #
-    #     return (total-covered)[0]
-
     protein_snapshot,  config, snapshot_idx, is_polar = arglist
     xyz = protein_snapshot.xyz[0]
     # Generate Raw Tessellation simplexes
@@ -269,6 +234,13 @@ def _tessellation(queue,arglist):
             [getTetrahedronVolume(i) for i in
              filtered_lining_xyz]) * 1000  # here the 1000 is to convert nm^3 to A^3
 
+    for i in _total_score:
+        if i == 0 or i == None:
+            print(i)
+            raise
+
+
+
     element = [str(atom.element.symbol) for atom in protein_snapshot.topology._atoms]
     atom_radii = [_ATOMIC_RADII[e] for e in element]
     alpha_radii =  [0.17 for _ in range(len(alpha_pocket_index))]
@@ -276,6 +248,7 @@ def _tessellation(queue,arglist):
     """"""
     probe_radius = 0.14
     n_sphere_points = 960
+
     _xyz = np.array(np.expand_dims(np.concatenate((xyz, filtered_alpha_xyz), axis=0), axis=0),
                    dtype=np.float32)
     dim1 = _xyz.shape[1]
@@ -295,11 +268,16 @@ def _tessellation(queue,arglist):
 
     assert covered.shape == total.shape
 
-    atom_sasa =  (total - covered)[0]
+    atom_sasa =  (total - covered)[0] * 100 # for nm^2 to A^2 convertion
+
+
     """"""
     # atom_sasa = get_abs_sasa(xyz,filtered_alpha_xyz,np.array(atom_radii+alpha_radii,dtype=np.float32))
     pocket_sasa = np.take(atom_sasa,alpha_lining)
-    polar_ratio = np.average(np.take(is_polar,alpha_lining),axis=1,weights=pocket_sasa)
+
+    polar_ratio = np.average(np.take(is_polar.astype(float),alpha_lining),axis=1,weights=pocket_sasa)
+
+
 
     _polar_score = _total_score * polar_ratio
 
@@ -329,6 +307,8 @@ def _tessellation(queue,arglist):
                            np.expand_dims(alpha_pocket_index, axis=1),
                            np.expand_dims(filtered_alpha_radii,axis=1)
                            ),axis=-1)
+
+    assert data.shape[1] == 15
 
     """
     0       idx
