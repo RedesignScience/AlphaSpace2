@@ -17,7 +17,7 @@ setup(name='alphaspace',
       	'': ['*.txt', '*.md'],
         # And include any *.msg files found in the 'hello' package, too:
         'alphaspace.tests.bcl2.lig': ['*.pdb'],
-        'alphaspace.tests.bcl2.lig': ['*.pdb'],
+        'alphaspace.tests.bcl2.prot': ['*.pdb'],
     },
 
       install_requires=[

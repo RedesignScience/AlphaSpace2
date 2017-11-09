@@ -265,12 +265,11 @@ class AS_D_Pocket:
 
     def __getitem__(self, key):
         """
-        Get pocket by index in d pocket
-        :param key: int
+        :param key:
         :return:
         """
-        snapshot_idx, pocket_idx = self._pocket_indices[key]
-        return self.universe.cluster(snapshot_idx).pocket(pocket_idx)
+
+
 
     def _index_to_pocket(self, index: tuple) -> object:
         return self.universe.cluster(snapshot_idx=index[0]).pocket(index[1])
@@ -379,30 +378,28 @@ class AS_Pocket:
     def __len__(self) -> int:
         return len(self._alpha_idx)
 
-    @classmethod
-    def merge_pocket(self,other):
-        """
-        Merge two pockets, the new index of the pocket will be the same as the first one
-        :param other: AS_Pocket
-        :return: AS_Pocket
-        """
-        if self._snapshot_idx != other._snapshot_idx:
-            raise Exception("Can't merge pockets from two snapshots")
-        return AS_Pocket(set(self._alpha_idx).union(other._alpha_idx),self._snapshot_idx,self._idx,self.parent_structure)
-
-    @classmethod
-    def add_alpha(self,idx):
-        if idx in self._alpha_idx:
-            return False
-        else:
-            self._alpha_idx.append(idx)
-            return self
-
-    def __add__(self, other):
-        if type(other) == AS_Pocket:
-            return self.merge_pocket(other)
-        elif type(self) == AS_AlphaAtom:
-            return self.add_alpha(other.idx)
+    # def merge_pocket(self,other):
+    #     """
+    #     Merge two pockets, the new index of the pocket will be the same as the first one
+    #     :param other: AS_Pocket
+    #     :return: AS_Pocket
+    #     """
+    #     if self._snapshot_idx != other._snapshot_idx:
+    #         raise Exception("Can't merge pockets from two snapshots")
+    #     return AS_Pocket(set(self._alpha_idx).union(other._alpha_idx),self._snapshot_idx,self._idx,self.parent_structure)
+    #
+    # def add_alpha(self,idx):
+    #     if idx in self._alpha_idx:
+    #         return False
+    #     else:
+    #         self._alpha_idx.append(idx)
+    #         return self
+    #
+    # def __add__(self, other):
+    #     if type(other) == AS_Pocket:
+    #         return self.merge_pocket(other)
+    #     elif type(self) == AS_AlphaAtom:
+    #         return self.add_alpha(other.idx)
 
 
     @property
@@ -561,9 +558,14 @@ class AS_Data(np.ndarray):
 
     def alpha_snapshot_idx(self, idx):
         return self[np.array(idx), 1]
+
     @property
-    def snapshots(self):
+    def snapshots_idx(self):
         return np.sort(np.unique(self[:,1])).astype(int)
+
+    def snapshot(self,snapshot_idx):
+        return self[self.snapshot_alpha_idx(snapshot_idx)]
+
 
     def xyz(self, idx):
         return self[np.array(idx), 2:5]

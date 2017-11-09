@@ -190,7 +190,7 @@ def screen_by_contact(data, binder_xyz, threshold):
     assert len(binder_xyz.shape) == 3
     assert binder_xyz.shape[-1] == 3
 
-    for snapshot_idx in data.snapshots:
+    for snapshot_idx in data.snapshots_idx:
         alpha_idx = data.snapshot_alpha_idx(snapshot_idx)
         xyz = data.xyz(alpha_idx)
         data[alpha_idx, 12] = getContactMatrix(xyz, binder_xyz[snapshot_idx], threshold).any(axis=1).astype(int)

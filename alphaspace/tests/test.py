@@ -1,12 +1,12 @@
 import mdtraj
 
-from AS_Universe import AS_Universe
+import alphaspace as AS
 
 # initialize universe instance
-universe = AS_Universe()
-for i in range(1, 1 + 10):
-    test_ligand_path = '../Test_system/bcl2/lig/{}.pdb'.format(i)
-    test_protein_path = '../Test_system/bcl2/prot/{}.pdb'.format(i)
+universe = AS.AS_Universe()
+for i in range(1, 1 + 3):
+    test_ligand_path = './bcl2/lig/{}.pdb'.format(i)
+    test_protein_path = './bcl2/prot/{}.pdb'.format(i)
     ligand = mdtraj.load(test_ligand_path)
     protein = mdtraj.load(test_protein_path)
     universe.set_receptor(protein, append=True)

@@ -152,8 +152,6 @@ class AS_Structure:
 
 
 
-
-
     def __repr__(self):
         return "{} Structure with {} frames, {} residues, {} atoms".format(
                 ['Receptor','Binder','Misc.'][self.structure_type],self.n_frames,self.n_residues,self.n_atoms)

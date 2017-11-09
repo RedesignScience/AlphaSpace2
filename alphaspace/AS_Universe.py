@@ -1,4 +1,3 @@
-import nglview as nv
 import numpy as np
 from mdtraj import shrake_rupley
 
@@ -32,7 +31,7 @@ class AS_Universe(object):
             self.guess_receptor_binder(receptor, guess_by_order)
 
         self.others = None
-        self.view = None
+        self._view = None
 
         self._d_pockets = {}
 
@@ -251,7 +250,7 @@ class AS_Universe(object):
         return np.where((sasa_diff > 0).any(axis=0))[0]
 
     def screen_pockets(self):
-        assert len(list(self.receptor._data.snapshots)) == self.n_frames
+        assert len(list(self.receptor._data.snapshots_idx)) == self.n_frames
         data = self.receptor._data
         data.activate(data.all_idx)
 
@@ -286,28 +285,58 @@ class AS_Universe(object):
     Visualization methods
     """
 
-    def view_snapshot(self, snapshot_idx: int = 0) -> object:
-        self.show_receptor(snapshot_idx)
-        self.show_binder(snapshot_idx)
-        self.show_pocket(snapshot_idx)
-        return self.view
 
-    def show_receptor(self, snapshot_idx=0):
-        self.view = nv.show_mdtraj(self.receptor.trajectory[snapshot_idx], gui=True)
-        self.receptor_view = self.view.component_0
+    def view_snapshot(self, snapshot_idx: int = 0) -> object:
+        self.view_receptor(snapshot_idx)
+        self.view_binder(snapshot_idx)
+        return self._view
+
+    def view_binder(self, snapshot_idx=0):
+        assert self._view
+        self.binder_view = self._view.add_trajectory(self.binder.trajectory[snapshot_idx])
+
+    def view_receptor(self, snapshot_idx=0):
+        try:
+            import nglview as nv
+        except:
+            print('nglview is needed for jupyter notebook visualization')
+            return
+        self._view = nv.show_mdtraj(self.receptor.trajectory[snapshot_idx], gui=True)
+        self.receptor_view = self._view.component_0
         self.receptor_view.clear_representations()
         self.receptor_view.add_surface(selection='protein', opacity=1, color='white')
 
-    def show_pocket_label(self):
-        self.view.component_2.add_representation(repr_type='label', lableType='residueindex', color='residueindex')
+    # def show_pocket(self, snapshot_idx=0):
+    #     self.pocket_view = self._view.add_trajectory(self.receptor.cluster(snapshot_idx).traj)
+    #     self.pocket_view.clear_representations()
+    #     self.pocket_view.add_representation(repr_type='ball+stick', selection='all', color='residueindex')
 
-    def show_binder(self, snapshot_idx=0):
-        self.binder_view = self.view.add_trajectory(self.binder.trajectory[snapshot_idx])
+    def add_sphere(self,snapshot_idx = 0,active_only = True):
+        for pocket in self.pockets(snapshot_idx):
+            if (not active_only) or (active_only and pocket.is_active):
+                coords = []
+                pocket_size = 0
+                for alpha in pocket.alphas:
+                    coords.extend(list(alpha.xyz))
+                    pocket_size+=1
+                # colors = [self.config.color_table[pocket._idx % len(self.config.color_table)] for _ in range(pocket_size)]
+                colors = [0.5 for i in range(pocket_size*3)]
 
-    def show_pocket(self, snapshot_idx=0):
-        self.pocket_view = self.view.add_trajectory(self.receptor.cluster(snapshot_idx).traj)
-        self.pocket_view.clear_representations()
-        self.pocket_view.add_representation(repr_type='ball+stick', selection='all', color='residueindex')
+                radius = [0.02 for _ in range(pocket_size)]
+                shapes = {
+                    "position": coords,
+                    "color": colors,
+                    "radius": radius
+                }
+
+                self._view.shape.add_buffer('sphere', shapes)
+
+
+
+
+
+
+
 
 
 if __name__ == '__main__':

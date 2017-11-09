@@ -9,8 +9,10 @@ for i in range(1, 1 + 10):
     test_protein_path = '../Test_system/bcl2/prot/{}.pdb'.format(i)
     ligand = mdtraj.load(test_ligand_path)
     protein = mdtraj.load(test_protein_path)
+
     universe.set_receptor(protein, append=True)
     universe.set_binder(ligand, append=True)
+
 
 
 universe.run_alphaspace_mp()
@@ -26,3 +28,4 @@ for i in range(universe.n_frames):
         print(
             pocket.total_score(5)
         )
+
