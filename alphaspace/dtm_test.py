@@ -1,12 +1,11 @@
-import mdtraj
+import mdtraj,alphaspace
 
-from AS_Universe import AS_Universe
 
 # initialize universe instance
-universe = AS_Universe()
+universe = alphaspace.AS_Universe()
 for i in range(1, 1 + 10):
-    test_ligand_path = '../Test_system/bcl2/lig/{}.pdb'.format(i)
-    test_protein_path = '../Test_system/bcl2/prot/{}.pdb'.format(i)
+    test_ligand_path = './tests/bcl2/lig/{}.pdb'.format(i)
+    test_protein_path = './tests/bcl2/prot/{}.pdb'.format(i)
     ligand = mdtraj.load(test_ligand_path)
     protein = mdtraj.load(test_protein_path)
 
@@ -15,7 +14,7 @@ for i in range(1, 1 + 10):
 
 
 
-universe.run_alphaspace_mp()
+universe.run_alphaspace()
 
 
 universe.config.screen_by_lig_cntct = True

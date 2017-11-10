@@ -5,8 +5,10 @@ from scipy.cluster.hierarchy import linkage, fcluster
 from scipy.spatial import Voronoi, Delaunay
 from scipy.spatial.distance import squareform
 
-from AS_Cluster import AS_D_Pocket, AS_Data, AS_Pocket
-from AS_Funct import getTetrahedronVolume, get_sasa, checkContact
+
+
+from .AS_Cluster import AS_D_Pocket, AS_Data, AS_Pocket
+from .AS_Funct import getTetrahedronVolume, get_sasa, checkContact
 
 
 class AS_Structure:
@@ -53,7 +55,7 @@ class AS_Structure:
         # cluster the remaining vertices to assign index of belonging pockets
         zmat = linkage(filtered_alpha_xyz,method='average')
 
-        alpha_pocket_index = fcluster(zmat,self.config.pocket_cluster_distance / 10,
+        alpha_pocket_index = fcluster(zmat,self.config.clust_dist / 10,
                                       criterion='distance') - 1  # because cluster index start from 1
 
         # Load trajectories

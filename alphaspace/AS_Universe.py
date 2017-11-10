@@ -1,10 +1,10 @@
 import numpy as np
 from mdtraj import shrake_rupley
 
-from AS_Cluster import AS_D_Pocket
-from AS_Config import AS_Config
-from AS_Funct import screen_by_contact
-from AS_Struct import AS_Structure
+from .AS_Cluster import AS_D_Pocket
+from .AS_Config import AS_Config
+from .AS_Funct import screen_by_contact
+from .AS_Struct import AS_Structure
 
 
 # noinspection PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit
@@ -200,7 +200,7 @@ class AS_Universe(object):
     def run_alphaspace_mp(self):
 
         import multiprocessing as mp
-        from AS_Funct import _tessellation
+        from .AS_Funct import _tessellation
 
         def multiprocess(function, argslist, ncpu):
             total = len(argslist)

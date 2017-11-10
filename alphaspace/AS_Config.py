@@ -1,4 +1,4 @@
-import configparser
+import configparser,os,sys
 
 _COLOR_DICT = dict(green=[0.0, 0.5019607843137255, 1.6718652606120004e-16], yellow=[1.0, 0.9999999999999998, 0.0],
                    pink=[1.0, 0.7529411764705882, 0.7960784313725489], orange=[1.0, 0.6470588235294115, 0.0],
@@ -27,11 +27,11 @@ _DEFAULT_CONFIG_FILE_PATH = "./config.ini"
 
 
 class AS_Config(object):
-    def __init__(self,config_path = None):
-        self.config = configparser.ConfigParser()
-        self.config_path = config_path if config_path else _DEFAULT_CONFIG_FILE_PATH
-        self.config.read(_DEFAULT_CONFIG_FILE_PATH)
-
+    def __new__(cls,config_path = None):
+        cls.config = configparser.ConfigParser()
+        cls.config_path = config_path if config_path else _DEFAULT_CONFIG_FILE_PATH
+        cls.load_config(cls,cls.config_path)
+        return cls
 
     def color(self,idx):
         assert type(idx) == int
@@ -43,8 +43,8 @@ class AS_Config(object):
 
     def load_config(self,path):
 
-        self.config = path
-        self.config.read(path)
+        self.config_path = path
+        self.config.read(self.config_path)
 
         self.output_dir =           self.config.get('options', 'output_dir')
         self.output_to_screen =     self.config.getboolean('options', 'output_to_screen')
@@ -81,6 +81,7 @@ class AS_Config(object):
         self.beta_high_cutoff =         self.config.getfloat('parameters','beta_high_cutoff')
         self.beta_mid_cutoff =          self.config.getfloat('parameters','beta_mid_cutoff')
         self.lig_clust_dist =           self.config.getfloat('parameters','lig_clust_dist')
+        self.contact_threshold =        self.config.getfloat('parameters','contact_threshold')
 
     def write_config(self,path):
         self.config.set('options', 'output_dir', self.output_dir)
