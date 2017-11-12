@@ -119,6 +119,15 @@ class AS_Universe(object):
             else:
                 continue
 
+    def pocket(self, pocket_idx, snapshot_idx=0):
+        for pocket in self.receptor.pockets(snapshot_idx):
+            if pocket._idx == pocket_idx:
+                return pocket
+        return None
+
+
+
+
     # def cluster(self, snapshot_idx: int = 0) -> object:
     #     """
     #     return list of clusters
@@ -205,7 +214,6 @@ class AS_Universe(object):
         from .AS_Funct import _tessellation
 
         def multiprocess(function, argslist, ncpu):
-            total = len(argslist)
             done = 0
             result_queue = mp.Queue(ncpu)
             jobs = []
@@ -298,6 +306,9 @@ class AS_Universe(object):
     def view_snapshot(self, snapshot_idx: int = 0) -> object:
         self.view_receptor(snapshot_idx)
         self.view_binder(snapshot_idx)
+        self.view_alphas(snapshot_idx, active_only=True)
+        self.view_pocket_centers(snapshot_idx)
+        self.view_pocket_surface(snapshot_idx)
         return self._view
 
     def view_binder(self, snapshot_idx=0):
@@ -313,19 +324,33 @@ class AS_Universe(object):
         self._view = nv.show_mdtraj(self.receptor.trajectory[snapshot_idx], gui=True)
         self.receptor_view = self._view.component_0
         self.receptor_view.clear_representations()
-        self.receptor_view.add_surface(selection='protein', opacity=1, color='white')
+        self.receptor_view.add_surface(selection='protein', opacity=0.8, color='white')
 
     # def show_pocket(self, snapshot_idx=0):
     #     self.pocket_view = self._view.add_trajectory(self.receptor.cluster(snapshot_idx).traj)
     #     self.pocket_view.clear_representations()
     #     self.pocket_view.add_representation(repr_type='ball+stick', selection='all', color='residueindex')
 
-    def add_sphere(self, snapshot_idx=0, active_only=True):
+    def view_alphas(self, snapshot_idx=0, active_only=True):
         for pocket in self.pockets(snapshot_idx):
-            color = self.config.color(pocket.index)
+            color = self.config.color(idx=pocket._idx)
             if (not active_only) or (active_only and pocket.is_active):
                 for alpha in pocket.alphas:
-                    self._view.shape.add_buffer("sphere", position=list(alpha.xyz * 10), color=color, radius=[0.1])
+                    self._view.shape.add_buffer("sphere", position=list(alpha.xyz * 10), color=color, radius=[0.5])
+
+    def view_pocket_centers(self, snapshot_idx=0, active_only=True):
+        for pocket in self.pockets(snapshot_idx):
+            color = self.config.color(idx=pocket._idx)
+            if (not active_only) or (active_only and pocket.is_active):
+                self._view.shape.add_buffer("sphere", position=list(pocket.centoid_xyz * 10), color=color, radius=[0.5])
+                self._view.shape.add('text', list(pocket.centoid_xyz * 10), [0, 0, 0], 2.5, str(int(pocket._idx)))
+
+    def view_pocket_surface(self, snapshot_idx=0):
+        for pocket in self.pockets(snapshot_idx):
+            self._view.add_surface(selection=list(pocket.lining_atoms_idx), opacity=1.0, color=pocket.color,
+                                   surfaceType='sas')
+
+
 
 
 

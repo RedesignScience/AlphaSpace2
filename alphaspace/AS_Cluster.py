@@ -464,6 +464,14 @@ class AS_Pocket:
     def deactivate(self):
         self._data.deactivate(self.alpha_idx)
 
+    @property
+    def color(self):
+        return self.parent_structure.config.color_name(self._idx)
+
+    @property
+    def centoid_xyz(self):
+        return np.average(self.xyz, axis=0)
+
 
 class AS_AlphaAtom:
     """

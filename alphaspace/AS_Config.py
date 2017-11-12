@@ -1,4 +1,5 @@
-import configparser,os
+import configparser
+import os
 
 _COLOR_DICT = dict(green=[0.0, 0.5019607843137255, 1.6718652606120004e-16], yellow=[1.0, 0.9999999999999998, 0.0],
                    pink=[1.0, 0.7529411764705882, 0.7960784313725489], orange=[1.0, 0.6470588235294115, 0.0],
@@ -35,10 +36,15 @@ class AS_Config(object):
         cls.load_config(cls,cls.config_path)
         return cls
 
-    def color(self,idx):
-        assert type(idx) == int
-        rounded_idx = idx%len(_COLOR_IDX)
+    @staticmethod
+    def color(idx):
+        rounded_idx = int(idx) % len(_COLOR_IDX)
         return _COLOR_DICT[_COLOR_IDX[rounded_idx]]
+
+    @staticmethod
+    def color_name(idx):
+        rounded_idx = int(idx) % len(_COLOR_IDX)
+        return _COLOR_IDX[rounded_idx]
 
     def default(self):
         self.__init__()
