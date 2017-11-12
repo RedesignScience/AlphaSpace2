@@ -18,20 +18,22 @@ setup(name='alphaspace',
         # And include any *.msg files found in the 'hello' package, too:
         'alphaspace.tests.bcl2.lig': ['*.pdb'],
         'alphaspace.tests.bcl2.prot': ['*.pdb'],
+          'Examples.mdm2_p53': ['*.pdb'],
+
     },
 
       install_requires=[
       	  'numpy',
           'mdtraj',
           'jupyter',
-          'nglview>=1.0',
+          'nglview>=1.0b5',
           'mdtraj',
           'ipywidgets>=7.0'
       ],
       include_package_data=True,
       zip_safe=False,
 
-      # scripts=['bin/'],
+      scripts=['bin/run_alphaspace.py'],
 
 
 
