@@ -5,8 +5,6 @@ from scipy.cluster.hierarchy import linkage, fcluster
 from scipy.spatial import Voronoi, Delaunay
 from scipy.spatial.distance import squareform
 
-
-
 from .AS_Cluster import AS_D_Pocket, AS_Data, AS_Pocket
 from .AS_Funct import getTetrahedronVolume, get_sasa, checkContact
 
@@ -258,24 +256,23 @@ class AS_Structure:
         alpha_idx = self._data.snapshot_alpha_idx(snapshot_idx)
         snapshot_cluster_coord_matrix = self._data.xyz(alpha_idx)
         binder_coords = self.universe.binder.trajectory.xyz[snapshot_idx]
-        contact_alpha = checkContact(snapshot_cluster_coord_matrix,binder_coords,self.config.contact_threshold)[0]
+        contact_alpha = checkContact(snapshot_cluster_coord_matrix, binder_coords, self.config.hit_dist)[0]
         contact_alpha_idx = alpha_idx[contact_alpha]
         self._data[contact_alpha_idx,12] = 1
 
+    # def assign_binder_contact_pocket(self,AS_Cluster,snapshot_idx):
+    #     contact_matrix = AS_Cluster._get_contact_list(self.trajectory[snapshot_idx])
+    #     for residue in self.topology.residues:
+    #         self.contact_cluster[snapshot_idx][residue.index] = AS_Cluster._get_pockets_by_binder_contact(
+    #                 contact_matrix=contact_matrix,
+    #                 binder_residue=residue)
 
-    def assign_binder_contact_pocket(self,AS_Cluster,snapshot_idx):
-        contact_matrix = AS_Cluster._get_contact_list(self.trajectory[snapshot_idx])
-        for residue in self.topology.residues:
-            self.contact_cluster[snapshot_idx][residue.index] = AS_Cluster._get_pockets_by_binder_contact(
-                    contact_matrix=contact_matrix,
-                    binder_residue=residue)
-
-    def get_residue_contact_pocket(self,AS_Cluster,residue_index):
-        if self.contact_cluster[AS_Cluster.alpha_snapshot_idx][0] is None:
-            self.assign_binder_contact_pocket(AS_Cluster, AS_Cluster.alpha_snapshot_idx)
-        contact_pocket_index = self.contact_cluster[AS_Cluster.alpha_snapshot_idx][residue_index]
-        for i in contact_pocket_index:
-            yield AS_Cluster.pocket(i)
+    # def get_residue_contact_pocket(self,AS_Cluster,residue_index):
+    #     if self.contact_cluster[AS_Cluster.alpha_snapshot_idx][0] is None:
+    #         self.assign_binder_contact_pocket(AS_Cluster, AS_Cluster.alpha_snapshot_idx)
+    #     contact_pocket_index = self.contact_cluster[AS_Cluster.alpha_snapshot_idx][residue_index]
+    #     for i in contact_pocket_index:
+    #         yield AS_Cluster.pocket(i)
 
     def _gen_d_pockets(self) -> object:
         """

@@ -37,9 +37,11 @@ class AS_Universe(object):
                                                                                           self.receptor.n_atoms,
                                                                                           self.binder.n_residues,
                                                                                           self.binder.n_atoms)
+
     @property
     def _data(self):
         return self.receptor._data
+
     @property
     def frames(self):
         for i in range(self.n_frames):
@@ -110,9 +112,12 @@ class AS_Universe(object):
     #     else:
     #         return False
 
-    def pockets(self, snapshot_idx):
+    def pockets(self, snapshot_idx=0, active_only=True):
         for pocket in self.receptor.pockets(snapshot_idx):
-            yield pocket
+            if pocket.is_active or (not active_only):
+                yield pocket
+            else:
+                continue
 
     # def cluster(self, snapshot_idx: int = 0) -> object:
     #     """
@@ -190,7 +195,7 @@ class AS_Universe(object):
     def run_alphaspace(self):
         data_list = []
         for i in range(self.n_frames):
-            data_list.append(self.receptor._tessellation(self.config,i))
+            data_list.append(self.receptor._tessellation(self.config, i))
         self.receptor._combine_data(data_list)
         self.receptor._gen_pockets()
 
@@ -220,18 +225,16 @@ class AS_Universe(object):
         config = [self.config for i in range(self.n_frames)]
         snapshot_indices = range(self.n_frames)
         is_polar = [self.receptor.is_polar for _ in range(self.n_frames)]
-        arglist = list(zip(snapshots,config,snapshot_indices,is_polar))
+        arglist = list(zip(snapshots, config, snapshot_indices, is_polar))
 
-        data_list = multiprocess(_tessellation,arglist,mp.cpu_count())
+        data_list = multiprocess(_tessellation, arglist, mp.cpu_count())
 
         self.receptor._combine_data(data_list)
-
 
     def _get_face_atoms(self):
         """
         Calculate the snapshot interface atom.
         The interface atom is defined as whose ASA is reduced with introduction of ligand.
-        :param snapshot_idx: int
         :return: numpy.array
         """
         receptor_snapshot = self.receptor.traj
@@ -245,7 +248,7 @@ class AS_Universe(object):
         print(receptor_snapshot_sasa.shape)
         print(complex_snapshot_sasa.shape)
 
-        sasa_diff = receptor_snapshot_sasa - complex_snapshot_sasa[:,:self.receptor.n_atoms]
+        sasa_diff = receptor_snapshot_sasa - complex_snapshot_sasa[:, :self.receptor.n_atoms]
 
         return np.where((sasa_diff > 0).any(axis=0))[0]
 
@@ -256,13 +259,13 @@ class AS_Universe(object):
 
         if self.config.screen_by_lig_cntct:
             screen_by_contact(data, self.binder.trajectory.xyz, self.config.contact_threshold)
-            contact_alpha_row = data[data[:,12] == 1]
-            contact_pocket_idx = np.unique(contact_alpha_row[:,[1,13]],axis=0)
-            ss_pocket_data = data[:,[1,13]]
+            contact_alpha_row = data[data[:, 12] == 1]
+            contact_pocket_idx = np.unique(contact_alpha_row[:, [1, 13]], axis=0)
+            ss_pocket_data = data[:, [1, 13]]
             data.activate(data.all_idx)
             all_active_pocket_alpha_idx = []
             for pocket_idx in contact_pocket_idx:
-                deactive_pocket_alpha_idx =np.where((ss_pocket_data == pocket_idx).all(axis=1))[0]
+                deactive_pocket_alpha_idx = np.where((ss_pocket_data == pocket_idx).all(axis=1))[0]
                 all_active_pocket_alpha_idx.extend(deactive_pocket_alpha_idx)
             data.deactivate(all_active_pocket_alpha_idx)
 
@@ -270,10 +273,10 @@ class AS_Universe(object):
             interface_atom_idx = np.sort(self._get_face_atoms())
             for snapshot_idx in range(self.n_frames):
                 for pocket in self.pockets(snapshot_idx):
-                    atom_list = np.concatenate([pocket.lining_atoms,interface_atom_idx])
-                    if len(np.unique(atom_list)) == len(atom_list):
-                        data[pocket.alphas,11] = 0
 
+                    atom_list = np.concatenate([pocket.lining_atoms_idx, interface_atom_idx])
+                    if len(np.unique(atom_list)) == len(atom_list):
+                        data[pocket.alpha_idx, 11] = 0
 
         if self.config.screen_by_score:
             assert self.config.min_score > 0
@@ -282,10 +285,15 @@ class AS_Universe(object):
                     if pocket.total_score < self.config.min_score:
                         pocket.deactivate()
 
+        if self.config.min_num_alph > 0:
+            for snapshot_idx in range(self.n_frames):
+                for pocket in self.pockets(snapshot_idx):
+                    if len(pocket.alpha_idx) <= self.config.min_num_alph:
+                        pocket.deactivate()
+
     """
     Visualization methods
     """
-
 
     def view_snapshot(self, snapshot_idx: int = 0) -> object:
         self.view_receptor(snapshot_idx)
@@ -312,31 +320,12 @@ class AS_Universe(object):
     #     self.pocket_view.clear_representations()
     #     self.pocket_view.add_representation(repr_type='ball+stick', selection='all', color='residueindex')
 
-    def add_sphere(self,snapshot_idx = 0,active_only = True):
+    def add_sphere(self, snapshot_idx=0, active_only=True):
         for pocket in self.pockets(snapshot_idx):
+            color = self.config.color(pocket.index)
             if (not active_only) or (active_only and pocket.is_active):
-                coords = []
-                pocket_size = 0
                 for alpha in pocket.alphas:
-                    coords.extend(list(alpha.xyz))
-                    pocket_size+=1
-                # colors = [self.config.color_table[pocket._idx % len(self.config.color_table)] for _ in range(pocket_size)]
-                colors = [0.5 for i in range(pocket_size*3)]
-
-                radius = [0.02 for _ in range(pocket_size)]
-                shapes = {
-                    "position": coords,
-                    "color": colors,
-                    "radius": radius
-                }
-
-                self._view.shape.add_buffer('sphere', shapes)
-
-
-
-
-
-
+                    self._view.shape.add_buffer("sphere", position=list(alpha.xyz * 10), color=color, radius=[0.1])
 
 
 
