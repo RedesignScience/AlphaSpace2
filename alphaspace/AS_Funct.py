@@ -224,7 +224,7 @@ def _tessellation(queue,arglist):
     # cluster the remaining vertices to assign index of belonging pockets
     zmat = linkage(filtered_alpha_xyz,method='average')
 
-    alpha_pocket_index = fcluster(zmat, config.pocket_cluster_distance / 10,
+    alpha_pocket_index = fcluster(zmat, config.clust_dist / 10,
                                   criterion='distance') - 1  # because cluster index start from 1
 
     # Load trajectories
@@ -234,28 +234,19 @@ def _tessellation(queue,arglist):
             [getTetrahedronVolume(i) for i in
              filtered_lining_xyz]) * 1000  # here the 1000 is to convert nm^3 to A^3
 
-    for i in _total_score:
-        if i == 0 or i == None:
-            print(i)
-            raise
-
-
-
     element = [str(atom.element.symbol) for atom in protein_snapshot.topology._atoms]
     atom_radii = [_ATOMIC_RADII[e] for e in element]
     alpha_radii =  [0.17 for _ in range(len(alpha_pocket_index))]
 
     """"""
-    probe_radius = 0.14
-    n_sphere_points = 960
 
     _xyz = np.array(np.expand_dims(np.concatenate((xyz, filtered_alpha_xyz), axis=0), axis=0),
                    dtype=np.float32)
     dim1 = _xyz.shape[1]
     atom_mapping = np.arange(dim1, dtype=np.int32)
     covered = np.zeros((1, dim1), dtype=np.float32)
-    radii = np.array(atom_radii+alpha_radii, np.float32) + probe_radius
-    _geometry._sasa(_xyz, radii, int(n_sphere_points), atom_mapping, covered)
+    radii = np.array(atom_radii+alpha_radii, np.float32) + config.probe_radius
+    _geometry._sasa(_xyz, radii, int(config.n_sphere_points), atom_mapping, covered)
     covered = covered[:, :xyz.shape[0]]
 
     _xyz = np.array(np.expand_dims(xyz, axis=0),
@@ -263,12 +254,12 @@ def _tessellation(queue,arglist):
     dim1 = _xyz.shape[1]
     atom_mapping = np.arange(dim1, dtype=np.int32)
     total = np.zeros((1, dim1), dtype=np.float32)
-    radii = np.array(atom_radii, np.float32) + probe_radius
-    _geometry._sasa(_xyz, radii, int(n_sphere_points), atom_mapping, total)
+    radii = np.array(atom_radii, np.float32) + config.probe_radius
+    _geometry._sasa(_xyz, radii, int(config.n_sphere_points), atom_mapping, total)
 
     assert covered.shape == total.shape
 
-    atom_sasa =  (total - covered)[0] * 100 # for nm^2 to A^2 convertion
+    atom_sasa =  (total - covered)[0] * 100 # nm^2 to A^2 convertion
 
 
     """"""

@@ -1,4 +1,4 @@
-import configparser,os,sys
+import configparser,os
 
 _COLOR_DICT = dict(green=[0.0, 0.5019607843137255, 1.6718652606120004e-16], yellow=[1.0, 0.9999999999999998, 0.0],
                    pink=[1.0, 0.7529411764705882, 0.7960784313725489], orange=[1.0, 0.6470588235294115, 0.0],
@@ -23,10 +23,12 @@ _COLOR_IDX = {0: "green",
              11: "rosybrown",
              12: "coral"}
 
-_DEFAULT_CONFIG_FILE_PATH = "./config.ini"
+_DEFAULT_CONFIG_FILE_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)) , 'config.ini')
+
 
 
 class AS_Config(object):
+
     def __new__(cls,config_path = None):
         cls.config = configparser.ConfigParser()
         cls.config_path = config_path if config_path else _DEFAULT_CONFIG_FILE_PATH
@@ -82,6 +84,8 @@ class AS_Config(object):
         self.beta_mid_cutoff =          self.config.getfloat('parameters','beta_mid_cutoff')
         self.lig_clust_dist =           self.config.getfloat('parameters','lig_clust_dist')
         self.contact_threshold =        self.config.getfloat('parameters','contact_threshold')
+        self.probe_radius =             self.config.getfloat('parameters','probe_radius')
+        self.n_sphere_points =          self.config.getfloat('parameters','n_sphere_points')
 
     def write_config(self,path):
         self.config.set('options', 'output_dir', self.output_dir)
@@ -105,6 +109,7 @@ class AS_Config(object):
         self.config.set('options', 'min_score', self.min_score)
         self.config.set('options', 'screen_by_perc_rank', self.screen_by_perc_rank)
         self.config.set('options', 'min_perc_rank', self.min_perc_rank)
+
 
 
         with open(path,'w') as handle:

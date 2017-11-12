@@ -19,10 +19,7 @@ class AS_Universe(object):
         :param config: object,AS_config
         """
 
-        if config is not None:
-            self.config = config
-        else:
-            self.config = AS_Config()
+        self.config = config if config is not None else AS_Config()
 
         self.set_receptor(receptor)
         self.set_binder(binder)
@@ -245,7 +242,10 @@ class AS_Universe(object):
 
         complex_snapshot_sasa = shrake_rupley(complex_snapshot)
 
-        sasa_diff = receptor_snapshot_sasa - complex_snapshot_sasa[:,:len(receptor_snapshot_sasa)]
+        print(receptor_snapshot_sasa.shape)
+        print(complex_snapshot_sasa.shape)
+
+        sasa_diff = receptor_snapshot_sasa - complex_snapshot_sasa[:,:self.receptor.n_atoms]
 
         return np.where((sasa_diff > 0).any(axis=0))[0]
 
@@ -270,7 +270,8 @@ class AS_Universe(object):
             interface_atom_idx = np.sort(self._get_face_atoms())
             for snapshot_idx in range(self.n_frames):
                 for pocket in self.pockets(snapshot_idx):
-                    if len(np.intersect1d(pocket.lining_atoms,interface_atom_idx,True)) == 0:
+                    atom_list = np.concatenate([pocket.lining_atoms,interface_atom_idx])
+                    if len(np.unique(atom_list)) == len(atom_list):
                         data[pocket.alphas,11] = 0
 
 
