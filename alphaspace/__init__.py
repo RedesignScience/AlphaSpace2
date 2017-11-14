@@ -21,6 +21,3 @@ try:
 except:
     print("nglview not found, jupyter notebook visualization will be disabled")
 
-from .AS_Universe import AS_Universe
-from .AS_Funct import *
-

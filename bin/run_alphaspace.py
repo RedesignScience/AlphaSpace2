@@ -1,39 +1,46 @@
 import mdtraj
 
 import alphaspace
-from alphaspace.AS_IO import get_pdb_line
 
 
-def run_alphaspace(pdb):
-    universe = alphaspace.AS_Universe(receptor=mdtraj.load(pdb))
+def run_alphaspace(input_file, output_file, config=None):
+    universe = alphaspace.AS_Universe(receptor=mdtraj.load(input_file))
+
 
     universe.run_alphaspace()
 
     universe.screen_pockets()
 
-    "ATOM      1  N   GLU     1      10.801 -12.147  -5.180  1.00  0.00"
-    "ATOM       alpha_idx  A   AAC     Pocket_idx      xyz  polar  nonpolar polar_occupy_rate nonpolar_occupy_rate"
-    "ATOM       pocket_center  A   ACC     Pocket_idx      xyz  polar  nonpolar polar_occupy_rate nonpolar_occupy_rate"
-    for pocket in universe.pockets():
-        for alpha in pocket.alphas:
-            print(get_pdb_line(atomnum=alpha.idx, atomname='A', resname="AAC", resnum=pocket._idx, x=alpha.xyz[0],
-                               y=alpha.xyz[0], z=alpha.xyz[0], occ=alpha.polar_score, bfactor=alpha.nonpolar_score))
+    if output_file.endswith('.as'):
+        """save as .as binary"""
+        alphaspace.save_universe(universe, output_file)
 
-        print(get_pdb_line(atomnum=alpha.idx, atomname='A', resname="AAC", resnum=pocket._idx, x=alpha.xyz[0],
-                           y=alpha.xyz[0], z=alpha.xyz[0], occ=alpha.polar_score, bfactor=alpha.nonpolar_score))
-
-    return
+    elif output_file.endswith('.pdb'):
+        """save as pdb readable file"""
+        out_lines = []
+        for pocket in universe.pockets():
+            for alpha in pocket.alphas:
+                out_lines.append(
+                    alphaspace.get_pdb_line(atomnum=alpha.idx, atomname='A', resname="AAC", resnum=pocket._idx,
+                                            x=alpha.xyz[0],
+                                            y=alpha.xyz[0], z=alpha.xyz[0], occ=alpha.polar_score,
+                                            bfactor=alpha.nonpolar_score))
+        with open(output_file, 'r') as handle:
+            handle.writelines(out_lines)
 
 
 if __name__ == '__main__':
+    import argparse
 
-    import sys
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-i", dest="input_file", required=True,
+                        help="input coordinate or trajectory file", metavar="FILE", )
+    parser.add_argument("-o", dest="output_file", required=True,
+                        help="output file, .pdb text or .as binary", metavar="FILE", )
+    parser.add_argument("-c", dest="config_file", required=False,
+                        help="configuration file", metavar="FILE")
+    parser.add_argument("--verbose", help="increase output verbosity", required=False,
+                        action="store_true")
+    args = parser.parse_args()
 
-    pdb = sys.argv[1]
-
-    if len(sys.argv[1:]) == 2:
-        output_dir = sys.argv[2]
-    else:
-        output_dir = '.'
-
-    run_alphaspace(pdb)
+    run_alphaspace(input_file=args.input_file, output_file=args.output_file, config=args.config_file)
