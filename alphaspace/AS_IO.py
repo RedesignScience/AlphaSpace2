@@ -1,7 +1,7 @@
 def write_pocket_pdb(pocket_obj, file_obj):
     for alpha in pocket_obj.alphas:
         line = get_pdb_line('ATOM', alpha.index, 'AAO', 'AAC', 'H', pocket_obj.index, alpha.xyz[0], alpha.xyz[1],
-                            alpha.xyz[2], 0, alpha.polar_score + alpha.nonpolar_score, '')
+                            alpha.xyz[2], 0, alpha.get_polar_score + alpha.get_nonpolar_score, '')
 
     return
 

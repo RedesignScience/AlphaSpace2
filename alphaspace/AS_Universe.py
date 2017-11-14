@@ -3,7 +3,7 @@ from mdtraj import shrake_rupley
 
 from .AS_Cluster import AS_D_Pocket
 from .AS_Config import AS_Config
-from .AS_Funct import screen_by_contact
+from .AS_Funct import screenContact
 from .AS_Struct import AS_Structure
 
 
@@ -157,8 +157,9 @@ class AS_Universe(object):
         if not by_order:
             molecule_list.sort(key=len, reverse=True)
         if len(molecule_list) > 1:
-            self.set_receptor(traj.atom_slice([atom.index for atom in molecule_list[0]]))
-            self.set_binder(traj.atom_slice([atom.index for atom in molecule_list[1]]))
+            self.set_receptor(traj.atom_slice(np.sort(np.array([atom.index for atom in molecule_list[0]], dtype=int))))
+
+            self.set_binder(traj.atom_slice(np.sort(np.array([atom.index for atom in molecule_list[1]], dtype=int))))
             return True
         elif len(molecule_list) == 1:
             self.set_receptor(traj.atom_slice([atom.index for atom in molecule_list[0]]))
@@ -266,7 +267,7 @@ class AS_Universe(object):
         data.activate(data.all_idx)
 
         if self.config.screen_by_lig_cntct:
-            screen_by_contact(data, self.binder.trajectory.xyz, self.config.contact_threshold)
+            screenContact(data, self.binder.trajectory.xyz, self.config.contact_threshold)
             contact_alpha_row = data[data[:, 12] == 1]
             contact_pocket_idx = np.unique(contact_alpha_row[:, [1, 13]], axis=0)
             ss_pocket_data = data[:, [1, 13]]
@@ -290,7 +291,7 @@ class AS_Universe(object):
             assert self.config.min_score > 0
             for snapshot_idx in range(self.n_frames):
                 for pocket in self.pockets(snapshot_idx):
-                    if pocket.total_score < self.config.min_score:
+                    if pocket.get_total_score < self.config.min_score:
                         pocket.deactivate()
 
         if self.config.min_num_alph > 0:
@@ -315,12 +316,14 @@ class AS_Universe(object):
         assert self._view
         self.binder_view = self._view.add_trajectory(self.binder.trajectory[snapshot_idx])
 
+    def get_view(self):
+        return self._view
+
     def view_receptor(self, snapshot_idx=0):
         try:
             import nglview as nv
         except:
-            print('nglview is needed for jupyter notebook visualization')
-            return
+            raise Exception('nglview is needed for jupyter notebook visualization')
         self._view = nv.show_mdtraj(self.receptor.trajectory[snapshot_idx], gui=True)
         self.receptor_view = self._view.component_0
         self.receptor_view.clear_representations()

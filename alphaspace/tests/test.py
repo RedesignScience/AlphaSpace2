@@ -24,5 +24,5 @@ universe.screen_pockets()
 for i in range(universe.n_frames):
     for pocket in universe.pockets(snapshot_idx=i):
         print(
-            pocket.total_score(5)
+            pocket.get_total_score(5)
         )

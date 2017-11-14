@@ -11,7 +11,7 @@ def run_alphaspace(pdb):
     universe.screen_pockets()
 
     for pocket in universe.pockets():
-        print(len(pocket.alpha_idx), pocket.polar_score(), pocket.nonpolar_score())
+        print(len(pocket.alpha_idx), pocket.get_polar_score(), pocket.get_nonpolar_score())
 
     return
 

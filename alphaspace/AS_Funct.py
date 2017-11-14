@@ -21,22 +21,22 @@ def getTetrahedronVolume(coord_list):
 def getContactMatrix(coord_list_1, coord_list_2, threshold):
     """
     get M by N bool matrix of if there is a contact.
-    :param coord_list_1: np.ndarray
-    :param coord_list_2: np.ndarray
+    :param coord_list_1: np.ndarray N * 3
+    :param coord_list_2: np.ndarray M * 3
     :param threshold: float
-    :return: np.ndarray
+    :return: np.ndarray N * M
     """
     distance_matrix = cdist(coord_list_1, coord_list_2)
     return (distance_matrix < threshold).astype(int)
 
 
-def checkContact(coord_list_1, coord_list_2, threshold):
+def getIfContact(coord_list_1, coord_list_2, threshold):
     """
     check which one in the coordinate list is in contact with the second coordinate
     :param coord_list_1: list of array N*3
     :param coord_list_2: list of array M*3
     :param threshold: float
-    :return: np.array 2*N
+    :return: np.ndarray 2*N
     """
 
     return np.where(getContactMatrix(coord_list_1, coord_list_2, threshold))
@@ -56,136 +56,50 @@ def getGridVolume(coord_list, threshold=1.6, resolution=0.05):
     x, y, z = [np.arange(start=ax[0] - threshold, stop=ax[1] + threshold, step=resolution) for ax in coord_range]
     grid_coords = np.array(np.meshgrid(x, y, z)).transpose().reshape((-1, 3))
 
-    grid_count = len(checkContact(grid_coords, coord_list, threshold=threshold)[0])
+    grid_count = len(getIfContact(grid_coords, coord_list, threshold=threshold)[0])
     return grid_count * (resolution ** 3)
 
 
-def update_atom_methods(target):
-    def get_pocket(self):
-        return self.residue
-
-    def set_cluster(self, cluster):
-        self.cluster = cluster
-
-    @property
-    def cluster(self):
-        return self.residue.cluster
-
-    def get_polar_score(self):
-        return self.cluster._polar_score[self.index]
-
-    def get_nonpolar_score(self):
-        return self.cluster._nonpolar_score[self.index]
-
-    def get_total_score(self):
-        return self.cluster._total_score[self.index]
-
-    def get_contact(self):
-        return self.contact
-
-    def set_contact(self, contact):
-        self.contact = contact
-
-    target.get_pocket = get_pocket
-    target.set_cluster = set_cluster
-    target.cluster = cluster
-    target.get_polar_score = get_polar_score
-    target.get_nonpolar_score = get_nonpolar_score
-    target.get_contact = get_contact
-    target.set_contact = set_contact
-
-
-def update_residue_method(target):
-    @property
-    def alphas(self):
-        return self.atoms
-
-    target.alphas = alphas
-
-    def get_polar_score(self):
-        return np.sum([alpha.get_polar_score() for alpha in self.alphas])
-
-    target.get_polar_score = get_polar_score
-
-    def get_nonpolar_score(self):
-        return np.sum([alpha.get_nonpolar_score() for alpha in self.alphas])
-
-    target.get_nonpolar_score = get_nonpolar_score
-
-    def get_total_score(self):
-        return np.sum([alpha.get_total_score() for alpha in self.alphas])
-
-    target.get_total_score = get_total_score
-
-    @property
-    def parent(self):
-        return self.cluster
-
-    target.parent = parent
-
-    def get_contact(self):
-        return np.any([alpha.get_contact() for alpha in self.alphas])
-
-    target.get_contact = get_contact
-
-    def get_alpha_index(self):
-        return [atom.index for atom in self.alphas]
-
-    target.get_alpha_index = get_alpha_index
-
-    def get_lining_atoms(self):
-        return self.cluster._get_pocket_lining_atoms(self)
-        # return self.cluster._get_pocket_lining_atoms(self)
-
-    target.get_lining_atoms = get_lining_atoms
-
-    def get_lining_residues(self):
-        return self.cluster._get_pocket_lining_residues(self)
-
-    target.get_lining_residues = get_lining_residues
-
-    def get_centroid(self):
-        return self.cluster._get_cluster_centroid(list(self.get_alpha_index))
-
-    target.get_centroid = get_centroid
-
-
-def get_sasa(protein_snapshot, alpha_coords = None):
+def getSASA(protein_snapshot, cover_atom_coords=None):
     """
     Calculate the absolute solvent accessible surface area.
     First calculate the SASA of the receptor by itself, then subtract it with sasa with the AAC.
     AAC are set to resemble Carbon with a radii - 0.17
     :param protein_snapshot: mdtraj object
-    :param alpha_coords: np.ndarray n*3
-    :return:
+    :param cover_atom_coords: np.ndarray n*3
+    :return: np.ndarray n
     """
     probe_radius = 0.14
     n_sphere_points = 960
-    if alpha_coords is None:
+
+    if cover_atom_coords is None:
         xyz = np.array(protein_snapshot.xyz,dtype=np.float32)
-        dim1 = xyz.shape[1]
-        atom_mapping = np.arange(dim1, dtype=np.int32)
-        out = np.zeros((1, dim1), dtype=np.float32)
         atom_radii = [_ATOMIC_RADII[atom.element.symbol] for atom in protein_snapshot.topology.atoms]
-        radii = np.array(atom_radii, np.float32) + probe_radius
-        _geometry._sasa(xyz, radii, int(n_sphere_points), atom_mapping, out)
+        # atom_mapping = np.arange(xyz.shape[1],dtype=np.int32)
+        # out = np.zeros((1,xyz.shape[1]),dtype=np.float32)
+        # radii = np.array(atom_radii,np.float32) + probe_radius
+        # _geometry._sasa(xyz,radii,int(n_sphere_points),atom_mapping,out)
     else:
-        xyz = np.array(np.expand_dims(np.concatenate((protein_snapshot.xyz[0],alpha_coords),axis=0),axis=0),dtype=np.float32)
-        dim1 = xyz.shape[1]
-        atom_mapping = np.arange(dim1, dtype=np.int32)
-        out = np.zeros((1, dim1), dtype=np.float32)
-        atom_radii = [_ATOMIC_RADII[atom.element.symbol] for atom in protein_snapshot.topology.atoms] + [0.17 for _ in range(dim1)]
-        radii = np.array(atom_radii, np.float32) + probe_radius
-        _geometry._sasa(xyz, radii, int(n_sphere_points), atom_mapping, out)
-        out = out[:,:protein_snapshot.xyz.shape[1]]
+        xyz = np.array(np.expand_dims(np.concatenate((protein_snapshot.xyz[0], cover_atom_coords), axis=0), axis=0),
+                       dtype=np.float32)
+        atom_radii = [_ATOMIC_RADII[atom.element.symbol] for atom in protein_snapshot.topology.atoms] + [0.17 for _ in
+                                                                                                         range(
+                                                                                                             xyz.shape[
+                                                                                                                 1])]
+    radii = np.array(atom_radii, np.float32) + probe_radius
+    atom_mapping = np.arange(xyz.shape[1], dtype=np.int32)
+    out = np.zeros((1, xyz.shape[1]), dtype=np.float32)
+    _geometry._sasa(xyz, radii, int(n_sphere_points), atom_mapping, out)
+    out = out[:, :protein_snapshot.xyz.shape[1]]
     return out[0]
 
 
-def screen_by_contact(data, binder_xyz, threshold):
+def screenContact(data, binder_xyz, threshold):
     """
     Mark the contact in AS_Data as true for each frame.
-    :param data:
-    :param binder_xyz:
+    :param data: AS_Data
+    :param binder_xyz: np.ndarray
+    :param threshold: float
     """
     assert len(binder_xyz.shape) == 3
     assert binder_xyz.shape[-1] == 3
@@ -199,7 +113,7 @@ def screen_by_contact(data, binder_xyz, threshold):
 def _tessellation(queue,arglist):
     assert len(arglist) == 4
 
-    protein_snapshot,  config, snapshot_idx, is_polar = arglist
+    protein_snapshot, config, snapshot_idx, is_polar = arglist
     xyz = protein_snapshot.xyz[0]
     # Generate Raw Tessellation simplexes
     raw_alpha_lining_idx = Delaunay(xyz).simplices
@@ -236,21 +150,21 @@ def _tessellation(queue,arglist):
 
     element = [str(atom.element.symbol) for atom in protein_snapshot.topology._atoms]
     atom_radii = [_ATOMIC_RADII[e] for e in element]
-    alpha_radii =  [0.17 for _ in range(len(alpha_pocket_index))]
+    alpha_radii = [0.17 for _ in range(len(alpha_pocket_index))]
 
     """"""
 
     _xyz = np.array(np.expand_dims(np.concatenate((xyz, filtered_alpha_xyz), axis=0), axis=0),
-                   dtype=np.float32)
+                    dtype=np.float32)
     dim1 = _xyz.shape[1]
     atom_mapping = np.arange(dim1, dtype=np.int32)
     covered = np.zeros((1, dim1), dtype=np.float32)
-    radii = np.array(atom_radii+alpha_radii, np.float32) + config.probe_radius
+    radii = np.array(atom_radii + alpha_radii, np.float32) + config.probe_radius
     _geometry._sasa(_xyz, radii, int(config.n_sphere_points), atom_mapping, covered)
     covered = covered[:, :xyz.shape[0]]
 
     _xyz = np.array(np.expand_dims(xyz, axis=0),
-                   dtype=np.float32)
+                    dtype=np.float32)
     dim1 = _xyz.shape[1]
     atom_mapping = np.arange(dim1, dtype=np.int32)
     total = np.zeros((1, dim1), dtype=np.float32)
@@ -259,16 +173,13 @@ def _tessellation(queue,arglist):
 
     assert covered.shape == total.shape
 
-    atom_sasa =  (total - covered)[0] * 100 # nm^2 to A^2 convertion
-
+    atom_sasa = (total - covered)[0] * 100  # nm^2 to A^2 convertion
 
     """"""
     # atom_sasa = get_abs_sasa(xyz,filtered_alpha_xyz,np.array(atom_radii+alpha_radii,dtype=np.float32))
     pocket_sasa = np.take(atom_sasa,alpha_lining)
 
     polar_ratio = np.average(np.take(is_polar.astype(float),alpha_lining),axis=1,weights=pocket_sasa)
-
-
 
     _polar_score = _total_score * polar_ratio
 

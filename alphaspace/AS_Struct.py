@@ -6,11 +6,11 @@ from scipy.spatial import Voronoi, Delaunay
 from scipy.spatial.distance import squareform
 
 from .AS_Cluster import AS_D_Pocket, AS_Data, AS_Pocket
-from .AS_Funct import getTetrahedronVolume, get_sasa, checkContact
+from .AS_Funct import getTetrahedronVolume, getSASA, getIfContact
 
 
 class AS_Structure:
-    def __init__(self,trajectory,structure_type: int = 2,parent: object = None):
+    def __init__(self, trajectory, structure_type: int = 2, parent=None):
 
         """
         Container for structure trajectory and topology in a AS_Session
@@ -28,7 +28,7 @@ class AS_Structure:
         self._data = None
         self._pockets = None
 
-    def _tessellation(self,config: object,snapshot_idx: int) -> np.ndarray:
+    def _tessellation(self, config, snapshot_idx: int) -> np.ndarray:
         # Generate Raw Tessellation simplexes
         raw_alpha_lining_idx = Delaunay(self.trajectory.xyz[snapshot_idx]).simplices
         # Take coordinates from xyz file
@@ -63,8 +63,8 @@ class AS_Structure:
                 [getTetrahedronVolume(i) for i in
                  filtered_lining_xyz]) * 1000  # here the 1000 is to convert nm^3 to A^3
 
-        atom_sasa = get_sasa(self.trajectory[snapshot_idx])
-        atom_covered_sasa = get_sasa(self.traj[snapshot_idx],filtered_alpha_xyz)
+        atom_sasa = getSASA(self.trajectory[snapshot_idx])
+        atom_covered_sasa = getSASA(self.traj[snapshot_idx], filtered_alpha_xyz)
         pocket_sasa = np.take(atom_sasa - atom_covered_sasa,alpha_lining)
 
         is_polar = np.array(
@@ -256,7 +256,7 @@ class AS_Structure:
         alpha_idx = self._data.snapshot_alpha_idx(snapshot_idx)
         snapshot_cluster_coord_matrix = self._data.xyz(alpha_idx)
         binder_coords = self.universe.binder.trajectory.xyz[snapshot_idx]
-        contact_alpha = checkContact(snapshot_cluster_coord_matrix, binder_coords, self.config.hit_dist)[0]
+        contact_alpha = getIfContact(snapshot_cluster_coord_matrix, binder_coords, self.config.hit_dist)[0]
         contact_alpha_idx = alpha_idx[contact_alpha]
         self._data[contact_alpha_idx,12] = 1
 
