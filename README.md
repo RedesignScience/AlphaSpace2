@@ -4,11 +4,11 @@
 AlphaSpace is a surface topographical mapping tool.
 Currently the use of this software is limited to group member of Yingkai Zhang's lab in NYU
 
-Based on the algorithm of original AlphaSpace published here[old paper title ](none), the current 2.0+ version is rewritten, multiple new features are added for a more friendly user interface and performance boost. 
+Based on the algorithm of original AlphaSpace published [here](http://pubs.acs.org/doi/abs/10.1021/acs.jcim.5b00103), the current 2.0+ version is rewritten, multiple new features are added for a more friendly user interface and performance boost. 
 
 Key features:
 1. Clear and pythonic object based API for manipulation of pockets, alpha atoms, and communities. 
-2. Integrated trajectory loading and interpretation from *mdtraj*.
+2. Integrated trajectory loading and interpretation from **mdtraj**.
 3. Native support for multi processing for multi snapshot trajectories. 
 4. Integration of Jupyter notebook visualization of protein structure from nglview, and additional visualization of pockets and alpha atoms. 
 
@@ -64,14 +64,14 @@ You can find a demo notebook in the example folder, which contains the general p
 AlphaSpace also support command line usage, if you run AlphaSpace on a pdb file the mapping will be outputted in the working directory as PDB file and chimera .py file. You will be able to open them in chimera later. Alternatively, a binary pickled file can be saved, this allows for direct loading of results in python.   
 To run it in command line mode, do
 ```
- python alphaspace.py -i [input_file] -o [OPTIONAL:output_directory] -c [OPTIONAL:config_file_path] —-chimera/pickle
+ python alphaspace.py -i [input_file] -o [output_file] -c [OPTIONAL:config_file_path] —-chimera/pickle
 ```
 
 ## Using custom option and parameters
 You can use your own config.ini file, by using -c [config file path]
 The default config file location is 
 `$ALPHASPACE/alphaspace/config.ini`
-This file follows the naming convention of V1.0 AS_Param.py and AS_Option.py, they are combined to a .ini file by adding [options] and [parameters]. 
+This file follows the naming convention of V1.0 `AS_Param.py` and `AS_Option.py`, they are combined to a .ini file by adding [options] and [parameters]. 
 
 
 

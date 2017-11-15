@@ -106,8 +106,11 @@ def screenContact(data, binder_xyz, threshold):
 
     for snapshot_idx in data.snapshots_idx:
         alpha_idx = data.snapshot_alpha_idx(snapshot_idx)
-        xyz = data.xyz(alpha_idx)
-        data[alpha_idx, 12] = getContactMatrix(xyz, binder_xyz[snapshot_idx], threshold).any(axis=1).astype(int)
+        alpha_xyz = data.xyz(alpha_idx)
+        contact_matrix = getContactMatrix(alpha_xyz, binder_xyz[snapshot_idx], threshold)
+        np.put(data[13], )
+        data[alpha_idx, 12] = contact_matrix.any(axis=1).astype(int)
+
 
 
 def _tessellation(queue,arglist):
