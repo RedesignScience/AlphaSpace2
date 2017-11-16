@@ -97,7 +97,8 @@ class AS_Structure:
                                np.ones((len(alpha_pocket_index),1)),
                                np.zeros((len(alpha_pocket_index),1)),
                                np.expand_dims(alpha_pocket_index, axis=1),
-                               np.expand_dims(filtered_alpha_radii,axis=1)
+                               np.expand_dims(filtered_alpha_radii, axis=1),
+                               np.ones((len(alpha_pocket_index), 1)) * (-1),
                                ),axis=-1)
 
         """
@@ -116,6 +117,7 @@ class AS_Structure:
         12      is_contact 0
         13      pocket_idx
         14      radii
+        15      closest binder atom idx
         """
         return data
 
@@ -274,7 +276,7 @@ class AS_Structure:
     #     for i in contact_pocket_index:
     #         yield AS_Cluster.pocket(i)
 
-    def _gen_d_pockets(self) -> object:
+    def _gen_d_pockets(self):
         """
         Generate d-pocket dictionary of list of indices
         :return: dict of d_pockets

@@ -108,7 +108,6 @@ def screenContact(data, binder_xyz, threshold):
         alpha_idx = data.snapshot_alpha_idx(snapshot_idx)
         alpha_xyz = data.xyz(alpha_idx)
         contact_matrix = getContactMatrix(alpha_xyz, binder_xyz[snapshot_idx], threshold)
-        np.put(data[13], )
         data[alpha_idx, 12] = contact_matrix.any(axis=1).astype(int)
 
 
@@ -174,8 +173,6 @@ def _tessellation(queue,arglist):
     radii = np.array(atom_radii, np.float32) + config.probe_radius
     _geometry._sasa(_xyz, radii, int(config.n_sphere_points), atom_mapping, total)
 
-    assert covered.shape == total.shape
-
     atom_sasa = (total - covered)[0] * 100  # nm^2 to A^2 convertion
 
     """"""
@@ -188,32 +185,32 @@ def _tessellation(queue,arglist):
 
     _nonpolar_score = _total_score - _polar_score
 
-    # for item in (np.zeros((len(alpha_pocket_index),1)),
-    #                        np.full((len(alpha_pocket_index),1),snapshot_idx),
-    #                        filtered_alpha_xyz,
-    #                        alpha_lining,
-    #                        np.expand_dims(_polar_score,axis=1),
-    #                        np.expand_dims(_nonpolar_score, axis=1),
-    #                        np.ones((len(alpha_pocket_index),1)),
-    #                        np.zeros((len(alpha_pocket_index),1)),
-    #                        np.expand_dims(alpha_pocket_index, axis=1),
-    #                        np.expand_dims(filtered_alpha_radii,axis=1)
-    #                        ):
-    #     print(item.shape)
+    """
+    Calculate the contact matrix, and link each alpha with closest atom.
+    """
 
-    data = np.concatenate((np.zeros((len(alpha_pocket_index),1)),
-                           np.full((len(alpha_pocket_index),1),snapshot_idx),
-                           filtered_alpha_xyz,
-                           alpha_lining,
-                           np.expand_dims(_polar_score,axis=1),
-                           np.expand_dims(_nonpolar_score, axis=1),
-                           np.ones((len(alpha_pocket_index),1)),
-                           np.zeros((len(alpha_pocket_index),1)),
-                           np.expand_dims(alpha_pocket_index, axis=1),
-                           np.expand_dims(filtered_alpha_radii,axis=1)
+    dist_matrix = cdist(filtered_alpha_xyz, xyz)
+    min_idx = np.argmin(dist_matrix, axis=1)
+    mins = np.min(dist_matrix, axis=1) * 10  # nm to A
+    is_contact = mins < config.hit_dist
+
+    is_active = is_contact if config.screen_by_lig_cntct else np.ones_like(alpha_pocket_index)
+
+    data = np.concatenate((np.zeros((len(alpha_pocket_index), 1)),  # 0         idx
+                           np.full((len(alpha_pocket_index), 1), snapshot_idx),  # 1         snapshot_idx
+                           filtered_alpha_xyz,  # 2 3 4     x y z
+                           alpha_lining,  # 5 6 7 8   lining_atom_idx_1 - 4
+                           np.expand_dims(_polar_score, axis=1),  # 9         polar_score 0
+                           np.expand_dims(_nonpolar_score, axis=1),  # 10        nonpolar_score 0
+                           np.expand_dims(is_active, axis=1),  # 11        is_active 1
+                           np.expand_dims(is_contact, axis=1),  # 12        is_contact 0
+                           np.expand_dims(alpha_pocket_index, axis=1),  # 13        pocket_idx
+                           np.expand_dims(filtered_alpha_radii, axis=1),  # 14        radii
+                           np.expand_dims(min_idx, axis=1),  # 15        closest atom idx
+                           np.expand_dims(mins, axis=1),  # 16        closest atom dist
                            ),axis=-1)
 
-    assert data.shape[1] == 15
+    assert data.shape[1] == 17
 
     """
     0       idx
@@ -231,6 +228,8 @@ def _tessellation(queue,arglist):
     12      is_contact 0
     13      pocket_idx
     14      radii
+    15      closest atom idx
+    16      closest atom dist
     """
     print('{} snapshot processed'.format(snapshot_idx))
     queue.put(data)

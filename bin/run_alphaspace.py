@@ -3,9 +3,10 @@ import mdtraj
 import alphaspace
 
 
-def run_alphaspace(input_file, output_file, config=None):
-    universe = alphaspace.AS_Universe(receptor=mdtraj.load(input_file))
+def run_alphaspace(input_file, output_file, config_path=None):
+    config = alphaspace.AS_Config(config_path) if config_path is not None else None
 
+    universe = alphaspace.AS_Universe(receptor=mdtraj.load(input_file), config=config)
 
     universe.run_alphaspace()
 

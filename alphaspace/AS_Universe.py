@@ -38,6 +38,7 @@ class AS_Universe(object):
                                                                                           self.binder.n_residues,
                                                                                           self.binder.n_atoms)
 
+
     @property
     def _data(self):
         return self.receptor._data

@@ -1,5 +1,23 @@
 import numpy as np
 
+ASDATA_idx = 0
+ASDATA_snapshot_idx = 1
+ASDATA_x = 2
+ASDATA_y = 3
+ASDATA_z = 4
+ASDATA_lining_atom_idx_1 = 5
+ASDATA_lining_atom_idx_2 = 6
+ASDATA_lining_atom_idx_3 = 7
+ASDATA_lining_atom_idx_4 = 8
+ASDATA_polar_score = 9
+ASDATA_nonpolar_score = 10
+ASDATA_is_active = 11
+ASDATA_is_contact = 12
+ASDATA_pocket_idx = 13
+ASDATA_radii = 14
+ASDATA_closest_binder_atom_idx = 15
+ASDATA_closest_binder_atom_distance = 16
+
 
 class AS_Data(np.ndarray):
     """
@@ -21,6 +39,8 @@ class AS_Data(np.ndarray):
     12      is_contact         0
     13      pocket_idx         0
     14      radii
+    15      closest binder atom idx   -1
+    16      closest binder distance   0
     """
 
     def __new__(cls, array_data, parent_structure=None):
@@ -41,8 +61,11 @@ class AS_Data(np.ndarray):
     def snapshot(self, snapshot_idx):
         return self[self.snapshot_alpha_idx(snapshot_idx)]
 
-    def xyz(self, idx):
-        return self[np.array(idx), 2:5]
+    def xyz(self, idx=None):
+        if idx is not None:
+            return self[np.array(idx), 2:5]
+        else:
+            return self[:, 2:5]
 
     def get_polar_score(self, idx):
         return self[np.array(idx), 9]
@@ -80,6 +103,13 @@ class AS_Data(np.ndarray):
     @property
     def all_idx(self):
         return self[:, 0].astype(int)
+
+    def get_closest_atom(self, idx):
+        return self[idx, 15].astype(int)
+
+    def set_closest_atom(self, idx, values):
+        assert len(idx) == len(values)
+        self[idx, 15] = values
 
 
 class AS_AlphaAtom:
@@ -380,7 +410,3 @@ class AS_D_Pocket:
     def pocket_xyz(self) -> np.array:
         for pocket in self.pockets:
             yield pocket.get_centroid()
-
-
-
-

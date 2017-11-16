@@ -17,7 +17,7 @@ Key features:
 ## Dependencies
 python 3.6+
 jupyter notebook
-nglview >=1.0b2
+nglview >=1.0b5
 mdtraj 
 ipywidgets 7.0
 
