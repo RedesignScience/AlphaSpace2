@@ -1,5 +1,8 @@
-python 3.6+
-jupyter notebook
-nglview >=1.0b5
+python>=3.6
+numpy
+scipy
+cython
+jupyter
+nglview==1.0b5
 mdtraj
-ipywidgets 7.0
+ipywidgets>=7.0
