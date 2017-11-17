@@ -2,7 +2,6 @@ import mdtraj
 import sys
 from alphaspace import *
 
-# initialize universe instance
 
 # for _ in range(10):
 #     for i in range(1, 1 + 10):
