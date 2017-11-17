@@ -127,8 +127,9 @@ class AS_Structure:
 
 
     def _combine_data(self,data_list):
-        assert type(data_list) == list
+
         assert type(data_list[0]) == np.ndarray
+
         data_list.sort(key = lambda d:d[0,1])
         data = np.concatenate(data_list)
         data[:, 0] = np.arange(0, len(data), dtype=int)

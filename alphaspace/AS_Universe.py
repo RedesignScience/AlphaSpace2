@@ -3,7 +3,6 @@ from mdtraj import shrake_rupley
 
 from .AS_Cluster import AS_D_Pocket
 from .AS_Config import AS_Config
-from .AS_Funct import screenContact
 from .AS_Struct import AS_Structure
 
 
@@ -37,7 +36,6 @@ class AS_Universe(object):
                                                                                           self.receptor.n_atoms,
                                                                                           self.binder.n_residues,
                                                                                           self.binder.n_atoms)
-
 
     @property
     def _data(self):
@@ -126,9 +124,6 @@ class AS_Universe(object):
                 return pocket
         return None
 
-
-
-
     # def cluster(self, snapshot_idx: int = 0) -> object:
     #     """
     #     return list of clusters
@@ -210,26 +205,20 @@ class AS_Universe(object):
         self.receptor._combine_data(data_list)
         self.receptor._gen_pockets()
 
-    def run_alphaspace_mp(self):
+    def run_alphaspace_mp(self, cpu=None):
 
+        """
+        :type cpu: int
+        """
         import multiprocessing as mp
         from .AS_Funct import _tessellation
+        from concurrent.futures import ProcessPoolExecutor
 
-        def multiprocess(function, argslist, ncpu):
-            done = 0
-            result_queue = mp.Queue(ncpu)
-            jobs = []
-            res = []
-            while argslist != []:
-                p = mp.Process(target=function, args=(result_queue, argslist.pop(),))
-                jobs.append(p)
-                p.start()
-                done += 1
-                # print("\r", float(done) / total * 100, "%")  # here is to keep track
-            tmp = [result_queue.get() for p in jobs]
-            for r in tmp:
-                res.append(r)
-            return res
+        cpu = mp.cpu_count() if not cpu else int(cpu)
+
+        def executor(argslist):
+            with ProcessPoolExecutor(max_workers=cpu) as ex:
+                return ex.map(_tessellation, argslist)
 
         snapshots = [self.receptor.traj[i] for i in range(self.n_frames)]
         config = [self.config for i in range(self.n_frames)]
@@ -237,7 +226,7 @@ class AS_Universe(object):
         is_polar = [self.receptor.is_polar for _ in range(self.n_frames)]
         arglist = list(zip(snapshots, config, snapshot_indices, is_polar))
 
-        data_list = multiprocess(_tessellation, arglist, mp.cpu_count())
+        data_list = list(executor(arglist))
 
         self.receptor._combine_data(data_list)
 
@@ -265,25 +254,11 @@ class AS_Universe(object):
     def screen_pockets(self):
         assert len(list(self.receptor._data.snapshots_idx)) == self.n_frames
         data = self.receptor._data
-        data.activate(data.all_idx)
-
-        if self.config.screen_by_lig_cntct:
-            screenContact(data, self.binder.trajectory.xyz, self.config.contact_threshold)
-            contact_alpha_row = data[data[:, 12] == 1]
-            contact_pocket_idx = np.unique(contact_alpha_row[:, [1, 13]], axis=0)
-            ss_pocket_data = data[:, [1, 13]]
-            data.activate(data.all_idx)
-            all_active_pocket_alpha_idx = []
-            for pocket_idx in contact_pocket_idx:
-                deactive_pocket_alpha_idx = np.where((ss_pocket_data == pocket_idx).all(axis=1))[0]
-                all_active_pocket_alpha_idx.extend(deactive_pocket_alpha_idx)
-            data.deactivate(all_active_pocket_alpha_idx)
 
         if self.config.screen_by_face:
             interface_atom_idx = np.sort(self._get_face_atoms())
             for snapshot_idx in range(self.n_frames):
                 for pocket in self.pockets(snapshot_idx):
-
                     atom_list = np.concatenate([pocket.lining_atoms_idx, interface_atom_idx])
                     if len(np.unique(atom_list)) == len(atom_list):
                         data[pocket.alpha_idx, 11] = 0
@@ -353,9 +328,6 @@ class AS_Universe(object):
         for pocket in self.pockets(snapshot_idx):
             self._view.add_surface(selection=list(pocket.lining_atoms_idx), opacity=1.0, color=pocket.color,
                                    surfaceType='sas')
-
-
-
 
 
 if __name__ == '__main__':
