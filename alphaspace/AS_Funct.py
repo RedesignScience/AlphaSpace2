@@ -73,7 +73,7 @@ def getSASA(protein_snapshot, cover_atom_coords=None):
     n_sphere_points = 960
 
     if cover_atom_coords is None:
-        xyz = np.array(protein_snapshot.xyz,dtype=np.float32)
+        xyz = np.array(protein_snapshot.xyz, dtype=np.float32)
         atom_radii = [_ATOMIC_RADII[atom.element.symbol] for atom in protein_snapshot.topology.atoms]
         # atom_mapping = np.arange(xyz.shape[1],dtype=np.int32)
         # out = np.zeros((1,xyz.shape[1]),dtype=np.float32)
@@ -111,9 +111,9 @@ def screenContact(data, binder_xyz, threshold):
         data[alpha_idx, 12] = contact_matrix.any(axis=1).astype(int)
 
 def _tessellation(arglist):
-    assert len(arglist) == 4
+    assert len(arglist) == 5
 
-    protein_snapshot, config, snapshot_idx, is_polar = arglist
+    protein_snapshot, binder_snapshot, config, snapshot_idx, is_polar = arglist
     xyz = protein_snapshot.xyz[0]
     # Generate Raw Tessellation simplexes
     raw_alpha_lining_idx = Delaunay(xyz).simplices
@@ -145,66 +145,89 @@ def _tessellation(arglist):
     filtered_lining_xyz = np.take(xyz, alpha_lining, axis=0)
     # calculate the polarity of alpha atoms
     _total_score = np.array(
-            [getTetrahedronVolume(i) for i in
-             filtered_lining_xyz]) * 1000  # here the 1000 is to convert nm^3 to A^3
+        [getTetrahedronVolume(i) for i in filtered_lining_xyz]) * 1000  # here the 1000 is to convert nm^3 to A^3
 
-    """polar nonpolar score"""
-    # element = [str(atom.element.symbol) for atom in protein_snapshot.topology._atoms]
-    # atom_radii = [_ATOMIC_RADII[e] for e in element]
-    # alpha_radii = [0.17 for _ in range(len(alpha_pocket_index))]
-    # _xyz = np.array(np.expand_dims(np.concatenate((xyz, filtered_alpha_xyz), axis=0), axis=0),
-    #                 dtype=np.float32)
-    # dim1 = _xyz.shape[1]
-    # atom_mapping = np.arange(dim1, dtype=np.int32)
-    # covered = np.zeros((1, dim1), dtype=np.float32)
-    # radii = np.array(atom_radii + alpha_radii, np.float32) + config.probe_radius
-    # _geometry._sasa(_xyz, radii, int(config.n_sphere_points), atom_mapping, covered)
-    # covered = covered[:, :xyz.shape[0]]
-    #
-    # _xyz = np.array(np.expand_dims(xyz, axis=0),
-    #                 dtype=np.float32)
-    # dim1 = _xyz.shape[1]
-    # atom_mapping = np.arange(dim1, dtype=np.int32)
-    # total = np.zeros((1, dim1), dtype=np.float32)
-    # radii = np.array(atom_radii, np.float32) + config.probe_radius
-    # _geometry._sasa(_xyz, radii, int(config.n_sphere_points), atom_mapping, total)
-    #
-    # atom_sasa = (total - covered)[0] * 100  # nm^2 to A^2 convertion
-    #
-    # pocket_sasa = np.take(atom_sasa,alpha_lining)
-    #
-    # polar_ratio = np.average(np.take(is_polar.astype(float),alpha_lining),axis=1,weights=pocket_sasa)
-    #
-    # _polar_score = _total_score * polar_ratio
-    #
-    # _nonpolar_score = _total_score - _polar_score
+    """if calculate polar nonpolar score"""
+    if config.use_asa:
+        element = [str(atom.element.symbol) for atom in protein_snapshot.topology._atoms]
+        atom_radii = [_ATOMIC_RADII[e] for e in element]
+        alpha_radii = [0.17 for _ in range(len(alpha_pocket_index))]
+        _xyz = np.array(np.expand_dims(np.concatenate((xyz, filtered_alpha_xyz), axis=0), axis=0),
+                        dtype=np.float32)
+        dim1 = _xyz.shape[1]
+        atom_mapping = np.arange(dim1, dtype=np.int32)
+        covered = np.zeros((1, dim1), dtype=np.float32)
+        radii = np.array(atom_radii + alpha_radii, np.float32) + config.probe_radius
+        _geometry._sasa(_xyz, radii, int(config.n_sphere_points), atom_mapping, covered)
+        covered = covered[:, :xyz.shape[0]]
+
+        _xyz = np.array(np.expand_dims(xyz, axis=0),
+                        dtype=np.float32)
+        dim1 = _xyz.shape[1]
+        atom_mapping = np.arange(dim1, dtype=np.int32)
+        total = np.zeros((1, dim1), dtype=np.float32)
+        radii = np.array(atom_radii, np.float32) + config.probe_radius
+        _geometry._sasa(_xyz, radii, int(config.n_sphere_points), atom_mapping, total)
+
+        atom_sasa = (total - covered)[0] * 100  # nm^2 to A^2 convertion
+
+        pocket_sasa = np.take(atom_sasa, alpha_lining)
+
+        polar_ratio = np.average(np.take(is_polar.astype(float), alpha_lining), axis=1, weights=pocket_sasa)
+
+        _polar_score = _total_score * polar_ratio
+
+        _nonpolar_score = _total_score - _polar_score
+
+    else:
+        _polar_score = _total_score * 0
+        _nonpolar_score = _total_score
+
+
+
+
 
     """
     Calculate the contact matrix, and link each alpha with closest atom.
     """
 
-    dist_matrix = cdist(filtered_alpha_xyz, xyz)
+    dist_matrix = cdist(filtered_alpha_xyz, binder_snapshot.xyz[0])
+
     min_idx = np.argmin(dist_matrix, axis=1)
     mins = np.min(dist_matrix, axis=1) * 10  # nm to A
     is_contact = mins < config.hit_dist
 
+    """lining atom asa"""
+    element = [str(atom.element.symbol) for atom in protein_snapshot.topology._atoms]
+    atom_radii = [_ATOMIC_RADII[e] for e in element]
+    _xyz = np.array(np.expand_dims(xyz, axis=0),
+                    dtype=np.float32)
+    dim1 = _xyz.shape[1]
+    atom_mapping = np.arange(dim1, dtype=np.int32)
+    asa = np.zeros((1, dim1), dtype=np.float32)
+    radii = np.array(atom_radii, np.float32) + config.probe_radius
+    _geometry._sasa(_xyz, radii, int(config.n_sphere_points), atom_mapping, asa)
+
+    alpha_lining_asa = np.take(asa[0], alpha_lining).sum(axis=1) * 100  # nm2 to A2
+
+    """if use ligand contact"""
     is_active = is_contact if config.screen_by_lig_cntct else np.ones_like(alpha_pocket_index)
 
     data = np.concatenate((np.zeros((len(alpha_pocket_index), 1)),  # 0         idx
                            np.full((len(alpha_pocket_index), 1), snapshot_idx),  # 1         snapshot_idx
                            filtered_alpha_xyz,  # 2 3 4     x y z
                            alpha_lining,  # 5 6 7 8   lining_atom_idx_1 - 4
-                           np.expand_dims(_total_score, axis=1),  # 9         polar_score 0
-                           np.expand_dims(_total_score * 0, axis=1),  # 10        nonpolar_score 0
+                           np.expand_dims(_polar_score, axis=1),  # 9         polar_score 0
+                           np.expand_dims(_nonpolar_score, axis=1),  # 10        nonpolar_score 0
                            np.expand_dims(is_active, axis=1),  # 11        is_active 1
                            np.expand_dims(is_contact, axis=1),  # 12        is_contact 0
                            np.expand_dims(alpha_pocket_index, axis=1),  # 13        pocket_idx
                            np.expand_dims(filtered_alpha_radii, axis=1),  # 14        radii
                            np.expand_dims(min_idx, axis=1),  # 15        closest atom idx
                            np.expand_dims(mins, axis=1),  # 16        closest atom dist
+                           np.expand_dims(alpha_lining_asa, axis=1)  # 17 total lining atom asa
                            ),axis=-1)
-
-    assert data.shape[1] == 17
+    assert data.shape[1] == 18
 
     """
     0       idx
@@ -224,6 +247,7 @@ def _tessellation(arglist):
     14      radii
     15      closest atom idx
     16      closest atom dist
+    17      total lining atom asa
     """
     print('{} snapshot processed'.format(snapshot_idx))
     return data

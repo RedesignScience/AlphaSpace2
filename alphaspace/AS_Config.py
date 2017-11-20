@@ -72,6 +72,11 @@ class AS_Config(object):
         self.min_score = self.config.getfloat('options', 'min_score')
         self.screen_by_perc_rank = self.config.getboolean('options', 'screen_by_perc_rank')
         self.min_perc_rank = self.config.getfloat('options', 'min_perc_rank')
+        self.use_asa = self.config.getboolean('options', 'use_asa')
+        self.screen_out_subsurf = self.config.getboolean('options', 'screen_out_subsurf')
+        self.max_desolv_perc = self.config.getfloat('options', 'max_desolv_perc')
+
+
 
         self.min_r = self.config.getfloat('parameters', 'min_r')
         self.max_r = self.config.getfloat('parameters', 'max_r')
@@ -112,6 +117,11 @@ class AS_Config(object):
         self.config.set('options', 'min_score', self.min_score)
         self.config.set('options', 'screen_by_perc_rank', self.screen_by_perc_rank)
         self.config.set('options', 'min_perc_rank', self.min_perc_rank)
+        self.config.set('options', 'use_asa', self.use_asa)
+        self.config.set('options', 'screen_out_subsurf', self.screen_out_subsurf)
+        self.config.set('options', 'max_desolv_perc', self.max_desolv_perc)
+
+
 
         self.config.set('parameters', 'min_r', self.min_r)
         self.config.set('parameters', 'max_r', self.max_r)

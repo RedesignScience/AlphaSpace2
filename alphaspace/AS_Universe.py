@@ -1,5 +1,5 @@
 import numpy as np
-from mdtraj import shrake_rupley
+import mdtraj
 
 from .AS_Cluster import AS_D_Pocket
 from .AS_Config import AS_Config
@@ -18,18 +18,23 @@ class AS_Universe(object):
         :param config: object,AS_config
         """
 
-        self.config = config if config is not None else AS_Config()
+        self.config = config if config else AS_Config()
 
         self.set_receptor(receptor)
         self.set_binder(binder)
 
-        if guess_receptor_binder and receptor:
-            self.guess_receptor_binder(receptor, guess_by_order)
+        if guess_receptor_binder and receptor and not binder:
+            if self.guess_receptor_binder(receptor, guess_by_order):
+                pass
+            else:
+                raise Exception('No binder detected')
 
         self.others = None
         self._view = None
 
         self._d_pockets = {}
+
+        print(self.binder)
 
     def __repr__(self):
         return "Receptor of {} residues {} atoms | Binder of {} residues {} atoms".format(self.receptor.n_residues,
@@ -147,20 +152,23 @@ class AS_Universe(object):
         for molecule in traj.topology.find_molecules():
             if len(molecule) > 1 and not next(iter(molecule)).residue.is_water:
                 molecule_list.append(molecule)
+                # print(len(molecule))
             else:
+                # print(len(molecule))
                 continue
+
+        # print(len(molecule_list))
 
         if not by_order:
             molecule_list.sort(key=len, reverse=True)
         if len(molecule_list) > 1:
             self.set_receptor(traj.atom_slice(np.sort(np.array([atom.index for atom in molecule_list[0]], dtype=int))))
-
             self.set_binder(traj.atom_slice(np.sort(np.array([atom.index for atom in molecule_list[1]], dtype=int))))
             return True
         elif len(molecule_list) == 1:
             self.set_receptor(traj.atom_slice([atom.index for atom in molecule_list[0]]))
             self.binder = None
-            return True
+            return False
         else:
             return False
 
@@ -180,7 +188,7 @@ class AS_Universe(object):
         else:
             self.binder = AS_Structure(structure, structure_type=1, parent=self)
 
-    def set_receptor(self, structure: object, append=False):
+    def set_receptor(self, structure: object, append=False, keepH=False):
         """
         set receptor (protein) in session
         :param structure: object, trajectory
@@ -194,9 +202,12 @@ class AS_Universe(object):
         if append and (self.receptor is not None):
             x = self.receptor.trajectory + structure
             self.receptor.trajectory = x
-
         else:
             self.receptor = AS_Structure(structure, structure_type=0, parent=self)
+
+        if not keepH:
+            non_h_idx = self.receptor.traj.topology.select_atom_indices(selection='heavy')
+            self.receptor.traj.atom_slice(non_h_idx, inplace=True)
 
     def run_alphaspace(self):
         data_list = []
@@ -220,11 +231,12 @@ class AS_Universe(object):
             with ProcessPoolExecutor(max_workers=cpu) as ex:
                 return ex.map(_tessellation, argslist)
 
-        snapshots = [self.receptor.traj[i] for i in range(self.n_frames)]
+        receptor_ss = [self.receptor.traj[i] for i in range(self.n_frames)]
+        binder_ss = [self.binder.traj[i] for i in range(self.n_frames)]
         config = [self.config for i in range(self.n_frames)]
         snapshot_indices = range(self.n_frames)
         is_polar = [self.receptor.is_polar for _ in range(self.n_frames)]
-        arglist = list(zip(snapshots, config, snapshot_indices, is_polar))
+        arglist = list(zip(receptor_ss, binder_ss, config, snapshot_indices, is_polar))
 
         data_list = list(executor(arglist))
 
@@ -240,9 +252,9 @@ class AS_Universe(object):
 
         complex_snapshot = receptor_snapshot.stack(self.binder.traj)
 
-        receptor_snapshot_sasa = shrake_rupley(receptor_snapshot)
+        receptor_snapshot_sasa = mdtraj.shrake_rupley(receptor_snapshot)
 
-        complex_snapshot_sasa = shrake_rupley(complex_snapshot)
+        complex_snapshot_sasa = mdtraj.shrake_rupley(complex_snapshot)
 
         print(receptor_snapshot_sasa.shape)
         print(complex_snapshot_sasa.shape)
@@ -321,8 +333,8 @@ class AS_Universe(object):
         for pocket in self.pockets(snapshot_idx):
             color = self.config.color(idx=pocket._idx)
             if (not active_only) or (active_only and pocket.is_active):
-                self._view.shape.add_buffer("sphere", position=list(pocket.centoid_xyz * 10), color=color, radius=[0.5])
-                self._view.shape.add('text', list(pocket.centoid_xyz * 10), [0, 0, 0], 2.5, str(int(pocket._idx)))
+                self._view.shape.add_buffer("sphere", position=list(pocket.centoid * 10), color=color, radius=[0.5])
+                self._view.shape.add('text', list(pocket.centoid * 10), [0, 0, 0], 2.5, str(int(pocket._idx)))
 
     def view_pocket_surface(self, snapshot_idx=0):
         for pocket in self.pockets(snapshot_idx):

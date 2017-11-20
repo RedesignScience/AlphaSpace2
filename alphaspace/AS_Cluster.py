@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.cluster.hierarchy import linkage, fcluster
 
 ASDATA_idx = 0
 ASDATA_snapshot_idx = 1
@@ -17,6 +18,7 @@ ASDATA_pocket_idx = 13
 ASDATA_radii = 14
 ASDATA_closest_binder_atom_idx = 15
 ASDATA_closest_binder_atom_distance = 16
+ASDATA_total_lining_atom_asa = 17
 
 
 class AS_Data(np.ndarray):
@@ -41,6 +43,7 @@ class AS_Data(np.ndarray):
     14      radii
     15      closest binder atom idx   -1
     16      closest binder distance   0
+    17      total lining atom asa
     """
 
     def __new__(cls, array_data, parent_structure=None):
@@ -111,6 +114,9 @@ class AS_Data(np.ndarray):
         assert len(idx) == len(values)
         self[idx, 15] = values
 
+    def lining_atom_asa(self, idx):
+        return self[idx, 17]
+
 
 class AS_AlphaAtom:
     """
@@ -161,12 +167,24 @@ class AS_AlphaAtom:
         return self._data.get_nonpolar_score(self._idx)
 
     @property
+    def space(self):
+        return self.polar_score + self.nonpolar_score
+
+    @property
     def lining_atoms_idx(self):
         return self._data.lining_atoms_idx(self._idx)
 
     @property
     def is_contact(self) -> bool:
         return bool(self._data.is_contact(self._idx))
+
+    @property
+    def lining_atom_asa(self):
+        return float(self._data.lining_atoms_idx(self._idx))
+
+    @property
+    def is_solvated(self):
+        return self.lining_atom_asa > 0
 
 
 class AS_Pocket:
@@ -189,6 +207,10 @@ class AS_Pocket:
 
     def deactivate(self):
         self._data.deactivate(self.alpha_idx)
+
+    @property
+    def config(self):
+        return self.parent_structure.config
 
     @property
     def alphas(self):
@@ -238,7 +260,7 @@ class AS_Pocket:
         return self.parent_structure.config.color_name(self._idx)
 
     @property
-    def centoid_xyz(self):
+    def centoid(self):
         return np.average(self.xyz, axis=0)
 
     @property
@@ -281,6 +303,60 @@ class AS_Pocket:
 
     def get_total_score(self, decimals=0):
         return self.get_polar_score(decimals=decimals) + self.get_nonpolar_score(decimals=decimals)
+
+    @property
+    def space(self):
+        return self.get_total_score()
+
+    @property
+    def lining_atom_asa(self) -> np.ndarray:
+        return self._data.lining_atom_asa(self.lining_atoms_idx)
+
+    @property
+    def betas(self):
+        if len(self) > 1:
+            zmat = linkage(self.xyz, method='average')
+            beta_cluster_idx = fcluster(zmat, self.config.beta_clust_cutoff / 10, criterion='distance') - 1
+            beta_list = [[] for _ in range(max(beta_cluster_idx) + 1)]
+            for i, c_i in enumerate(beta_cluster_idx):
+                beta_list[c_i].append(i)
+            for beta in beta_list:
+                yield AS_BetaAtom(alpha_idx_in_pocket=beta, pocket=self)
+        else:
+            yield AS_BetaAtom([0], self)
+
+
+class AS_BetaAtom:
+    def __init__(self, alpha_idx_in_pocket: list, pocket: AS_Pocket):
+        self._pocket = pocket
+        self._alpha_idx_in_pocket = alpha_idx_in_pocket
+        self.alpha_idx = pocket.alpha_idx[alpha_idx_in_pocket]
+
+    @property
+    def xyz(self):
+        return self.pocket.xyz[self._alpha_idx_in_pocket]
+
+    @property
+    def centroid(self):
+        return np.average(self.xyz, axis=0)
+
+    @property
+    def alphas(self):
+        for alpha_idx in self.alpha_idx:
+            yield AS_AlphaAtom(idx=alpha_idx, parent_structure=self.pocket.parent_structure, parent_pocket=self.pocket)
+
+    @property
+    def pocket(self):
+        return self._pocket
+
+    @property
+    def space(self):
+        return np.sum([alpha.space for alpha in self.alphas])
+
+
+
+
+
 
 
 class AS_D_Pocket:

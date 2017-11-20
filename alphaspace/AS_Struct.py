@@ -32,7 +32,7 @@ class AS_Structure:
         # Generate Raw Tessellation simplexes
         raw_alpha_lining_idx = Delaunay(self.trajectory.xyz[snapshot_idx]).simplices
         # Take coordinates from xyz file
-        raw_alpha_lining_xyz = np.take(self.trajectory.xyz[snapshot_idx],raw_alpha_lining_idx[:,0].flatten(),axis=0)
+        raw_alpha_lining_xyz = np.take(self.trajectory.xyz[snapshot_idx], raw_alpha_lining_idx[:, 0].flatten(), axis=0)
 
         # generate alpha atom coordinates
         raw_alpha_xyz = Voronoi(self.traj.xyz[snapshot_idx]).vertices
@@ -57,7 +57,7 @@ class AS_Structure:
                                       criterion='distance') - 1  # because cluster index start from 1
 
         # Load trajectories
-        filtered_lining_xyz = np.take(self.traj.xyz[snapshot_idx],alpha_lining,axis=0)
+        filtered_lining_xyz = np.take(self.traj.xyz[snapshot_idx], alpha_lining, axis=0)
         # calculate the polarity of alpha atoms
         _total_score = np.array(
                 [getTetrahedronVolume(i) for i in
