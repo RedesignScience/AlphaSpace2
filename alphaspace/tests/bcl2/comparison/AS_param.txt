@@ -1,0 +1,53 @@
+#AlphaSpace 1.0 
+#sample parameter input file
+
+min_r = 3.2
+max_r = 5.4
+#minimum and maximum alpha-sphere radius for filtering alpha-spheres
+
+clust_dist = 4.7
+#distance parameter for average linkage clustering of alpha-atoms 
+#into alpha-clusters
+
+min_num_alph = 1
+#filter alpha-clusters by a minimum # of alpha-atoms
+
+hit_dist = 1.6
+#ligand/alpha-atom "contact" distance
+
+core_cutoff = 100
+aux_cutoff = 30
+#pocket score cutoffs for pockets to qualify as "core" or "auxiliary" for use in detecting Pocket commuinities
+
+tight_communities_cutoff = 8.5
+#distance cutoff to make communities tighter
+
+beta_clust_cutoff = 1.3
+#beta_class_cutoff = 4.2
+beta_class_cutoff = 4.5   
+beta_high_cutoff = 20
+beta_mid_cutoff = 10
+#'clust' is for the absolute clustering of alpha-atoms into beta-atoms
+#'class' is for classifying each beta-atom as pol, chrg, etc based on distance to pol/chrg pocket atoms
+
+lig_clust_dist = 4.0
+#distance parameter for average linkage clustering of ligand atoms into LFCs (ligand fragment centers)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
