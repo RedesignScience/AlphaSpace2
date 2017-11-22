@@ -26,7 +26,7 @@ setup(name='alphaspace',
       	  'numpy',
           'mdtraj',
           'jupyter',
-          'nglview==1.0b5',
+          'nglview==1.0',
           'mdtraj',
           'ipywidgets>=7.0'
       ],
