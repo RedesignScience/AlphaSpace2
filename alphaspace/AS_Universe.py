@@ -3,7 +3,10 @@ import mdtraj
 
 from .AS_Cluster import AS_D_Pocket
 from .AS_Config import AS_Config
+from .AS_Funct import getCosAngleBetween
 from .AS_Struct import AS_Structure
+from itertools import combinations, chain
+import networkx
 
 
 # noinspection PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit
@@ -34,6 +37,7 @@ class AS_Universe(object):
 
         self._d_pockets = {}
 
+        print(self.receptor)
         print(self.binder)
 
     def __repr__(self):
@@ -123,11 +127,13 @@ class AS_Universe(object):
             else:
                 continue
 
-    def pocket(self, pocket_idx, snapshot_idx=0):
+    def alphas(self, snapshot_idx=0):
         for pocket in self.receptor.pockets(snapshot_idx):
-            if pocket._idx == pocket_idx:
-                return pocket
-        return None
+            for alpha in pocket.alphas:
+                yield alpha
+
+    def pocket(self, pocket_idx, snapshot_idx=0):
+        return self.receptor.pocket(pocket_idx, snapshot_idx)
 
     # def cluster(self, snapshot_idx: int = 0) -> object:
     #     """
@@ -262,6 +268,37 @@ class AS_Universe(object):
         sasa_diff = receptor_snapshot_sasa - complex_snapshot_sasa[:, :self.receptor.n_atoms]
 
         return np.where((sasa_diff > 0).any(axis=0))[0]
+
+    def _gen_communities(self):
+        self.communities = {}
+        for snapshot_idx in range(self.n_frames):
+            pockets = list(self.pockets(snapshot_idx))
+            pocket_graph = networkx.Graph()
+            pocket_graph.add_nodes_from(pockets)
+
+            def connectPockets(p1, p2):
+                if len(np.intersect1d(p1.lining_atoms_idx, p2.lining_atoms_idx)) > 0:  # in contact
+                    # print('contact')
+                    pocket_vector1 = p1.lining_atoms_centroid - p1.centroid
+                    pocket_vector2 = p2.lining_atoms_centroid - p2.centroid
+                    if getCosAngleBetween(pocket_vector1, pocket_vector2) > 0:  # pocket vector facing inwards
+                        pocket_graph.add_edge(p1, p2)
+                        return True
+                return False
+
+            for pocket1, pocket2 in combinations(pockets, 2):
+                if {pocket2.core_aux_minor, pocket1.core_aux_minor} in ({'core', 'aux'}, {'core'}):
+                    connectPockets(pocket1, pocket2)
+            core_aux_communities = [c for c in (networkx.connected_components(pocket_graph)) if
+                                    len(c) > 1 and any([p.core_aux_minor == 'core' for p in c])]
+            for pocket1, pocket2 in combinations(pockets, 2):
+                if {pocket2.core_aux_minor, pocket1.core_aux_minor} in ({'core', 'minor'}, {'aux', 'minor'}):
+                    connectPockets(pocket1, pocket2)
+            communities = []
+            for community in core_aux_communities:
+                linked_minor = set(chain.from_iterable([pocket_graph.neighbors(p) for p in community]))
+                communities.append(linked_minor.union(community))
+            self.communities[snapshot_idx] = communities
 
     def screen_pockets(self):
         assert len(list(self.receptor._data.snapshots_idx)) == self.n_frames

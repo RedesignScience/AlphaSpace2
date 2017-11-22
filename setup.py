@@ -33,7 +33,7 @@ setup(name='alphaspace',
       include_package_data=True,
       zip_safe=False,
 
-      scripts=['bin/run_alphaspace.py'],
+      scripts=['scripts/run_alphaspace.py'],
 
 
 

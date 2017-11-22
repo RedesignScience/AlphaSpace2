@@ -60,6 +60,19 @@ def getGridVolume(coord_list, threshold=1.6, resolution=0.05):
     return grid_count * (resolution ** 3)
 
 
+def getCosAngleBetween(v1, v2):
+    def unit_vector(vector):
+        norm = np.linalg.norm(vector)
+        assert norm > 0
+        """ Returns the unit vector of the vector.  """
+        return vector / norm
+
+    v1_u = unit_vector(v1)
+    v2_u = unit_vector(v2)
+    return np.clip(np.dot(v1_u, v2_u), -1.0, 1.0)
+
+
+
 def getSASA(protein_snapshot, cover_atom_coords=None):
     """
     Calculate the absolute solvent accessible surface area.

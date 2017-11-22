@@ -1,5 +1,7 @@
 import numpy as np
 from scipy.cluster.hierarchy import linkage, fcluster
+import networkx
+
 
 ASDATA_idx = 0
 ASDATA_snapshot_idx = 1
@@ -107,8 +109,11 @@ class AS_Data(np.ndarray):
     def all_idx(self):
         return self[:, 0].astype(int)
 
-    def get_closest_atom(self, idx):
+    def get_closest_atom_idx(self, idx):
         return self[idx, 15].astype(int)
+
+    def get_closest_atom_dist(self, idx):
+        return self[idx, 16].astype(float)
 
     def set_closest_atom(self, idx, values):
         assert len(idx) == len(values)
@@ -139,12 +144,12 @@ class AS_AlphaAtom:
         return np.linalg.norm(self.xyz - other.xyz)
 
     @property
-    def _data(self):
+    def _data(self) -> AS_Data:
         return self.parent_structure._data
 
     @property
     def is_active(self):
-        return
+        return bool(self._data.is_active(self._idx))
 
     @property
     def idx(self):
@@ -152,7 +157,7 @@ class AS_AlphaAtom:
 
     @property
     def snapshot_idx(self):
-        return self._data.snapshot_idx(self._idx)
+        return self._data.snapshot(self._idx)
 
     @property
     def xyz(self):
@@ -186,6 +191,13 @@ class AS_AlphaAtom:
     def is_solvated(self):
         return self.lining_atom_asa > 0
 
+    @property
+    def closest_atom_idx(self):
+        return self._data.get_closest_atom_idx(self._idx)
+
+    @property
+    def closest_atom_dist(self):
+        return self._data.get_closest_atom_dist(self._idx)
 
 class AS_Pocket:
     """
@@ -198,6 +210,28 @@ class AS_Pocket:
         self._snapshot_idx = snapshot_idx
         self._alpha_idx = alpha_idx
         self.parent_structure = parent_structure
+
+        self._contact_pockets = set()
+
+    def set_contact(self, other):
+        self._contact_pockets.add(other.index)
+        other.contact_pockets.add(self.index)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    @property
+    def index(self):
+        return self._idx
+
+    def __hash__(self):
+        return hash((self._snapshot_idx, self._idx))
+
+    def __eq__(self, other):
+        if (self._idx, self._snapshot_idx) == (other._idx, other._snapshot_idx):
+            return True
+        else:
+            return False
 
     def __len__(self) -> int:
         return len(self._alpha_idx)
@@ -244,6 +278,14 @@ class AS_Pocket:
     def lining_atoms(self):
         for idx in self.lining_atoms_idx:
             yield self.parent_structure.top.atom(idx)
+
+    @property
+    def lining_atoms_xyz(self):
+        return self.parent_structure.traj.xyz[self._snapshot_idx, self.lining_atoms_idx, :]
+
+    @property
+    def lining_atoms_centroid(self):
+        return np.average(self.lining_atoms_xyz, axis=0)
 
     @property
     def lining_residues_idx(self):
@@ -324,6 +366,19 @@ class AS_Pocket:
                 yield AS_BetaAtom(alpha_idx_in_pocket=beta, pocket=self)
         else:
             yield AS_BetaAtom([0], self)
+
+    @property
+    def centroid(self):
+        return np.average(self.xyz, axis=0)
+
+    @property
+    def core_aux_minor(self):
+        if self.space < self.config.aux_cutoff:
+            return 'minor'
+        elif self.space < self.config.core_cutoff:
+            return 'aux'
+        else:
+            return 'core'
 
 
 class AS_BetaAtom:

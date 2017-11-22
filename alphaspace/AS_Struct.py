@@ -26,7 +26,8 @@ class AS_Structure:
         self.config = self.parent.config
         # self.contact_cluster = [[None for i in range(self.n_residues)] for j in range(self.n_frames)]
         self._data = None
-        self._pockets = None
+        self._pockets_alpha_idx = {}
+        self._pockets = {}
 
     def _tessellation(self, config, snapshot_idx: int) -> np.ndarray:
         # Generate Raw Tessellation simplexes
@@ -138,20 +139,31 @@ class AS_Structure:
 
     def _gen_pockets(self):
         assert self._data is not None
-        self._pockets = {i: {} for i in range(self.n_frames)}
+        self._pockets_alpha_idx = {i: {} for i in range(self.n_frames)}
         pocket_snapshot_dict = self._data[:,[0,1,13]]
         for i in range(self.n_frames):
             reversed_dict = defaultdict(list)
             current_frame_pocket_idx = pocket_snapshot_dict[pocket_snapshot_dict[:,1] == i]
             for idx,ss_idx,p_idx in current_frame_pocket_idx:
                 reversed_dict[p_idx].append(idx)
-            self._pockets[i] = reversed_dict
+            self._pockets_alpha_idx[i] = reversed_dict
 
     def pockets(self,snapshot_idx=0):
-        if self._pockets is None:
+        if len(self._pockets_alpha_idx) == 0:
             self._gen_pockets()
-        for pocket_idx,pocket_content in self._pockets[snapshot_idx].items():
+        for pocket_idx, pocket_content in self._pockets_alpha_idx[snapshot_idx].items():
             yield AS_Pocket(pocket_content,snapshot_idx,pocket_idx,self)
+
+    def pocket(self, pocket_idx, snapshot_idx=0):
+        if self._pockets_alpha_idx:
+            self._gen_pockets()
+        if snapshot_idx in self._pockets_alpha_idx:
+            if pocket_idx in self._pockets_alpha_idx[snapshot_idx]:
+                return AS_Pocket(self._pockets_alpha_idx[snapshot_idx][pocket_idx], snapshot_idx, pocket_idx, self)
+            else:
+                return None
+        else:
+            return None
 
 
 
@@ -314,3 +326,4 @@ class AS_Structure:
 
         for idx,item in d_pockets_idx_dict.items():
             yield AS_D_Pocket(self,pocket_indices=item)
+
