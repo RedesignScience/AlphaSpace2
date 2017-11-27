@@ -2,6 +2,7 @@ numpy
 scipy
 cython==0.27.3
 jupyter
-nglview==1.0b5
+nglview==1.0
 mdtraj
 ipywidgets>=7.0
+networkx
