@@ -157,10 +157,10 @@ def _tessellation(arglist):
     # Load trajectories
     filtered_lining_xyz = np.take(xyz, alpha_lining, axis=0)
     # calculate the polarity of alpha atoms
-    _total_score = np.array(
+    _total_space = np.array(
         [getTetrahedronVolume(i) for i in filtered_lining_xyz]) * 1000  # here the 1000 is to convert nm^3 to A^3
 
-    """if calculate polar nonpolar score"""
+    """if calculate polar nonpolar space"""
     if config.use_asa:
         element = [str(atom.element.symbol) for atom in protein_snapshot.topology._atoms]
         atom_radii = [_ATOMIC_RADII[e] for e in element]
@@ -188,13 +188,13 @@ def _tessellation(arglist):
 
         polar_ratio = np.average(np.take(is_polar.astype(float), alpha_lining), axis=1, weights=pocket_sasa)
 
-        _polar_score = _total_score * polar_ratio
+        _polar_space = _total_space * polar_ratio
 
-        _nonpolar_score = _total_score - _polar_score
+        _nonpolar_space = _total_space - _polar_space
 
     else:
-        _polar_score = _total_score * 0
-        _nonpolar_score = _total_score
+        _polar_space = _total_space * 0
+        _nonpolar_space = _total_space
 
 
 
@@ -230,8 +230,8 @@ def _tessellation(arglist):
                            np.full((len(alpha_pocket_index), 1), snapshot_idx),  # 1         snapshot_idx
                            filtered_alpha_xyz,  # 2 3 4     x y z
                            alpha_lining,  # 5 6 7 8   lining_atom_idx_1 - 4
-                           np.expand_dims(_polar_score, axis=1),  # 9         polar_score 0
-                           np.expand_dims(_nonpolar_score, axis=1),  # 10        nonpolar_score 0
+                           np.expand_dims(_polar_space, axis=1),  # 9         polar_space 0
+                           np.expand_dims(_nonpolar_space, axis=1),  # 10        nonpolar_space 0
                            np.expand_dims(is_active, axis=1),  # 11        is_active 1
                            np.expand_dims(is_contact, axis=1),  # 12        is_contact 0
                            np.expand_dims(alpha_pocket_index, axis=1),  # 13        pocket_idx
@@ -252,8 +252,8 @@ def _tessellation(arglist):
     6       lining_atom_idx_1
     7       lining_atom_idx_1
     8       lining_atom_idx_1
-    9       polar_score 0
-    10      nonpolar_score 0
+    9       polar_space 0
+    10      nonpolar_space 0
     11      is_active 1
     12      is_contact 0
     13      pocket_idx

@@ -32,13 +32,12 @@ class AS_Universe(object):
             else:
                 raise Exception('No binder detected')
 
+        self.pocket_list = []
+
         self.others = None
         self._view = None
 
         self._d_pockets = {}
-
-        print(self.receptor)
-        print(self.binder)
 
     def __repr__(self):
         return "Receptor of {} residues {} atoms | Binder of {} residues {} atoms".format(self.receptor.n_residues,
@@ -121,11 +120,22 @@ class AS_Universe(object):
     #         return False
 
     def pockets(self, snapshot_idx=0, active_only=True):
+
+        pocket_list = []
+        # i = 1
         for pocket in self.receptor.pockets(snapshot_idx):
             if pocket.is_active or (not active_only):
-                yield pocket
+                # pocket._reordered_index = i
+                pocket_list.append(pocket)
             else:
                 continue
+        pocket_list.sort(key=lambda p:p.get_space(),reverse=True)
+        i = 1
+        for pocket in pocket_list:
+            pocket._reordered_index = i
+            i += 1
+
+        return iter(pocket_list)
 
     def alphas(self, snapshot_idx=0):
         for pocket in self.receptor.pockets(snapshot_idx):
@@ -216,11 +226,7 @@ class AS_Universe(object):
             self.receptor.traj.atom_slice(non_h_idx, inplace=True)
 
     def run_alphaspace(self):
-        data_list = []
-        for i in range(self.n_frames):
-            data_list.append(self.receptor._tessellation(self.config, i))
-        self.receptor._combine_data(data_list)
-        self.receptor._gen_pockets()
+        self.run_alphaspace_mp()
 
     def run_alphaspace_mp(self, cpu=None):
 
@@ -312,11 +318,11 @@ class AS_Universe(object):
                     if len(np.unique(atom_list)) == len(atom_list):
                         data[pocket.alpha_idx, 11] = 0
 
-        if self.config.screen_by_score:
-            assert self.config.min_score > 0
+        if self.config.screen_by_space:
+            assert self.config.min_space > 0
             for snapshot_idx in range(self.n_frames):
                 for pocket in self.pockets(snapshot_idx):
-                    if pocket.get_total_score < self.config.min_score:
+                    if pocket.get_total_space < self.config.min_space:
                         pocket.deactivate()
 
         if self.config.min_num_alph > 0:

@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.cluster.hierarchy import linkage, fcluster
 import networkx
+import math
 
 
 ASDATA_idx = 0
@@ -12,8 +13,8 @@ ASDATA_lining_atom_idx_1 = 5
 ASDATA_lining_atom_idx_2 = 6
 ASDATA_lining_atom_idx_3 = 7
 ASDATA_lining_atom_idx_4 = 8
-ASDATA_polar_score = 9
-ASDATA_nonpolar_score = 10
+ASDATA_polar_space = 9
+ASDATA_nonpolar_space = 10
 ASDATA_is_active = 11
 ASDATA_is_contact = 12
 ASDATA_pocket_idx = 13
@@ -37,8 +38,8 @@ class AS_Data(np.ndarray):
     6       lining_atom_idx_1
     7       lining_atom_idx_1
     8       lining_atom_idx_1
-    9       polar_score        0
-    10      nonpolar_score     0
+    9       polar_space        0
+    10      nonpolar_space     0
     11      is_active          1
     12      is_contact         0
     13      pocket_idx         0
@@ -72,10 +73,10 @@ class AS_Data(np.ndarray):
         else:
             return self[:, 2:5]
 
-    def get_polar_score(self, idx):
+    def get_polar_space(self, idx):
         return self[np.array(idx), 9]
 
-    def get_nonpolar_score(self, idx):
+    def get_nonpolar_space(self, idx):
         return self[np.array(idx), 10]
 
     def lining_atoms_idx(self, idx):
@@ -164,16 +165,16 @@ class AS_AlphaAtom:
         return self._data.xyz(self._idx)
 
     @property
-    def polar_score(self):
-        return self._data.get_polar_score(self._idx)
+    def polar_space(self):
+        return self._data.get_polar_space(self._idx)
 
     @property
-    def nonpolar_score(self):
-        return self._data.get_nonpolar_score(self._idx)
+    def nonpolar_space(self):
+        return self._data.get_nonpolar_space(self._idx)
 
     @property
     def space(self):
-        return self.polar_score + self.nonpolar_score
+        return self.polar_space + self.nonpolar_space
 
     @property
     def lining_atoms_idx(self):
@@ -213,6 +214,8 @@ class AS_Pocket:
 
         self._contact_pockets = set()
 
+        self._reordered_index = None
+
     def set_contact(self, other):
         self._contact_pockets.add(other.index)
         other.contact_pockets.add(self.index)
@@ -220,9 +223,19 @@ class AS_Pocket:
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def __repr__(self):
+        return "<Pocket {} in snapshot {} with space {} and {}% occupied>".format(self.reordered_index,self._snapshot_idx,math.ceil(self.space),math.ceil(self.occupancy*100))
+
     @property
     def index(self):
-        return self._idx
+        return int(self._idx)
+
+    @property
+    def reordered_index(self):
+        if self._reordered_index is None:
+            return self.index
+        else:
+            return int(self._reordered_index)
 
     def __hash__(self):
         return hash((self._snapshot_idx, self._idx))
@@ -302,53 +315,71 @@ class AS_Pocket:
         return self.parent_structure.config.color_name(self._idx)
 
     @property
-    def centoid(self):
-        return np.average(self.xyz, axis=0)
-
-    @property
     def is_contact(self):
         return np.any(self.contacts)
+
+    @property
+    def occupancy(self):
+        if self.is_contact:
+            return float(self.get_space(contact_only=True,space_type='ALL')/self.get_space(contact_only=False,space_type='ALL'))
+        else:
+            return 0.0
 
     @property
     def contacts(self) -> np.ndarray:
         return np.array(self._data.is_active(self.alpha_idx), dtype=int)
 
-    def get_scores(self, score_type='ALL', contact_only=False):
-        if score_type.upper() == 'POLAR':
-            scores = self.get_polar_scores(2)
-        elif score_type.upper() == 'NONPOLAR':
-            scores = self.get_nonpolar_scores(2)
-        elif score_type.upper() == 'ALL':
-            scores = self.get_total_score(2)
+    def get_spaces(self, space_type='ALL', contact_only=False):
+        if space_type.upper() == 'POLAR':
+            spaces = self.get_polar_spaces()
+        elif space_type.upper() == 'NONPOLAR':
+            spaces = self.get_nonpolar_spaces()
+        elif space_type.upper() == 'ALL':
+            spaces = self.get_total_spaces()
         else:
-            raise Exception("Use ALL, POLAR, NONPOLAR as score_type")
-
+            raise Exception("Use ALL, POLAR, NONPOLAR as space_type")
         if contact_only:
-            return self.contacts * scores
+            return self.contacts * spaces
         else:
-            return scores
+            return spaces
 
-    def get_score(self, score_type='ALL', contact_only=False):
-        return float(np.sum(self.get_scores(score_type, contact_only)))
+    def get_space(self, space_type='ALL', contact_only=False):
+        return float(np.sum(self.get_spaces(space_type, contact_only)))
 
-    def get_polar_score(self, decimals=0) -> float:
-        return float(np.around(np.sum(self._data.get_polar_score(self.alpha_idx)), decimals=decimals))
+    def get_polar_space(self) -> float:
+        return  float(np.sum(self._data.get_polar_space(self.alpha_idx)))
 
-    def get_polar_scores(self, decimals=5) -> np.ndarray:
-        return np.around(self._data.get_polar_score(self.alpha_idx), decimals=decimals)
+    def get_polar_spaces(self) -> np.ndarray:
+        return self._data.get_polar_space(self.alpha_idx)
 
-    def get_nonpolar_score(self, decimals=0) -> float:
-        return float(np.around(np.sum(self._data.get_nonpolar_score(self.alpha_idx)), decimals=decimals))
+    def get_nonpolar_space(self) -> float:
+        return float(np.sum(self._data.get_nonpolar_space(self.alpha_idx)))
 
-    def get_nonpolar_scores(self, decimals=5) -> np.ndarray:
-        return np.around(self._data.get_nonpolar_score(self.alpha_idx), decimals=decimals)
+    def get_nonpolar_spaces(self) -> np.ndarray:
+        return self._data.get_nonpolar_space(self.alpha_idx)
 
-    def get_total_score(self, decimals=0):
-        return self.get_polar_score(decimals=decimals) + self.get_nonpolar_score(decimals=decimals)
+    def get_total_space(self):
+        return self.get_polar_space() + self.get_nonpolar_space()
+
+    def get_total_spaces(self):
+        return self.get_polar_spaces()+self.get_nonpolar_spaces()
+    @property
+    def polar_space(self):
+        return self.get_polar_space()
+
+    @property
+    def nonpolar_space(self):
+        return self.get_nonpolar_space()
 
     @property
     def space(self):
-        return self.get_total_score()
+        return self.get_space()
+
+
+
+    @property
+    def space(self):
+        return self.get_total_space()
 
     @property
     def lining_atom_asa(self) -> np.ndarray:
@@ -451,10 +482,10 @@ class AS_D_Pocket:
         :return:
         """
 
-    def _index_to_pocket(self, index: tuple) -> object:
+    def _index_to_pocket(self, index: tuple):
         return self.structure.cluster(snapshot_idx=index[0]).pocket(index[1])
 
-    def _pocket_to_index(self, pocket: object) -> tuple:
+    def _pocket_to_index(self, pocket) -> tuple:
         return pocket.cluster.snapshot_index, pocket.index
 
     def __contains__(self, item) -> bool:
@@ -530,12 +561,12 @@ class AS_D_Pocket:
         return sorted(list(set([i[1] for i in self._pocket_indices])))
 
     @property
-    def pocket_scores(self) -> tuple:
+    def pocket_spaces(self) -> tuple:
         """
         :return: iter of tuple (polar, nonpolar)
         """
         for pocket in self.pockets:
-            yield pocket.get_polar_score(), pocket.get_nonpolar_score()
+            yield (pocket.get_polar_space(), pocket.get_nonpolar_space())
 
     @property
     def pocket_xyz(self) -> np.array:

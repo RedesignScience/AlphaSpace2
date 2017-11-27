@@ -60,7 +60,7 @@ class AS_Structure:
         # Load trajectories
         filtered_lining_xyz = np.take(self.traj.xyz[snapshot_idx], alpha_lining, axis=0)
         # calculate the polarity of alpha atoms
-        _total_score = np.array(
+        _total_space = np.array(
                 [getTetrahedronVolume(i) for i in
                  filtered_lining_xyz]) * 1000  # here the 1000 is to convert nm^3 to A^3
 
@@ -72,16 +72,16 @@ class AS_Structure:
                 [(str(atom.element) in ['nitrogen','oxygen','sulfur']) for atom in self.topology._atoms])
         polar_ratio = np.average(np.take(is_polar,alpha_lining),axis=1,weights=pocket_sasa)
 
-        _polar_score = _total_score * polar_ratio
+        _polar_space = _total_space * polar_ratio
 
-        _nonpolar_score = _total_score - _polar_score
+        _nonpolar_space = _total_space - _polar_space
 
         # for item in (np.zeros((len(alpha_pocket_index),1)),
         #                        np.full((len(alpha_pocket_index),1),snapshot_idx),
         #                        filtered_alpha_xyz,
         #                        alpha_lining,
-        #                        np.expand_dims(_polar_score,axis=1),
-        #                        np.expand_dims(_nonpolar_score, axis=1),
+        #                        np.expand_dims(_polar_space,axis=1),
+        #                        np.expand_dims(_nonpolar_space, axis=1),
         #                        np.ones((len(alpha_pocket_index),1)),
         #                        np.zeros((len(alpha_pocket_index),1)),
         #                        np.expand_dims(alpha_pocket_index, axis=1),
@@ -93,8 +93,8 @@ class AS_Structure:
                                np.full((len(alpha_pocket_index),1),snapshot_idx),
                                filtered_alpha_xyz,
                                alpha_lining,
-                               np.expand_dims(_polar_score,axis=1),
-                               np.expand_dims(_nonpolar_score, axis=1),
+                               np.expand_dims(_polar_space,axis=1),
+                               np.expand_dims(_nonpolar_space, axis=1),
                                np.ones((len(alpha_pocket_index),1)),
                                np.zeros((len(alpha_pocket_index),1)),
                                np.expand_dims(alpha_pocket_index, axis=1),
@@ -112,8 +112,8 @@ class AS_Structure:
         6       lining_atom_idx_1
         7       lining_atom_idx_1
         8       lining_atom_idx_1
-        9       polar_score 0
-        10      nonpolar_score 0
+        9       polar_space 0
+        10      nonpolar_space 0
         11      is_active 1
         12      is_contact 0
         13      pocket_idx
