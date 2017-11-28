@@ -4,7 +4,6 @@ import numpy as np
 from scipy.cluster.hierarchy import linkage, fcluster
 from scipy.spatial import Voronoi, Delaunay
 from scipy.spatial.distance import squareform
-
 from .AS_Cluster import AS_D_Pocket, AS_Data, AS_Pocket
 from .AS_Funct import getTetrahedronVolume, getSASA, getIfContact
 
@@ -75,19 +74,6 @@ class AS_Structure:
         _polar_space = _total_space * polar_ratio
 
         _nonpolar_space = _total_space - _polar_space
-
-        # for item in (np.zeros((len(alpha_pocket_index),1)),
-        #                        np.full((len(alpha_pocket_index),1),snapshot_idx),
-        #                        filtered_alpha_xyz,
-        #                        alpha_lining,
-        #                        np.expand_dims(_polar_space,axis=1),
-        #                        np.expand_dims(_nonpolar_space, axis=1),
-        #                        np.ones((len(alpha_pocket_index),1)),
-        #                        np.zeros((len(alpha_pocket_index),1)),
-        #                        np.expand_dims(alpha_pocket_index, axis=1),
-        #                        np.expand_dims(filtered_alpha_radii,axis=1)
-        #                        ):
-        #     print(item.shape)
 
         data = np.concatenate((np.zeros((len(alpha_pocket_index),1)),
                                np.full((len(alpha_pocket_index),1),snapshot_idx),

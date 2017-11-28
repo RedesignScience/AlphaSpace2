@@ -11,7 +11,8 @@ import networkx
 
 # noinspection PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit
 class AS_Universe(object):
-    def __init__(self, receptor=None, binder=None, guess_receptor_binder=True, guess_by_order=True, config=None):
+    def __init__(self, receptor=None, binder=None, guess_receptor_binder=True, guess_by_order=True, config=None,
+                 tag=""):
         """
         Container for an AlphaSpace session, have child container receptor and binder
         :param receptor: object
@@ -39,6 +40,11 @@ class AS_Universe(object):
 
         self._d_pockets = {}
 
+        self.tag = tag
+
+
+
+
     def __repr__(self):
         return "Receptor of {} residues {} atoms | Binder of {} residues {} atoms".format(self.receptor.n_residues,
                                                                                           self.receptor.n_atoms,
@@ -53,14 +59,6 @@ class AS_Universe(object):
     def frames(self):
         for i in range(self.n_frames):
             yield i
-
-    # @property
-    # def clusters(self):
-    #     """
-    #     return list of clusters
-    #     :return: list
-    #     """
-    #     return self.receptor.clusters
 
     @property
     def n_frames(self):

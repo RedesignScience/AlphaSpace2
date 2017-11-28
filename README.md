@@ -23,23 +23,18 @@ ipywidgets 7.0
 
 ## Installation
 Download the zip package and unzip it in you preferred installation location.
-Navigate to the AlphaSpace folder, where you should see setup.py. 
+Navigate to the AlphaSpace folder, where you should see this README.md file
 
 Install by entering:
 ```
 pip install -e .
 ```
+The dependencies should be automatically installed through pip.
 
-The dependencies should be automatically installed through pip. If not, you can install them separately like this. 
 
-```
-pip install nglview==1.0.b5
-pip install ipywidgets==7
-conda install -c conda-forge mdtraj
-```
 
 ## Activate ipython widget environment
-To enable jupyter notebook visualization, you need to enable ipython widget extension. 
+To enable jupyter notebook visualization, you may need to enable ipython widget extension. 
 
 ```
 jupyter-nbextension enable --py --sys-prefix widgetsnbextension
