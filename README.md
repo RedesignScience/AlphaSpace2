@@ -15,11 +15,16 @@ Key features:
 # Getting started
 
 ## Dependencies
-python 3.6+
+```python 3.6+
+
 jupyter notebook
+
 nglview>=1.0
+
 mdtraj 
+
 ipywidgets 7.0
+```
 
 ## Installation
 Download the zip package and unzip it in you preferred installation location.
