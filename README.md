@@ -17,7 +17,7 @@ Key features:
 ## Dependencies
 python 3.6+
 jupyter notebook
-nglview >=1.0b5
+nglview>=1.0
 mdtraj 
 ipywidgets 7.0
 
@@ -49,34 +49,24 @@ python -m ipykernel install --sys-prefix
 
 ## Running first AlphaSpace session
 
+### Using jupyter notebook
+
 For interactive session in jupyter notebook, type in
 ```
  jupyter notebook 
 ```
-in your terminal to start the notebook.
-You can import AlphaSpace using
-```
-import AlphaSpace
-```
+To start, you can open the [FCTM_tutorial](examples/FCTM_tutorial.ipynb) in the [examples](examples) folder.
 
-You can find a demo notebook in the example folder, which contains the general practice for mapping a protein. 
-
+### Using commandline __experimental__
 AlphaSpace also support command line usage, if you run AlphaSpace on a pdb file the mapping will be outputted in the working directory as PDB file and chimera .py file. You will be able to open them in chimera later. Alternatively, a binary pickled file can be saved, this allows for direct loading of results in python.   
 To run it in command line mode, do
 ```
- python alphaspace.py -i [input_file] -o [output_file] -c [OPTIONAL:config_file_path] —-chimera/pickle
+ python run_alphaspace.py -i [input_file] -o [output_file] -c [OPTIONAL:config_file_path] —-chimera/pickle
 ```
-
-## Using custom option and parameters
-You can use your own config.ini file, by using -c [config file path]
-The default config file location is 
-`$ALPHASPACE/alphaspace/config.ini`
-This file follows the naming convention of V1.0 `AS_Param.py` and `AS_Option.py`, they are combined to a .ini file by adding [options] and [parameters]. 
-
 
 
 ## Changes from V1.0
-1. Pocket community definition has been adjusted to be user defined, or based on percentage of the whole surface. 
+~~1. Pocket community definition has been adjusted to be user defined, or based on percentage of the whole surface.~~ 
 2. Pocket score are now calculated based on polar and non-polar lining atom SASA ratio, instead of direct number of atoms ratio.  
 ## Bugs and issue
 Known bugs:

@@ -22,14 +22,17 @@ setup(name='alphaspace',
 
     },
 
-      install_requires=[
-      	  'numpy',
-          'mdtraj',
+      install_requires={
+          'numpy',
+          'scipy',
+          'cython==0.27.3',
           'jupyter',
           'nglview==1.0',
           'mdtraj',
-          'ipywidgets>=7.0'
-      ],
+          'ipywidgets==7.0',
+          'networkx',
+
+      },
       include_package_data=True,
       zip_safe=False,
 
