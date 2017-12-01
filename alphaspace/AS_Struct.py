@@ -28,6 +28,9 @@ class AS_Structure:
         self._pockets_alpha_idx = {}
         self._pockets = {}
 
+    def __bool__(self):
+        return True
+
     def _tessellation(self, config, snapshot_idx: int) -> np.ndarray:
         # Generate Raw Tessellation simplexes
         raw_alpha_lining_idx = Delaunay(self.trajectory.xyz[snapshot_idx]).simplices
@@ -157,10 +160,6 @@ class AS_Structure:
         return "{} Structure with {} frames, {} residues, {} atoms".format(
                 ['Receptor','Binder','Misc.'][self.structure_type],self.n_frames,self.n_residues,self.n_atoms)
 
-    @property
-    def is_polar(self):
-        return np.array(
-                [(str(atom.element) in ['nitrogen','oxygen','sulfur']) for atom in self.topology._atoms])
 
     @property
     def top(self):

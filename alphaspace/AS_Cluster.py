@@ -231,6 +231,10 @@ class AS_Pocket:
         return int(self._idx)
 
     @property
+    def universe(self):
+        return self.parent_structure.parent.universe
+
+    @property
     def reordered_index(self):
         if self._reordered_index is None:
             return self.index
@@ -375,12 +379,6 @@ class AS_Pocket:
     def space(self):
         return self.get_space()
 
-
-
-    @property
-    def space(self):
-        return self.get_total_space()
-
     @property
     def lining_atom_asa(self) -> np.ndarray:
         return self._data.lining_atom_asa(self.lining_atoms_idx)
@@ -410,6 +408,17 @@ class AS_Pocket:
             return 'aux'
         else:
             return 'core'
+
+    def union(self, other) -> set:
+        return set(self.lining_atoms_idx).union(set(other.lining_atoms_idx))
+
+    def intersection(self, other) -> set:
+        return set(self.lining_atoms_idx).intersection(set(other.lining_atoms_idx))
+
+    def jaccard_similarity(self, other) -> float:
+        return float(len(self.intersection(other))) / len(self.union(other))
+
+
 
 
 class AS_BetaAtom:

@@ -1,7 +1,7 @@
 import numpy as np
 import mdtraj
 
-from .AS_Cluster import AS_D_Pocket
+from .AS_Cluster import AS_D_Pocket, AS_Pocket
 from .AS_Config import AS_Config
 from .AS_Funct import getCosAngleBetween
 from .AS_Struct import AS_Structure
@@ -117,7 +117,7 @@ class AS_Universe(object):
     #     else:
     #         return False
 
-    def pockets(self, snapshot_idx=0, active_only=True):
+    def pockets(self, snapshot_idx: int = 0, active_only: bool = True) -> AS_Pocket:
 
         pocket_list = []
         # i = 1
@@ -133,7 +133,8 @@ class AS_Universe(object):
             pocket._reordered_index = i
             i += 1
 
-        return iter(pocket_list)
+        for p in pocket_list:
+            yield p
 
     def alphas(self, snapshot_idx=0):
         for pocket in self.receptor.pockets(snapshot_idx):
@@ -186,7 +187,7 @@ class AS_Universe(object):
         else:
             return False
 
-    def set_binder(self, structure: object, append=False):
+    def set_binder(self, structure, append=False):
         """
         set binder (ligand) in session
         :param structure: object, trajectory
@@ -235,6 +236,13 @@ class AS_Universe(object):
         from .AS_Funct import _tessellation
         from concurrent.futures import ProcessPoolExecutor
 
+        if not self.binder:
+            self.config.screen_by_face = self.config.screen_by_lig_cntct = False
+
+        # Disable screen by contact and face when there is no binder.
+
+
+
         cpu = mp.cpu_count() if not cpu else int(cpu)
 
         def executor(argslist):
@@ -242,7 +250,10 @@ class AS_Universe(object):
                 return ex.map(_tessellation, argslist)
 
         receptor_ss = [self.receptor.traj[i] for i in range(self.n_frames)]
-        binder_ss = [self.binder.traj[i] for i in range(self.n_frames)]
+        if self.binder:
+            binder_ss = [self.binder.traj[i] for i in range(self.n_frames)]
+        else:
+            binder_ss = [[] for i in range(self.n_frames)]
         config = [self.config for i in range(self.n_frames)]
         snapshot_indices = range(self.n_frames)
         is_polar = [self.receptor.is_polar for _ in range(self.n_frames)]

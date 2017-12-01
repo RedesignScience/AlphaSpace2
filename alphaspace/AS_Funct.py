@@ -196,19 +196,22 @@ def _tessellation(arglist):
         _polar_space = _total_space * 0
         _nonpolar_space = _total_space
 
+    if binder_snapshot:
 
+        """
+        Calculate the contact matrix, and link each alpha with closest atom.
+        """
 
+        dist_matrix = cdist(filtered_alpha_xyz, binder_snapshot.xyz[0])
 
+        min_idx = np.argmin(dist_matrix, axis=1)
+        mins = np.min(dist_matrix, axis=1) * 10  # nm to A
+        is_contact = mins < config.hit_dist
 
-    """
-    Calculate the contact matrix, and link each alpha with closest atom.
-    """
-
-    dist_matrix = cdist(filtered_alpha_xyz, binder_snapshot.xyz[0])
-
-    min_idx = np.argmin(dist_matrix, axis=1)
-    mins = np.min(dist_matrix, axis=1) * 10  # nm to A
-    is_contact = mins < config.hit_dist
+    else:
+        min_idx = np.zeros(filtered_alpha_xyz.shape[0])
+        mins = np.zeros(filtered_alpha_xyz.shape[0])
+        is_contact = np.zeros(filtered_alpha_xyz.shape[0])
 
     """lining atom asa"""
     element = [str(atom.element.symbol) for atom in protein_snapshot.topology._atoms]
@@ -224,7 +227,7 @@ def _tessellation(arglist):
     alpha_lining_asa = np.take(asa[0], alpha_lining).sum(axis=1) * 100  # nm2 to A2
 
     """if use ligand contact"""
-    is_active = is_contact if config.screen_by_lig_cntct else np.ones_like(alpha_pocket_index)
+    is_active = is_contact if config.screen_by_lig_cntct else np.zeros_like(alpha_pocket_index)
 
     data = np.concatenate((np.zeros((len(alpha_pocket_index), 1)),  # 0         idx
                            np.full((len(alpha_pocket_index), 1), snapshot_idx),  # 1         snapshot_idx
