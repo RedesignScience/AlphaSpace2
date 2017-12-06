@@ -1,12 +1,13 @@
 import numpy as np
 import mdtraj
+from scipy.cluster.hierarchy import linkage, fcluster
+from scipy.spatial.distance import squareform
 
 from .AS_Cluster import AS_D_Pocket, AS_Pocket
 from .AS_Config import AS_Config
-from .AS_Funct import getCosAngleBetween
+from .AS_Funct import getCosAngleBetween, combination_intersection_count, combination_union_count
 from .AS_Struct import AS_Structure
 from itertools import combinations, chain
-import networkx
 
 
 # noinspection PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit
@@ -33,12 +34,13 @@ class AS_Universe(object):
             else:
                 raise Exception('No binder detected')
 
-        self.pocket_list = []
+        self._pocket_list = {}
 
         self.others = None
         self._view = None
 
         self._d_pockets = {}
+        self._pocket_network = {}
 
         self.tag = tag
 
@@ -117,24 +119,11 @@ class AS_Universe(object):
     #     else:
     #         return False
 
-    def pockets(self, snapshot_idx: int = 0, active_only: bool = True) -> AS_Pocket:
+    def pockets(self, snapshot_idx: int = 0, active_only: bool = True) -> list:
+        if snapshot_idx not in self._pocket_list:
+            self._pocket_list[snapshot_idx] = self.pocket_list(snapshot_idx, active_only)
 
-        pocket_list = []
-        # i = 1
-        for pocket in self.receptor.pockets(snapshot_idx):
-            if pocket.is_active or (not active_only):
-                # pocket._reordered_index = i
-                pocket_list.append(pocket)
-            else:
-                continue
-        pocket_list.sort(key=lambda p:p.get_space(),reverse=True)
-        i = 1
-        for pocket in pocket_list:
-            pocket._reordered_index = i
-            i += 1
-
-        for p in pocket_list:
-            yield p
+        return self._pocket_list[snapshot_idx]
 
     def alphas(self, snapshot_idx=0):
         for pocket in self.receptor.pockets(snapshot_idx):
@@ -144,13 +133,25 @@ class AS_Universe(object):
     def pocket(self, pocket_idx, snapshot_idx=0):
         return self.receptor.pocket(pocket_idx, snapshot_idx)
 
-    # def cluster(self, snapshot_idx: int = 0) -> object:
-    #     """
-    #     return list of clusters
-    #     :param snapshot_idx: int
-    #     :return: object, AS_Cluster
-    #     """
-    #     return self.receptor._clusters[snapshot_idx]
+    def pocket_list(self, snapshot_idx: int = 0, active_only: bool = True):
+        pocket_list = []
+        # i = 1
+        for pocket in self.receptor.pockets(snapshot_idx):
+            if pocket.is_active or (not active_only):
+                # pocket._reordered_index = i
+                pocket_list.append(pocket)
+            else:
+                continue
+        pocket_list.sort(key=lambda p: p.get_space(), reverse=True)
+        i = 1
+        for pocket in pocket_list:
+            pocket._reordered_index = i
+            i += 1
+
+        return pocket_list
+
+
+
 
     def guess_receptor_binder(self, traj, by_order: bool = True) -> bool:
         """
@@ -203,26 +204,27 @@ class AS_Universe(object):
         else:
             self.binder = AS_Structure(structure, structure_type=1, parent=self)
 
-    def set_receptor(self, structure: object, append=False, keepH=False):
+    def set_receptor(self, structure, append=False, keepH=False):
         """
         set receptor (protein) in session
-        :param structure: object, trajectory
+        :param structure: trajectory
         :param append: Bool, if the new binder should be appended to the preview one, default overwritten.
         :return:
         """
+
         if structure is None:
             self.receptor = None
             return
+
+        if not keepH:
+            non_h_idx = structure.topology.select_atom_indices(selection='heavy')
+            structure.atom_slice(non_h_idx, inplace=True)
 
         if append and (self.receptor is not None):
             x = self.receptor.trajectory + structure
             self.receptor.trajectory = x
         else:
             self.receptor = AS_Structure(structure, structure_type=0, parent=self)
-
-        if not keepH:
-            non_h_idx = self.receptor.traj.topology.select_atom_indices(selection='heavy')
-            self.receptor.traj.atom_slice(non_h_idx, inplace=True)
 
     def run_alphaspace(self):
         self.run_alphaspace_mp()
@@ -284,36 +286,84 @@ class AS_Universe(object):
 
         return np.where((sasa_diff > 0).any(axis=0))[0]
 
-    def _gen_communities(self):
+    def _gen_communities_legacy(self):
+        import networkx
         self.communities = {}
         for snapshot_idx in range(self.n_frames):
-            pockets = list(self.pockets(snapshot_idx))
             pocket_graph = networkx.Graph()
-            pocket_graph.add_nodes_from(pockets)
+            pocket_graph.add_nodes_from(self.pockets(snapshot_idx, active_only=False))
 
-            def connectPockets(p1, p2):
-                if len(np.intersect1d(p1.lining_atoms_idx, p2.lining_atoms_idx)) > 0:  # in contact
-                    # print('contact')
+            # def connectPockets(p1, p2):
+            #     pocket_vector1 = p1.lining_atoms_centroid - p1.centroid
+            #     pocket_vector2 = p2.lining_atoms_centroid - p2.centroid
+            #     if getCosAngleBetween(pocket_vector1, pocket_vector2) > 0:  # pocket vector facing inwards
+            #         pocket_graph.add_edge(p1, p2)
+            #         return True
+            #     return False
+
+            contact_pair = np.array(np.where(combination_intersection_count(
+                [pocket.lining_atoms_idx for pocket in self.pockets(snapshot_idx, active_only=False)],
+                self.receptor.n_atoms) > 0)).transpose()
+
+            for pi, pj in contact_pair:
+                p1 = self.pockets(snapshot_idx, active_only=False)[pi]
+                p2 = self.pockets(snapshot_idx, active_only=False)[pj]
+                if {p1.core_aux_minor, p2.core_aux_minor} in {{'core', 'aux'}, {'core'}, {'core', 'minor'},
+                                                              {'aux', 'minor'}}:
                     pocket_vector1 = p1.lining_atoms_centroid - p1.centroid
                     pocket_vector2 = p2.lining_atoms_centroid - p2.centroid
                     if getCosAngleBetween(pocket_vector1, pocket_vector2) > 0:  # pocket vector facing inwards
                         pocket_graph.add_edge(p1, p2)
-                        return True
-                return False
 
-            for pocket1, pocket2 in combinations(pockets, 2):
-                if {pocket2.core_aux_minor, pocket1.core_aux_minor} in ({'core', 'aux'}, {'core'}):
-                    connectPockets(pocket1, pocket2)
             core_aux_communities = [c for c in (networkx.connected_components(pocket_graph)) if
                                     len(c) > 1 and any([p.core_aux_minor == 'core' for p in c])]
-            for pocket1, pocket2 in combinations(pockets, 2):
-                if {pocket2.core_aux_minor, pocket1.core_aux_minor} in ({'core', 'minor'}, {'aux', 'minor'}):
-                    connectPockets(pocket1, pocket2)
+
             communities = []
             for community in core_aux_communities:
                 linked_minor = set(chain.from_iterable([pocket_graph.neighbors(p) for p in community]))
                 communities.append(linked_minor.union(community))
             self.communities[snapshot_idx] = communities
+
+    def _gen_communities(self):
+
+        # Todo convert to function and use multi core
+        import networkx
+        self.communities = {}
+        self._pocket_network = {}
+        for snapshot_idx in self.snapshots_indices:
+            print(snapshot_idx)
+            pocket_graph = networkx.Graph()
+            pocket_graph.add_nodes_from(self.pockets(snapshot_idx, active_only=False))
+
+            contact_pair = np.array(np.where(combination_intersection_count(
+                [pocket.lining_atoms_idx for pocket in self.pockets(snapshot_idx, active_only=False)],
+                self.receptor.n_atoms) > 0)).transpose()
+
+            for pi, pj in contact_pair:
+                p1 = self.pockets(snapshot_idx, active_only=False)[pi]
+                p2 = self.pockets(snapshot_idx, active_only=False)[pj]
+                if "core" in {p1.core_aux_minor, p2.core_aux_minor}:
+                    pocket_vector1 = p1.lining_atoms_centroid - p1.centroid
+                    pocket_vector2 = p2.lining_atoms_centroid - p2.centroid
+                    if getCosAngleBetween(pocket_vector1, pocket_vector2) > 0:  # pocket vector facing inwards
+                        pocket_graph.add_edge(p1, p2)
+
+            core_aux_communities = [c for c in (networkx.connected_components(pocket_graph)) if
+                                    len(c) > 1 and any([p.core_aux_minor == 'core' for p in c])]
+
+            communities = []
+            for community in core_aux_communities:
+                linked_minor = set(chain.from_iterable([pocket_graph.neighbors(p) for p in community]))
+                communities.append(linked_minor.union(community))
+            self.communities[snapshot_idx] = communities
+            self._pocket_network[snapshot_idx] = pocket_graph
+
+    @property
+    def snapshots_indices(self):
+        return iter(range(self.n_frames))
+
+
+
 
     def screen_pockets(self):
         assert len(list(self.receptor._data.snapshots_idx)) == self.n_frames
@@ -339,6 +389,73 @@ class AS_Universe(object):
                 for pocket in self.pockets(snapshot_idx):
                     if len(pocket.alpha_idx) <= self.config.min_num_alph:
                         pocket.deactivate()
+
+    def _gen_d_pockets(self):
+        """
+        Generate d-pocket dictionary of list of indices
+        :return: dict of d_pockets
+        """
+        if self._data is None:
+            raise Exception('No Data available ')
+
+        pockets_all = []
+        for snapshot_idx in self.snapshots_indices:
+            pockets_all.extend(self.pockets(snapshot_idx))
+
+        lining_atom_indices = [pocket.lining_atoms_idx_redu for pocket in pockets_all]
+
+        # calculate jaccard_diff_matrix
+
+        intersection_matrix = combination_intersection_count(lining_atom_indices, self.receptor.n_atoms)
+
+        union_matrix = combination_union_count(lining_atom_indices, self.receptor.n_atoms)
+
+        jaccard_diff_matrix = 1 - intersection_matrix / union_matrix
+
+        pocket_d_idx = list(fcluster(Z=linkage(squareform(jaccard_diff_matrix), method='average'),
+                                     t=self.config.dpocket_cluster_cutoff,
+                                     criterion='distance') - 1)
+
+        d_pockets = {i: [] for i in range(max(pocket_d_idx) + 1)}
+
+        for pocket_idx, dp_idx in zip(pockets_all, pocket_d_idx):
+            d_pockets[dp_idx].append(pocket_idx)
+
+        d_pockets = dict(list(enumerate(sorted(d_pockets.values(), reverse=True, key=len))))
+
+        self._d_pockets = d_pockets
+
+        return d_pockets
+
+    def _gen_d_communities(self):
+        if not self._d_pockets:
+            self._gen_d_pockets()
+
+        if not self._pocket_network:
+            self._gen_communities()
+
+        core_d_pockets = {}
+        for i, pockets in self._d_pockets.items():
+            for pocket in pockets:
+                if pocket.core_aux_minor == "core":
+                    core_d_pockets[i] = pockets
+                    for p in pockets:
+                        p._is_core_d = True
+                    break
+
+        # mark all pockets connected to members of d-pocket
+        for snapshot_idx in self.snapshots_indices:
+            network = self._pocket_network[snapshot_idx]
+            for p in network.nodes():
+                if p._is_core_d:
+                    for cp in network[p]:
+                        cp._connected = True
+
+        for i, pockets in self._d_pockets.items():
+            if i not in core_d_pockets:
+                print(len([True for p in pockets if p._connected]))
+
+
 
     """
     Visualization methods

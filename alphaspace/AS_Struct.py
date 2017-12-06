@@ -274,41 +274,43 @@ class AS_Structure:
     #     for i in contact_pocket_index:
     #         yield AS_Cluster.pocket(i)
 
-    def _gen_d_pockets(self):
-        """
-        Generate d-pocket dictionary of list of indices
-        :return: dict of d_pockets
-        """
-        assert self._data is not None
-
-        pockets = []
-        lining_atoms = []
-        for i in range(self.n_frames):
-            for pocket in self.pockets(i):
-                pockets.append(pocket)
-                lining_atoms.append(pocket.lining_atoms)
-
-        lining_atom_diff_matrix = np.zeros((len(lining_atoms),len(lining_atoms)))
-
-        for i in range(len(lining_atoms)):
-            for j in range(i,len(lining_atoms)):
-                lining_atom_diff_matrix[i,j] = lining_atom_diff_matrix[j,i] = len(
-                        lining_atoms[i].symmetric_difference(lining_atoms[j])) / len(
-                    lining_atoms[i].union(lining_atoms[j]))
-
-        clustered_list = list(fcluster(Z=linkage(squareform(lining_atom_diff_matrix),
-                                                 method='complete'),
-                                       t=self.config.dpocket_cluster_cutoff,
-                                       criterion='distance'))
-
-        d_pockets_idx_dict = {}
-        for pocket,d_pocket_idx in zip(pockets,clustered_list):
-            snapshot_idx = pocket.cluster.alpha_snapshot_idx
-            pocket_idx = pocket.index
-            if d_pocket_idx not in d_pockets_idx_dict:
-                d_pockets_idx_dict[d_pocket_idx] = []
-            d_pockets_idx_dict[d_pocket_idx].append((snapshot_idx,pocket_idx))
-
-        for idx,item in d_pockets_idx_dict.items():
-            yield AS_D_Pocket(self,pocket_indices=item)
-
+    #
+    # def _gen_d_pockets(self):
+    #     """
+    #     Generate d-pocket dictionary of list of indices
+    #     :return: dict of d_pockets
+    #     """
+    #     assert self._data is not None
+    #
+    #
+    #
+    #     pockets = []
+    #     lining_atoms = []
+    #     for i in range(self.n_frames):
+    #         for pocket in self.pockets(i):
+    #             pockets.append(pocket)
+    #             lining_atoms.append(pocket.lining_atoms)
+    #
+    #     lining_atom_diff_matrix = np.zeros((len(lining_atoms),len(lining_atoms)))
+    #
+    #     for i in range(len(lining_atoms)):
+    #         for j in range(i,len(lining_atoms)):
+    #             lining_atom_diff_matrix[i,j] = lining_atom_diff_matrix[j,i] = len(
+    #                     lining_atoms[i].symmetric_difference(lining_atoms[j])) / len(
+    #                 lining_atoms[i].union(lining_atoms[j]))
+    #
+    #     clustered_list = list(fcluster(Z=linkage(squareform(lining_atom_diff_matrix),
+    #                                              method='complete'),
+    #                                    t=self.config.dpocket_cluster_cutoff,
+    #                                    criterion='distance'))
+    #
+    #     d_pockets_idx_dict = {}
+    #     for pocket,d_pocket_idx in zip(pockets,clustered_list):
+    #         snapshot_idx = pocket.cluster.alpha_snapshot_idx
+    #         pocket_idx = pocket.index
+    #         if d_pocket_idx not in d_pockets_idx_dict:
+    #             d_pockets_idx_dict[d_pocket_idx] = []
+    #         d_pockets_idx_dict[d_pocket_idx].append((snapshot_idx,pocket_idx))
+    #
+    #     for idx,item in d_pockets_idx_dict.items():
+    #         yield AS_D_Pocket(self,pocket_indices=item)

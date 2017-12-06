@@ -80,7 +80,7 @@ class AS_Data(np.ndarray):
         return self[np.array(idx), 10]
 
     def lining_atoms_idx(self, idx):
-        return self[np.array(idx, dtype=int), 5:9].astype(int)
+        return np.array(self[np.array(idx, dtype=int), 5:9], dtype=int)
 
     def is_active(self, idx):
         return self[np.array(idx), 11]
@@ -92,10 +92,10 @@ class AS_Data(np.ndarray):
         return self[np.array(idx), 13].astype(int)
 
     def snapshot_pockets_idx(self, snapshot_idx=0):
-        return self[self[:, 1] == snapshot_idx][:, 13].astype(int)
+        return np.array(self[self[:, 1] == snapshot_idx][:, 13], dtype=int)
 
     def snapshot_alpha_idx(self, snapshot_idx=0):
-        return self[self[:, 1] == snapshot_idx][:, 0].astype(int)
+        return np.array(self[self[:, 1] == snapshot_idx][:, 0], dtype=int)
 
     def radii(self, idx):
         return self[np.array(idx), 14]
@@ -213,8 +213,16 @@ class AS_Pocket:
         self.parent_structure = parent_structure
 
         self._contact_pockets = set()
-
+        self._lining_atoms_idx = None
         self._reordered_index = None
+
+        self._connected = False
+        self._is_core_d = False
+
+    @property
+    def snapshot_idx(self):
+        return self._snapshot_idx
+
 
     def set_contact(self, other):
         self._contact_pockets.add(other.index)
@@ -289,7 +297,13 @@ class AS_Pocket:
 
     @property
     def lining_atoms_idx(self):
-        return np.unique(self._data.lining_atoms_idx(self.alpha_idx))
+        if self._lining_atoms_idx is None:
+            self._lining_atoms_idx = np.unique(self._data.lining_atoms_idx(self.alpha_idx))
+        return self._lining_atoms_idx
+
+    @property
+    def lining_atoms_idx_redu(self):
+        return self._data.lining_atoms_idx(self.alpha_idx)
 
     @property
     def lining_atoms(self):

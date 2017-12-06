@@ -4,7 +4,7 @@ from mdtraj.geometry.sasa import _ATOMIC_RADII
 from scipy.cluster.hierarchy import linkage, fcluster
 from scipy.spatial import Voronoi, Delaunay
 from scipy.spatial.distance import cdist
-
+from itertools import combinations_with_replacement
 
 def getTetrahedronVolume(coord_list):
     """
@@ -72,6 +72,85 @@ def getCosAngleBetween(v1, v2):
     return np.clip(np.dot(v1_u, v2_u), -1.0, 1.0)
 
 
+def combination_intersection_count(indices_list: list, total_index: int) -> np.ndarray:
+    """
+    Given a list of indices list, such as [ [1,2,3], [4,5,6] , [2,3,4]]
+    This function calculates the intersection count between each pair in the list
+    if indices_list is a N list of M indices, the return array D is a N * N ndarray, where Dij is the intersection count
+    between i and j.
+    Note this D matrix is symmetrical.
+    The total_index is maximum of all indices in the indices list.
+    :param indices_list:
+    :param total_index:
+    :return:
+    """
+
+    item_binary_vectors = np.empty((len(indices_list), total_index))
+    item_binary_vectors.fill(0)
+    for pocket_idx, lining_atoms_idx in enumerate(indices_list):
+        item_binary_vectors[pocket_idx].put(lining_atoms_idx, 1)
+
+    # Shame!!!!!!!!!
+    # abab = np.tile(item_binary_vectors,
+    #                [item_binary_vectors.shape[0], 1]
+    #                )
+    # aabb = np.tile(item_binary_vectors,
+    #                item_binary_vectors.shape[0]
+    #                ).reshape(
+    #     (item_binary_vectors.shape[0] ** 2, item_binary_vectors.shape[1])
+    # )
+    # overlap_matrix = (abab * aabb).sum(axis=1).reshape(
+    #     (item_binary_vectors.shape[0], item_binary_vectors.shape[0]))
+
+    overlap_matrix = np.empty((item_binary_vectors.shape[0], item_binary_vectors.shape[0]))
+    overlap_matrix.fill(0)
+    for i, j in combinations_with_replacement(range(len(indices_list)), 2):
+        overlap = np.dot(item_binary_vectors[i], item_binary_vectors[j])
+
+        overlap_matrix[i][j] = overlap_matrix[j][i] = overlap
+
+    return overlap_matrix
+
+
+def combination_union_count(indices_list, total_index: int) -> np.ndarray:
+    """
+    Given a list of indices list, such as [ [1,2,3], [4,5,6] , [2,3,4]]
+    This function calculates the union count between each pair in the list, which is len(set(i,j))
+    if indices_list is a N list of M indices, the return array D is a N * N ndarray, where Dij is the uniond count
+    between i and j.
+    Note this D matrix is symmetrical.
+    The total_index is maximum of all indices in the indices list.
+    :param indices_list:
+    :param total_index:
+    :return:
+    """
+
+    indices_list = np.array(indices_list)
+    item_binary_vectors = np.empty((len(indices_list), total_index))
+    item_binary_vectors.fill(0)
+    for pocket_idx, lining_atoms_idx in enumerate(indices_list):
+        item_binary_vectors[pocket_idx].put(lining_atoms_idx, 1)
+
+    #
+    # abab = np.tile(item_binary_vectors,
+    #                [item_binary_vectors.shape[0], 1]
+    #                )
+    # aabb = np.tile(item_binary_vectors,
+    #                item_binary_vectors.shape[0]
+    #                ).reshape(
+    #     (item_binary_vectors.shape[0] ** 2, item_binary_vectors.shape[1])
+    # )
+    # intersection_matrix = ((abab + aabb) > 0).sum(axis=1).reshape(
+    #     (item_binary_vectors.shape[0], item_binary_vectors.shape[0]))
+
+    intersection_matrix = np.empty((item_binary_vectors.shape[0], item_binary_vectors.shape[0]))
+    intersection_matrix.fill(0)
+    for i, j in combinations_with_replacement(range(len(indices_list)), 2):
+        intersection = np.count_nonzero(item_binary_vectors[i] + item_binary_vectors[j])
+        intersection_matrix[i][j] = intersection_matrix[j][i] = intersection
+
+    return intersection_matrix
+
 
 def getSASA(protein_snapshot, cover_atom_coords=None):
     """
@@ -123,6 +202,7 @@ def screenContact(data, binder_xyz, threshold):
         contact_matrix = getContactMatrix(alpha_xyz, binder_xyz[snapshot_idx], threshold)
         data[alpha_idx, 12] = contact_matrix.any(axis=1).astype(int)
 
+
 def _tessellation(arglist):
     assert len(arglist) == 5
 
@@ -136,20 +216,20 @@ def _tessellation(arglist):
     # generate alpha atom coordinates
     raw_alpha_xyz = Voronoi(xyz).vertices
     # Calculate alpha sphere radii
-    raw_alpha_sphere_radii = np.linalg.norm(raw_alpha_lining_xyz - raw_alpha_xyz,axis=1)
+    raw_alpha_sphere_radii = np.linalg.norm(raw_alpha_lining_xyz - raw_alpha_xyz, axis=1)
 
     # Filter the data based on radii cutoff
     filtered_alpha_idx = np.where(np.logical_and(config.min_r / 10.0 <= raw_alpha_sphere_radii,
                                                  raw_alpha_sphere_radii <= config.max_r / 10.0))[0]
 
-    filtered_alpha_radii = np.take(raw_alpha_sphere_radii,filtered_alpha_idx)
+    filtered_alpha_radii = np.take(raw_alpha_sphere_radii, filtered_alpha_idx)
 
-    alpha_lining = np.take(raw_alpha_lining_idx,filtered_alpha_idx,axis=0)
+    alpha_lining = np.take(raw_alpha_lining_idx, filtered_alpha_idx, axis=0)
 
-    filtered_alpha_xyz = np.take(raw_alpha_xyz,filtered_alpha_idx,axis=0)
+    filtered_alpha_xyz = np.take(raw_alpha_xyz, filtered_alpha_idx, axis=0)
 
     # cluster the remaining vertices to assign index of belonging pockets
-    zmat = linkage(filtered_alpha_xyz,method='average')
+    zmat = linkage(filtered_alpha_xyz, method='average')
 
     alpha_pocket_index = fcluster(zmat, config.clust_dist / 10,
                                   criterion='distance') - 1  # because cluster index start from 1
@@ -242,7 +322,7 @@ def _tessellation(arglist):
                            np.expand_dims(min_idx, axis=1),  # 15        closest atom idx
                            np.expand_dims(mins, axis=1),  # 16        closest atom dist
                            np.expand_dims(alpha_lining_asa, axis=1)  # 17 total lining atom asa
-                           ),axis=-1)
+                           ), axis=-1)
     assert data.shape[1] == 18
 
     """

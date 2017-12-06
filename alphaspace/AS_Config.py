@@ -94,6 +94,8 @@ class AS_Config(object):
         self.contact_threshold = self.config.getfloat('parameters', 'contact_threshold')
         self.probe_radius = self.config.getfloat('parameters', 'probe_radius')
         self.n_sphere_points = self.config.getfloat('parameters', 'n_sphere_points')
+        self.dpocket_cluster_cutoff = self.config.getfloat('parameters', 'dpocket_cluster_cutoff')
+
 
     def write_config(self, path):
         self.config.set('options', 'output_dir', self.output_dir)
@@ -139,6 +141,8 @@ class AS_Config(object):
         self.config.set('parameters', 'contact_threshold', self.contact_threshold)
         self.config.set('parameters', 'probe_radius', self.probe_radius)
         self.config.set('parameters', 'n_sphere_points', self.n_sphere_points)
+        self.config.set('parameters', 'dpocket_cluster_cutoff', self.dpocket_cluster_cutoff)
+
 
         with open(path, 'w') as handle:
             self.config.write(handle)
