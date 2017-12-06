@@ -16,14 +16,13 @@ Key features:
 
 ## Dependencies
 ```python 3.6+
-
+numpy
+scipy
+cython
 jupyter notebook
-
-nglview>=1.0
-
-mdtraj 
-
-ipywidgets 7.0
+nglview==1.0
+mdtraj
+ipywidgets==7.0
 ```
 
 ## Installation
