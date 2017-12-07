@@ -6,6 +6,7 @@ Currently the use of this software is limited to group member of Yingkai Zhang's
 
 Based on the algorithm of original AlphaSpace published [here](http://pubs.acs.org/doi/abs/10.1021/acs.jcim.5b00103), the current 2.0+ version is rewritten, multiple new features are added for a more friendly user interface and performance boost. 
 
+The documentation can be found [here](https://lenhsherr.github.io/AlphaSpace/)
 Key features:
 1. Clear and pythonic object based API for manipulation of pockets, alpha atoms, and communities. 
 2. Integrated trajectory loading and interpretation from **mdtraj**.
