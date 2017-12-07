@@ -1,0 +1,245 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>alphaspace.AS_Config &#8212; AlphaSpace 2.0b documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2.0b',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for alphaspace.AS_Config</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">configparser</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="n">_COLOR_DICT</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">green</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5019607843137255</span><span class="p">,</span> <span class="mf">1.6718652606120004e-16</span><span class="p">],</span> <span class="n">yellow</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.9999999999999998</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+                   <span class="n">pink</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.7529411764705882</span><span class="p">,</span> <span class="mf">0.7960784313725489</span><span class="p">],</span> <span class="n">orange</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.6470588235294115</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
+                   <span class="n">blue</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span> <span class="n">purple</span><span class="o">=</span><span class="p">[</span><span class="mf">0.5019607843137255</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5019607843137254</span><span class="p">],</span>
+                   <span class="n">tan</span><span class="o">=</span><span class="p">[</span><span class="mf">0.8235294117647057</span><span class="p">,</span> <span class="mf">0.7058823529411764</span><span class="p">,</span> <span class="mf">0.5490196078431374</span><span class="p">],</span>
+                   <span class="n">olive</span><span class="o">=</span><span class="p">[</span><span class="mf">0.5019607843137255</span><span class="p">,</span> <span class="mf">0.5019607843137254</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span> <span class="n">lime</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">3.3306690738754696e-16</span><span class="p">],</span>
+                   <span class="n">gold</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.8431372549019605</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span> <span class="n">aqua</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.9999999999999998</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+                   <span class="n">rosybrown</span><span class="o">=</span><span class="p">[</span><span class="mf">0.7372549019607844</span><span class="p">,</span> <span class="mf">0.5607843137254902</span><span class="p">,</span> <span class="mf">0.5607843137254902</span><span class="p">],</span>
+                   <span class="n">coral</span><span class="o">=</span><span class="p">[</span><span class="mf">0.9999999999999999</span><span class="p">,</span> <span class="mf">0.49803921568627463</span><span class="p">,</span> <span class="mf">0.31372549019607854</span><span class="p">])</span>
+
+<span class="n">_COLOR_IDX</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;green&quot;</span><span class="p">,</span>
+              <span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;yellow&quot;</span><span class="p">,</span>
+              <span class="mi">2</span><span class="p">:</span> <span class="s2">&quot;pink&quot;</span><span class="p">,</span>
+              <span class="mi">3</span><span class="p">:</span> <span class="s2">&quot;orange&quot;</span><span class="p">,</span>
+              <span class="mi">4</span><span class="p">:</span> <span class="s2">&quot;blue&quot;</span><span class="p">,</span>
+              <span class="mi">5</span><span class="p">:</span> <span class="s2">&quot;purple&quot;</span><span class="p">,</span>
+              <span class="mi">6</span><span class="p">:</span> <span class="s2">&quot;tan&quot;</span><span class="p">,</span>
+              <span class="mi">7</span><span class="p">:</span> <span class="s2">&quot;olive&quot;</span><span class="p">,</span>
+              <span class="mi">8</span><span class="p">:</span> <span class="s2">&quot;lime&quot;</span><span class="p">,</span>
+              <span class="mi">9</span><span class="p">:</span> <span class="s2">&quot;gold&quot;</span><span class="p">,</span>
+              <span class="mi">10</span><span class="p">:</span> <span class="s2">&quot;aqua&quot;</span><span class="p">,</span>
+              <span class="mi">11</span><span class="p">:</span> <span class="s2">&quot;rosybrown&quot;</span><span class="p">,</span>
+              <span class="mi">12</span><span class="p">:</span> <span class="s2">&quot;coral&quot;</span><span class="p">}</span>
+
+<span class="n">_DEFAULT_CONFIG_FILE_PATH</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)),</span> <span class="s1">&#39;config.ini&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="AS_Config"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Config.AS_Config">[docs]</a><span class="k">class</span> <span class="nc">AS_Config</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">config_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">config_path</span> <span class="o">=</span> <span class="n">config_path</span> <span class="k">if</span> <span class="n">config_path</span> <span class="k">else</span> <span class="n">_DEFAULT_CONFIG_FILE_PATH</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">load_config</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">config_path</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span>
+
+<div class="viewcode-block" id="AS_Config.color"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Config.AS_Config.color">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">color</span><span class="p">(</span><span class="n">idx</span><span class="p">):</span>
+        <span class="n">rounded_idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">_COLOR_IDX</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_COLOR_DICT</span><span class="p">[</span><span class="n">_COLOR_IDX</span><span class="p">[</span><span class="n">rounded_idx</span><span class="p">]]</span></div>
+
+<div class="viewcode-block" id="AS_Config.color_name"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Config.AS_Config.color_name">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">color_name</span><span class="p">(</span><span class="n">idx</span><span class="p">):</span>
+        <span class="n">rounded_idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">_COLOR_IDX</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_COLOR_IDX</span><span class="p">[</span><span class="n">rounded_idx</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="AS_Config.default"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Config.AS_Config.default">[docs]</a>    <span class="k">def</span> <span class="nf">default</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="AS_Config.load_config"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Config.AS_Config.load_config">[docs]</a>    <span class="k">def</span> <span class="nf">load_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config_path</span> <span class="o">=</span> <span class="n">path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_path</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;output_dir&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_to_screen</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;output_to_screen&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lig_resid_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;lig_resid_file&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">do_reverse</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;do_reverse&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">screen_by_face</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;screen_by_face&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">screen_face_perc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;screen_face_perc&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">screen_by_lig_cntct</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;screen_by_lig_cntct&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expand_around_cntct</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;expand_around_cntct&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">screen_by_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;screen_by_space&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;min_space&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">screen_by_perc_rank</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;screen_by_perc_rank&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_perc_rank</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;min_perc_rank&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">screen_by_res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;screen_by_res&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">res_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;res_file&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pocket_communities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;pocket_communities&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">contact_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;contact_space&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">beta_cluster</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;beta_cluster&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_beta_vol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;get_beta_vol&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;min_space&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">screen_by_perc_rank</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;screen_by_perc_rank&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_perc_rank</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;min_perc_rank&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_asa</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;use_asa&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">screen_out_subsurf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;screen_out_subsurf&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_desolv_perc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;max_desolv_perc&#39;</span><span class="p">)</span>
+
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;min_r&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;max_r&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clust_dist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;clust_dist&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_num_alph</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getint</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;min_num_alph&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hit_dist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;hit_dist&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">core_cutoff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;core_cutoff&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">aux_cutoff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;aux_cutoff&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tight_communities_cutoff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;tight_communities_cutoff&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">beta_clust_cutoff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;beta_clust_cutoff&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">beta_class_cutoff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;beta_class_cutoff&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">beta_high_cutoff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;beta_high_cutoff&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">beta_mid_cutoff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;beta_mid_cutoff&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lig_clust_dist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;lig_clust_dist&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">contact_threshold</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;contact_threshold&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">probe_radius</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;probe_radius&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_sphere_points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;n_sphere_points&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dpocket_cluster_cutoff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">getfloat</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;dpocket_cluster_cutoff&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AS_Config.write_config"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Config.AS_Config.write_config">[docs]</a>    <span class="k">def</span> <span class="nf">write_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;output_dir&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dir</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;output_to_screen&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_to_screen</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;lig_resid_file&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lig_resid_file</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;do_reverse&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_reverse</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;screen_by_face&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">screen_by_face</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;screen_face_perc&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">screen_face_perc</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;screen_by_lig_cntct&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">screen_by_lig_cntct</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;expand_around_cntct&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">expand_around_cntct</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;screen_by_space&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">screen_by_space</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;min_space&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_space</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;screen_by_perc_rank&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">screen_by_perc_rank</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;min_perc_rank&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_perc_rank</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;screen_by_res&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">screen_by_res</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;res_file&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">res_file</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;pocket_communities&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pocket_communities</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;contact_space&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">contact_space</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;beta_cluster&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta_cluster</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;get_beta_vol&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_beta_vol</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;min_space&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_space</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;screen_by_perc_rank&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">screen_by_perc_rank</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;min_perc_rank&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_perc_rank</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;use_asa&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_asa</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;screen_out_subsurf&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">screen_out_subsurf</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;options&#39;</span><span class="p">,</span> <span class="s1">&#39;max_desolv_perc&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_desolv_perc</span><span class="p">)</span>
+
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;min_r&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_r</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;max_r&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_r</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;clust_dist&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">clust_dist</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;min_num_alph&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_num_alph</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;hit_dist&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hit_dist</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;core_cutoff&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">core_cutoff</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;aux_cutoff&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">aux_cutoff</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;tight_communities_cutoff&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tight_communities_cutoff</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;beta_clust_cutoff&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta_clust_cutoff</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;beta_class_cutoff&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta_class_cutoff</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;beta_high_cutoff&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta_high_cutoff</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;beta_mid_cutoff&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta_mid_cutoff</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;lig_clust_dist&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lig_clust_dist</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;contact_threshold&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">contact_threshold</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;probe_radius&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">probe_radius</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;n_sphere_points&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_sphere_points</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;dpocket_cluster_cutoff&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dpocket_cluster_cutoff</span><span class="p">)</span>
+
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">handle</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">handle</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">AlphaSpace</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Haotian Li.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
