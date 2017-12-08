@@ -1,8 +1,8 @@
 numpy
 scipy
-cython==0.27.3
+cython
 jupyter
-nglview>=1.0
+nglview
 mdtraj
-ipywidgets>=7.0
+ipywidgets
 networkx
