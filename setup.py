@@ -29,7 +29,7 @@ setup(name='alphaspace',
           'jupyter',
           'nglview==1.0',
           'mdtraj',
-          'ipywidgets==7.0',
+          'ipywidgets==7.0.5',
           'networkx',
 
       },
