@@ -6,6 +6,7 @@ from scipy.spatial import Voronoi, Delaunay
 from scipy.spatial.distance import cdist
 from itertools import combinations_with_replacement
 
+
 def getTetrahedronVolume(coord_list):
     """
     generate the volume
@@ -203,6 +204,7 @@ def screenContact(data, binder_xyz, threshold):
         data[alpha_idx, 12] = contact_matrix.any(axis=1).astype(int)
 
 
+# noinspection PyUnresolvedReferences
 def _tessellation(arglist):
     assert len(arglist) == 5
 
@@ -309,8 +311,8 @@ def _tessellation(arglist):
     """if use ligand contact"""
     is_active = is_contact if config.screen_by_lig_cntct else np.zeros_like(alpha_pocket_index)
 
-    data = np.concatenate((np.zeros((len(alpha_pocket_index), 1)),  # 0         idx
-                           np.full((len(alpha_pocket_index), 1), snapshot_idx),  # 1         snapshot_idx
+    data = np.concatenate((np.zeros((alpha_pocket_index.shape[0], 1)),  # 0         idx
+                           np.full((alpha_pocket_index.shape[0], 1), snapshot_idx),  # 1         snapshot_idx
                            filtered_alpha_xyz,  # 2 3 4     x y z
                            alpha_lining,  # 5 6 7 8   lining_atom_idx_1 - 4
                            np.expand_dims(_polar_space, axis=1),  # 9         polar_space 0
@@ -347,3 +349,36 @@ def _tessellation(arglist):
     """
     print('{} snapshot processed'.format(snapshot_idx))
     return data
+
+
+def extractResidue(traj, residue_number=None, residue_name=None, clip=True):
+    """
+    This function is used to extract a residue from a trajectory, given a residue number or the residue name.
+
+    :param traj: mdtraj trajectory object, will be modified
+    :param residue_number: int, residue number
+    :param residue_name: str
+    :param clip: bool, default True, setting if you want the extracted residue to be clipped from the trajectory
+    :return:
+    """
+    top = traj.top
+    residues = []
+    if residue_number is None and residue_name is not None:
+        residues = [residue for residue in top.residues if residue.name == residue_name]
+        if not residues:
+            raise ValueError("No Residue named {} found in the trajectory".format(residue_name))
+
+    elif residue_number is not None and residue_number is None:
+        residues = [residue for residue in top.residues if residue.index == residue_number]
+        if not residues:
+            raise ValueError("No Residue named {} found in the trajectory".format(residue_name))
+
+    else:
+        raise ValueError("Must specify either residue_name or residue_number")
+
+    extracted_atom_idx = [atom.index for residue in residues for atom in residue]
+    kept_atom_idx = [atom.index for atom in top.atoms if atom.index not in set(extracted_atom_idx)]
+    extracted_traj = traj.atom_slice(extracted_atom_idx)
+    if clip:
+        traj.atom_slice(kept_atom_idx, inplace=True)
+    return extracted_traj
