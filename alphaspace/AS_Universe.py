@@ -204,7 +204,7 @@ class AS_Universe(object):
         else:
             self.binder = AS_Structure(structure, structure_type=1, parent=self)
 
-    def set_receptor(self, structure, append=False, keepH=False):
+    def set_receptor(self, structure, append=False, keepH=True):
         """
         set receptor (protein) in session
         :param structure: trajectory

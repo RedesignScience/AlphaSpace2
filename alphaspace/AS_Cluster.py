@@ -323,7 +323,7 @@ class AS_Pocket:
         return np.unique([atom.residue.index for atom in self.lining_atoms])
 
     @property
-    def lining_residues(self) -> np.ndarray:
+    def lining_residues(self):
         residue_idx = self.lining_residues_idx
         for idx in residue_idx:
             yield self.parent_structure.top.residue(idx)
