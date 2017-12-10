@@ -1,8 +1,15 @@
-import numpy as np
-from scipy.cluster.hierarchy import linkage, fcluster
-import networkx
+"""
+This file contains the container classes for cluster based objects.
+
+AS_Data: A numpy.ndarray inheritance that stores and enumerates data
+AS_Pocket: A mask container for pocket information, gets data from AS_Data
+AS_AlphaAtom: A mast container for alpha atom, gets data from AS_Data
+AS_BetaATOM: same as alpha atom
+"""
 import math
 
+import numpy as np
+from scipy.cluster.hierarchy import linkage, fcluster
 
 ASDATA_idx = 0
 ASDATA_snapshot_idx = 1
@@ -27,7 +34,6 @@ ASDATA_total_lining_atom_asa = 17
 class AS_Data(np.ndarray):
     """
     Container object inherited from numpy array object, you can access information directly here
-
     Column, Content,   default value
     0       idx
     1       snapshot_idx
@@ -49,19 +55,34 @@ class AS_Data(np.ndarray):
     17      total lining atom asa
     """
 
+    # noinspection PyArgumentList
     def __new__(cls, array_data, parent_structure=None):
         obj = super(AS_Data, cls).__new__(cls, buffer=array_data, shape=array_data.shape)
         obj.parent_structure = parent_structure
         return obj
 
     def idx(self, idx):
+        """
+        Get the absolute index of an item
+        :param idx: int
+        :return: int
+        """
         return self[np.array(idx), 0]
 
-    def alpha_snapshot_idx(self, idx):
+    def snapshot_idx(self, idx):
+        """
+        Get the snapshot_index of an row
+        :param idx: int
+        :return: int
+        """
         return self[np.array(idx), 1]
 
     @property
     def snapshots_idx(self):
+        """
+        Get all the snapshots in this data
+        :return: np.ndarray
+        """
         return np.sort(np.unique(self[:, 1])).astype(int)
 
     def snapshot(self, snapshot_idx):
@@ -200,6 +221,8 @@ class AS_AlphaAtom:
     def closest_atom_dist(self):
         return self._data.get_closest_atom_dist(self._idx)
 
+
+# noinspection PyTypeChecker
 class AS_Pocket:
     """
     This is the pocket container for the topological information of a pocket

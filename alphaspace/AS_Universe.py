@@ -1,13 +1,14 @@
+from itertools import chain
+
 import numpy as np
-import mdtraj
 from scipy.cluster.hierarchy import linkage, fcluster
 from scipy.spatial.distance import squareform
+import mdtraj
 
-from .AS_Cluster import AS_D_Pocket, AS_Pocket
+from .AS_Cluster import AS_D_Pocket
 from .AS_Config import AS_Config
 from .AS_Funct import getCosAngleBetween, combination_intersection_count, combination_union_count
 from .AS_Struct import AS_Structure
-from itertools import combinations, chain
 
 
 # noinspection PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit
@@ -265,11 +266,13 @@ class AS_Universe(object):
 
         self.receptor._combine_data(data_list)
 
+
     def _get_face_atoms(self):
+
         """
         Calculate the snapshot interface atom.
         The interface atom is defined as whose ASA is reduced with introduction of ligand.
-        :return: numpy.array
+        :return: ndarray num_snapshots * num_atom_receptor
         """
         receptor_snapshot = self.receptor.traj
 
@@ -279,12 +282,11 @@ class AS_Universe(object):
 
         complex_snapshot_sasa = mdtraj.shrake_rupley(complex_snapshot)
 
-        print(receptor_snapshot_sasa.shape)
-        print(complex_snapshot_sasa.shape)
-
         sasa_diff = receptor_snapshot_sasa - complex_snapshot_sasa[:, :self.receptor.n_atoms]
 
-        return np.where((sasa_diff > 0).any(axis=0))[0]
+        return sasa_diff > 0
+
+        # return np.where((sasa_diff > 0).any(axis=0))[0]
 
     def _gen_communities_legacy(self):
         import networkx

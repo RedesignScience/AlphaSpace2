@@ -4,7 +4,7 @@ from alphaspace import *
 import mdtraj
 import networkx
 from itertools import combinations, chain
-from AS_Funct import combination_intersection_count, combination_union_count
+from alphaspace.AS_Funct import combination_intersection_count, combination_union_count
 
 
 def main(r_path, b_path):
