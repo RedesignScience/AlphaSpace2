@@ -16,7 +16,7 @@ Key features:
 # Getting started
 
 ## Dependencies
-```python 3.6+
+```python 3.6
 numpy
 scipy
 cython
@@ -32,7 +32,9 @@ Navigate to the AlphaSpace folder, where you should see this README.md file
 
 Install by entering:
 ```
-pip install -e .
+pip install cython
+pip install numpy
+pip install .
 ```
 The dependencies should be automatically installed through pip.
 
