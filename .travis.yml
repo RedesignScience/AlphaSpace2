@@ -4,7 +4,8 @@ python:
   - "3.6"
 # command to install dependencies
 before_install:
-  - sudo pip install cython
+  - pip install cython
+  - pip install numpy
 install:
   - pip install -r requirements.txt
   - pip install .
