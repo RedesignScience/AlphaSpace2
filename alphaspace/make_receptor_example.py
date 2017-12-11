@@ -15,3 +15,5 @@ if __name__ == '__main__':
     box = OEBox(-30	, 60, 32, -40, 40, 20)
     receptor = OEGraphMol()
     OEMakeReceptor(receptor, proteinStructure, box)
+
+    print(OEReceptorGetInnerContourLevel(receptor))

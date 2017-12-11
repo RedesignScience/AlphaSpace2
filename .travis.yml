@@ -1,3 +1,13 @@
+sudo: false
 language: python
+python:
+  - "3.6"
+# command to install dependencies
 before_install:
   - sudo pip install cython
+install:
+  - pip install -r requirements.txt
+  - pip install .
+# command to run tests
+script:
+  - python alphaspace/tests/test.py

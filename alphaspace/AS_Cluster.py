@@ -1,7 +1,7 @@
 """
 This file contains the container classes for cluster based objects.
 
-AS_Data: A numpy.ndarray inheritance that stores and enumerates data
+AS_Data: A numpy.ndarray inheritence that stores and enumerates data
 AS_Pocket: A mask container for pocket information, gets data from AS_Data
 AS_AlphaAtom: A mast container for alpha atom, gets data from AS_Data
 AS_BetaATOM: same as alpha atom
