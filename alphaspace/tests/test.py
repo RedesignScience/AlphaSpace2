@@ -28,8 +28,8 @@ def bcl2_test():
     """Loading 10 snapshots of bcl2 simulation from test/bcl2 folder."""
     universe = AS_Universe()
     for i in range(1, 1 + 10):
-        test_ligand_path = './bcl2/lig/{}.pdb'.format(i)
-        test_protein_path = './bcl2/prot/{}.pdb'.format(i)
+        test_ligand_path = 'alphaspace/tests/bcl2/lig/{}.pdb'.format(i)
+        test_protein_path = 'alphaspace/tests/bcl2/prot/{}.pdb'.format(i)
         ligand = mdtraj.load(test_ligand_path)
         protein = mdtraj.load(test_protein_path)
         universe.set_receptor(protein, append=True)
