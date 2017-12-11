@@ -1,3 +1,4 @@
+os: osx
 sudo: false
 language: python
 python:
