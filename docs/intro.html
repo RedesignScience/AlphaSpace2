@@ -1,199 +1,338 @@
+
+
 <!DOCTYPE html>
-<!--[if IE 8]>
-<html class="no-js lt-ie9" lang="en"> <![endif]-->
-<!--[if gt IE 8]><!-->
-<html class="no-js" lang="en"> <!--<![endif]-->
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
 <head>
-    <meta charset="utf-8">
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Introduction &mdash; AlphaSpace 2.0b documentation</title>
+  
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  
+  
 
-    <title>Introduction &mdash; AlphaSpace 2.0b documentation</title>
+  
 
+  
+  
+    
 
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css"/>
+  
 
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
 
-    <link rel="index" title="Index"
-          href="genindex.html"/>
-    <link rel="search" title="Search" href="search.html"/>
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
     <link rel="top" title="AlphaSpace 2.0b documentation" href="index.html"/>
-    <link rel="next" title="alphaspace" href="modules.html"/>
-    <link rel="prev" title="Welcome to AlphaSpace’s documentation!" href="index.html"/>
+        <link rel="next" title="alphaspace" href="modules.html"/>
+        <link rel="prev" title="Welcome to AlphaSpace’s documentation!" href="index.html"/> 
 
-
-    <script src="_static/js/modernizr.min.js"></script>
+  
+  <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
 <body class="wy-body-for-nav" role="document">
 
+   
+  <div class="wy-grid-for-nav">
 
-<div class="wy-grid-for-nav">
-
-
+    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
-        <div class="wy-side-scroll">
-            <div class="wy-side-nav-search">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
 
+          
+            <a href="index.html" class="icon icon-home"> AlphaSpace
+          
 
-                <a href="index.html" class="icon icon-home"> AlphaSpace
+          
+          </a>
 
+          
+            
+            
+              <div class="version">
+                2.0
+              </div>
+            
+          
 
-                </a>
-
-
-                <div class="version">
-                    2.0
-                </div>
-
-
-                <div role="search">
-                    <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-                        <input type="text" name="q" placeholder="Search docs"/>
-                        <input type="hidden" name="check_keywords" value="yes"/>
-                        <input type="hidden" name="area" value="default"/>
-                    </form>
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
 </div>
 
+          
+        </div>
 
-            </div>
-
-            <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-
-
-                <p class="caption"><span class="caption-text">Contents:</span></p>
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#what-is-alphaspace">What is AlphaSpace</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#what-is-this-alphaspace">What is this AlphaSpace?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#getting-started">Getting started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#requirements">Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#activate-ipython-widget-environment">Activate ipython widget environment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-first-alphaspace-session">Running first AlphaSpace session</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#using-jupyter-notebook">Using jupyter notebook</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#using-commandline-experimental">Using commandline <strong>experimental</strong></a></li>
 </ul>
 </li>
-    <li class="toctree-l1"><a class="reference internal" href="modules.html">alphaspace</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#changes-from-v1-0">Changes from V1.0</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">alphaspace</a></li>
 </ul>
 
-
-            </div>
+            
+          
         </div>
+      </div>
     </nav>
 
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
-
-        <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-
-            <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-            <a href="index.html">AlphaSpace</a>
-
-        </nav>
-
-
-        <div class="wy-nav-content">
-            <div class="rst-content">
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">AlphaSpace</a>
+        
+      </nav>
 
 
-                <div role="navigation" aria-label="breadcrumbs navigation">
-
-                    <ul class="wy-breadcrumbs">
-
-                        <li><a href="index.html">Docs</a> &raquo;</li>
-
-                        <li>Introduction</li>
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
 
 
-                        <li class="wy-breadcrumbs-aside">
 
 
-                            <a href="_sources/intro.rst.txt" rel="nofollow"> View page source</a>
 
 
-                        </li>
-
-                    </ul>
 
 
-                    <hr/>
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Introduction</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/intro.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
 </div>
-                <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
-                    <div itemprop="articleBody">
-
-                        <div class="section" id="introduction">
-                            <h1>Introduction<a class="headerlink" href="#introduction"
-                                               title="Permalink to this headline">¶</a></h1>
-                            <div class="section" id="what-is-alphaspace">
-                                <h2>What is AlphaSpace<a class="headerlink" href="#what-is-alphaspace"
-                                                         title="Permalink to this headline">¶</a></h2>
-                                <p>asdfasdfasdf</p>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
 </div>
-                        </div>
+<div class="section" id="what-is-this-alphaspace">
+<h1>What is this AlphaSpace?<a class="headerlink" href="#what-is-this-alphaspace" title="Permalink to this headline">¶</a></h1>
+<p>AlphaSpace is a surface topographical mapping tool. Currently the use of
+this software is limited to group member of Yingkai Zhang’s lab in NYU</p>
+<p>Based on the algorithm of original AlphaSpace published <a class="reference external" href="http://pubs.acs.org/doi/abs/10.1021/acs.jcim.5b00103">here</a>, the
+current 2.0+ version is rewritten, multiple new features are added for a
+more friendly user interface and performance boost.</p>
+<p>The documentation can be found at
+<a class="reference external" href="https://lenhsherr.github.io/AlphaSpace/">https://lenhsherr.github.io/AlphaSpace/</a> Key features: 1. Clear and
+pythonic object based API for manipulation of pockets, alpha atoms, and
+communities. 2. Integrated trajectory loading and interpretation from
+<strong>mdtraj</strong>. 3. Native support for multi processing for multi snapshot
+trajectories. 4. Integration of Jupyter notebook visualization of
+protein structure from nglview, and additional visualization of pockets
+and alpha atoms.</p>
+</div>
+<div class="section" id="getting-started">
+<h1>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal"><span class="pre">python</span> <span class="pre">3.6</span> <span class="pre">numpy</span> <span class="pre">scipy</span> <span class="pre">cython</span> <span class="pre">jupyter</span> <span class="pre">notebook</span> <span class="pre">nglview==1.0</span> <span class="pre">mdtraj</span> <span class="pre">ipywidgets==7.0</span></code></p>
+</div>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<p>Download the zip package and unzip it in you preferred installation
+location. Navigate to the AlphaSpace folder, where you should see this
+README.md file</p>
+<p>Due to a pip bug you need to install cython and numpy individualy by
+entering:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">cython</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">numpy</span>
+</pre></div>
+</div>
+<p>And then you can install the AlphaSpace by entering:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">.</span>
+</pre></div>
+</div>
+<p>The rest of the dependencies should be automatically installed through
+pip.</p>
+</div>
+<div class="section" id="activate-ipython-widget-environment">
+<h2>Activate ipython widget environment<a class="headerlink" href="#activate-ipython-widget-environment" title="Permalink to this headline">¶</a></h2>
+<p>To enable jupyter notebook visualization, you may need to enable ipython
+widget extension.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">jupyter</span><span class="o">-</span><span class="n">nbextension</span> <span class="n">enable</span> <span class="o">--</span><span class="n">py</span> <span class="o">--</span><span class="n">sys</span><span class="o">-</span><span class="n">prefix</span> <span class="n">widgetsnbextension</span>
+<span class="n">jupyter</span><span class="o">-</span><span class="n">nbextension</span> <span class="n">enable</span> <span class="o">--</span><span class="n">py</span> <span class="o">--</span><span class="n">sys</span><span class="o">-</span><span class="n">prefix</span> <span class="n">nglview</span>
+<span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">ipykernel</span> <span class="n">install</span> <span class="o">--</span><span class="n">sys</span><span class="o">-</span><span class="n">prefix</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="running-first-alphaspace-session">
+<h2>Running first AlphaSpace session<a class="headerlink" href="#running-first-alphaspace-session" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="using-jupyter-notebook">
+<h3>Using jupyter notebook<a class="headerlink" href="#using-jupyter-notebook" title="Permalink to this headline">¶</a></h3>
+<p>For interactive session in jupyter notebook, type in</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">jupyter</span> <span class="n">notebook</span>
+</pre></div>
+</div>
+<p>To start, you can open the <a class="reference external" href="examples/FCTM_tutorial.ipynb">FCTM_tutorial</a> in the <a class="reference external" href="examples">examples</a> folder.</p>
+</div>
+<div class="section" id="using-commandline-experimental">
+<h3>Using commandline <strong>experimental</strong><a class="headerlink" href="#using-commandline-experimental" title="Permalink to this headline">¶</a></h3>
+<div class="line-block">
+<div class="line">AlphaSpace also support command line usage, if you run AlphaSpace on a
+pdb file the mapping will be outputted in the working directory as PDB
+file and chimera .py file. You will be able to open them in chimera
+later. Alternatively, a binary pickled file can be saved, this allows
+for direct loading of results in python.</div>
+<div class="line">To run it in command line mode, do</div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span>python run_alphaspace.py -i [input_file] -o [output_file] -c [OPTIONAL:config_file_path] —-chimera/pickle
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="changes-from-v1-0">
+<h2>Changes from V1.0<a class="headerlink" href="#changes-from-v1-0" title="Permalink to this headline">¶</a></h2>
+<div class="line-block">
+<div class="line">[STRIKEOUT:1. Pocket community definition has been adjusted to be user
+defined, or based on percentage of the whole surface.] 2. Pocket score
+are now calculated based on polar and non-polar lining atom SASA
+ratio, instead of direct number of atoms ratio.</div>
+<div class="line">## Bugs and issue Known bugs: SASA calculation may occasionally fail
+due to internal bug in Shrake algorithms.</div>
+</div>
+<p>For any feature request or</p>
+</div>
+</div>
 
 
-                    </div>
-                    <div class="articleComments">
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="modules.html" class="btn btn-neutral float-right" title="alphaspace" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="Welcome to AlphaSpace’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
 
-                    </div>
-                </div>
-                <footer>
+  <hr/>
 
-                    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Haotian Li.
 
-                        <a href="modules.html" class="btn btn-neutral float-right" title="alphaspace" accesskey="n"
-                           rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
+</footer>
 
-                        <a href="index.html" class="btn btn-neutral" title="Welcome to AlphaSpace’s documentation!"
-                           accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-
-                    </div>
-
-
-                    <hr/>
-
-                    <div role="contentinfo">
-                        <p>
-                            &copy; Copyright 2017, Haotian Li.
-
-                        </p>
-                    </div>
-                    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a
-                        href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a
-                        href="https://readthedocs.org">Read the Docs</a>.
-
-                </footer>
-
-            </div>
         </div>
+      </div>
 
     </section>
 
-</div>
+  </div>
+  
 
 
-<script type="text/javascript">
-    var DOCUMENTATION_OPTIONS = {
-        URL_ROOT: './',
-        VERSION: '2.0b',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE: true,
-        SOURCELINK_SUFFIX: '.txt'
-    };
-</script>
-<script type="text/javascript" src="_static/jquery.js"></script>
-<script type="text/javascript" src="_static/underscore.js"></script>
-<script type="text/javascript" src="_static/doctools.js"></script>
-<script type="text/javascript"
-        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
 
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'2.0b',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
-<script type="text/javascript" src="_static/js/theme.js"></script>
+  
 
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
 
-<script type="text/javascript">
-    jQuery(function () {
-        SphinxRtdTheme.StickyNav.enable();
-    });
-</script>
-
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
 
 </body>
 </html>
