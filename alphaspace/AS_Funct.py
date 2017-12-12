@@ -346,12 +346,11 @@ def _tessellation(arglist):
 def extractResidue(traj, residue_number=None, residue_name=None, clip=True):
     """
     This function is used to extract a residue from a trajectory, given a residue number or the residue name.
-
     :param traj: mdtraj trajectory object, will be modified
     :param residue_number: int, residue number
     :param residue_name: str
     :param clip: bool, default True, setting if you want the extracted residue to be clipped from the trajectory
-    :return:
+    :return: mdtraj traj object, the extracted trajectory.
     """
     top = traj.top
     residues = []
