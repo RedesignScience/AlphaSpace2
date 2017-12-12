@@ -157,7 +157,18 @@
            <div itemprop="articleBody">
             
   <h1>Source code for alphaspace.AS_Struct</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">defaultdict</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">AS_Struct is the container for structures in the universe</span>
+
+<span class="sd">AS_Universe:</span>
+<span class="sd">            : receprot_struct</span>
+<span class="sd">            : binder_struct</span>
+<span class="sd">            : pockets and other virtual elements</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">defaultdict</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">scipy.cluster.hierarchy</span> <span class="k">import</span> <span class="n">linkage</span><span class="p">,</span> <span class="n">fcluster</span>
@@ -190,7 +201,22 @@
     <span class="k">def</span> <span class="nf">__bool__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="kc">True</span>
 
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> Structure with </span><span class="si">{}</span><span class="s2"> frames, </span><span class="si">{}</span><span class="s2"> residues, </span><span class="si">{}</span><span class="s2"> atoms&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="p">[</span><span class="s1">&#39;Receptor&#39;</span><span class="p">,</span><span class="s1">&#39;Binder&#39;</span><span class="p">,</span><span class="s1">&#39;Misc.&#39;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">structure_type</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">n_frames</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">n_residues</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">n_atoms</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns number of frames</span>
+<span class="sd">        :return: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_frames</span>
+
     <span class="k">def</span> <span class="nf">_tessellation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This is depreciated. Use AS_Funct._tessellation instead</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="c1"># Generate Raw Tessellation simplexes</span>
         <span class="n">raw_alpha_lining_idx</span> <span class="o">=</span> <span class="n">Delaunay</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trajectory</span><span class="o">.</span><span class="n">xyz</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">])</span><span class="o">.</span><span class="n">simplices</span>
         <span class="c1"># Take coordinates from xyz file</span>
@@ -271,88 +297,65 @@
         <span class="k">return</span> <span class="n">data</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">is_polar</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="nb">str</span><span class="p">(</span><span class="n">atom</span><span class="o">.</span><span class="n">element</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;nitrogen&#39;</span><span class="p">,</span><span class="s1">&#39;oxygen&#39;</span><span class="p">,</span><span class="s1">&#39;sulfur&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">_atoms</span><span class="p">])</span>
-
-
-    <span class="k">def</span> <span class="nf">_combine_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data_list</span><span class="p">):</span>
-
-        <span class="k">assert</span> <span class="nb">type</span><span class="p">(</span><span class="n">data_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
-
-        <span class="n">data_list</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">d</span><span class="p">:</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">data_list</span><span class="p">)</span>
-        <span class="n">data</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">AS_Data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
-
-
-    <span class="k">def</span> <span class="nf">_gen_pockets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_pockets_alpha_idx</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="p">{}</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_frames</span><span class="p">)}</span>
-        <span class="n">pocket_snapshot_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[:,[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">13</span><span class="p">]]</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_frames</span><span class="p">):</span>
-            <span class="n">reversed_dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
-            <span class="n">current_frame_pocket_idx</span> <span class="o">=</span> <span class="n">pocket_snapshot_dict</span><span class="p">[</span><span class="n">pocket_snapshot_dict</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">i</span><span class="p">]</span>
-            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span><span class="n">ss_idx</span><span class="p">,</span><span class="n">p_idx</span> <span class="ow">in</span> <span class="n">current_frame_pocket_idx</span><span class="p">:</span>
-                <span class="n">reversed_dict</span><span class="p">[</span><span class="n">p_idx</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_pockets_alpha_idx</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">reversed_dict</span>
-
-<div class="viewcode-block" id="AS_Structure.pockets"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Struct.AS_Structure.pockets">[docs]</a>    <span class="k">def</span> <span class="nf">pockets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">snapshot_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pockets_alpha_idx</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_gen_pockets</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">pocket_idx</span><span class="p">,</span> <span class="n">pocket_content</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pockets_alpha_idx</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">yield</span> <span class="n">AS_Pocket</span><span class="p">(</span><span class="n">pocket_content</span><span class="p">,</span><span class="n">snapshot_idx</span><span class="p">,</span><span class="n">pocket_idx</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="AS_Structure.pocket"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Struct.AS_Structure.pocket">[docs]</a>    <span class="k">def</span> <span class="nf">pocket</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pocket_idx</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pockets_alpha_idx</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_gen_pockets</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">snapshot_idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pockets_alpha_idx</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">pocket_idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pockets_alpha_idx</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]:</span>
-                <span class="k">return</span> <span class="n">AS_Pocket</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pockets_alpha_idx</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">][</span><span class="n">pocket_idx</span><span class="p">],</span> <span class="n">snapshot_idx</span><span class="p">,</span> <span class="n">pocket_idx</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">return</span> <span class="kc">None</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span></div>
-
-
-
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> Structure with </span><span class="si">{}</span><span class="s2"> frames, </span><span class="si">{}</span><span class="s2"> residues, </span><span class="si">{}</span><span class="s2"> atoms&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="p">[</span><span class="s1">&#39;Receptor&#39;</span><span class="p">,</span><span class="s1">&#39;Binder&#39;</span><span class="p">,</span><span class="s1">&#39;Misc.&#39;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">structure_type</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">n_frames</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">n_residues</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">n_atoms</span><span class="p">)</span>
-
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">top</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">trajectory</span><span class="o">.</span><span class="n">topology</span>
-
-    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">traj</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :return: trajectory of this structure</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">trajectory</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">n_atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get total number of atoms</span>
+<span class="sd">        :return: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">trajectory</span><span class="o">.</span><span class="n">n_atoms</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">n_frames</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the total number of frames.</span>
+<span class="sd">        Same as n_snapshots</span>
+<span class="sd">        :return: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">trajectory</span><span class="o">.</span><span class="n">n_frames</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">n_snapshots</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the total number of snapshots.</span>
+<span class="sd">        Same as n_frames</span>
+<span class="sd">        :return: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">trajectory</span><span class="o">.</span><span class="n">n_frames</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">n_residues</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the total number of residues in the structure</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">n_residues</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">topology</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :return: topology of this structure</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">trajectory</span><span class="o">.</span><span class="n">topology</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">top</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :return: topology of this structure</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">trajectory</span><span class="o">.</span><span class="n">topology</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">residues</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Residue iterator</span>
-<span class="sd">        :return: iter</span>
+<span class="sd">        :return: iter residue topology</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">residues</span>
 
@@ -362,16 +365,20 @@
 <span class="sd">        Atom iterator</span>
 <span class="sd">        :return: iter</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">top</span><span class="o">.</span><span class="n">_atoms</span><span class="p">:</span>
-            <span class="k">yield</span> <span class="n">atom</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">top</span><span class="o">.</span><span class="n">_atoms</span>
+        <span class="c1">#</span>
+        <span class="c1"># for atom in self.top._atoms:</span>
+        <span class="c1">#     yield atom</span>
+
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">is_polar</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Returns number of frames</span>
-<span class="sd">        :return: int</span>
+<span class="sd">        Returns an array of if the atom in the topology is a polar atom.</span>
+<span class="sd">        :return: np.ndarray N of n atoms in the structure</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_frames</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="nb">str</span><span class="p">(</span><span class="n">atom</span><span class="o">.</span><span class="n">element</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;nitrogen&#39;</span><span class="p">,</span><span class="s1">&#39;oxygen&#39;</span><span class="p">,</span><span class="s1">&#39;sulfur&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">_atoms</span><span class="p">])</span>
+
 
 <div class="viewcode-block" id="AS_Structure.residue"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Struct.AS_Structure.residue">[docs]</a>    <span class="k">def</span> <span class="nf">residue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">idx</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -403,6 +410,55 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">alpha_idx</span><span class="p">)</span></div>
 
+    <span class="k">def</span> <span class="nf">_combine_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data_list</span><span class="p">):</span>
+
+        <span class="k">assert</span> <span class="nb">type</span><span class="p">(</span><span class="n">data_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
+
+        <span class="n">data_list</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">d</span><span class="p">:</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">data_list</span><span class="p">)</span>
+        <span class="n">data</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">AS_Data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">_gen_pockets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pockets_alpha_idx</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="p">{}</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_frames</span><span class="p">)}</span>
+        <span class="n">pocket_snapshot_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[:,[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">13</span><span class="p">]]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_frames</span><span class="p">):</span>
+            <span class="n">reversed_dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+            <span class="n">current_frame_pocket_idx</span> <span class="o">=</span> <span class="n">pocket_snapshot_dict</span><span class="p">[</span><span class="n">pocket_snapshot_dict</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">i</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span><span class="n">ss_idx</span><span class="p">,</span><span class="n">p_idx</span> <span class="ow">in</span> <span class="n">current_frame_pocket_idx</span><span class="p">:</span>
+                <span class="n">reversed_dict</span><span class="p">[</span><span class="n">p_idx</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pockets_alpha_idx</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">reversed_dict</span>
+
+<div class="viewcode-block" id="AS_Structure.pockets"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Struct.AS_Structure.pockets">[docs]</a>    <span class="k">def</span> <span class="nf">pockets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">snapshot_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate an iterator of the pockets in the given snapshot</span>
+<span class="sd">        :param snapshot_idx: int</span>
+<span class="sd">        :return: iter, alphaspace.AS_Pocket</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pockets_alpha_idx</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_gen_pockets</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">pocket_idx</span><span class="p">,</span> <span class="n">pocket_content</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pockets_alpha_idx</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">yield</span> <span class="n">AS_Pocket</span><span class="p">(</span><span class="n">pocket_content</span><span class="p">,</span><span class="n">snapshot_idx</span><span class="p">,</span><span class="n">pocket_idx</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AS_Structure.pocket"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Struct.AS_Structure.pocket">[docs]</a>    <span class="k">def</span> <span class="nf">pocket</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pocket_idx</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a pocket by index and snapshot index</span>
+<span class="sd">        None if it does not exist</span>
+<span class="sd">        :param pocket_idx: int</span>
+<span class="sd">        :param snapshot_idx: int</span>
+<span class="sd">        :return: None or AS_Pocket</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pockets_alpha_idx</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_gen_pockets</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">snapshot_idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pockets_alpha_idx</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">pocket_idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pockets_alpha_idx</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="n">AS_Pocket</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pockets_alpha_idx</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">][</span><span class="n">pocket_idx</span><span class="p">],</span> <span class="n">snapshot_idx</span><span class="p">,</span> <span class="n">pocket_idx</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
 
 
 

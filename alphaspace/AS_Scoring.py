@@ -1,5 +1,6 @@
 """
-This is the scoring module of alphaspace, it aims to integrate multiple tool kits for easy analysis.
+This is the scoring module of AlphaSpace,
+it aims to integrate multiple tool kits for easy analysis.
 """
 
 from openeye.oechem import *

@@ -1,3 +1,14 @@
+"""
+AS_Struct is the container for structures in the universe
+
+AS_Universe:
+            : receprot_struct
+            : binder_struct
+            : pockets and other virtual elements
+"""
+
+
+
 from collections import defaultdict
 
 import numpy as np
@@ -31,7 +42,22 @@ class AS_Structure:
     def __bool__(self):
         return True
 
+    def __repr__(self):
+        return "{} Structure with {} frames, {} residues, {} atoms".format(
+                ['Receptor','Binder','Misc.'][self.structure_type],self.n_frames,self.n_residues,self.n_atoms)
+
+    def __len__(self):
+        """
+        Returns number of frames
+        :return: int
+        """
+        return self.n_frames
+
     def _tessellation(self, config, snapshot_idx: int) -> np.ndarray:
+        """
+        This is depreciated. Use AS_Funct._tessellation instead
+        """
+
         # Generate Raw Tessellation simplexes
         raw_alpha_lining_idx = Delaunay(self.trajectory.xyz[snapshot_idx]).simplices
         # Take coordinates from xyz file
@@ -112,88 +138,65 @@ class AS_Structure:
         return data
 
     @property
-    def is_polar(self):
-        return np.array([(str(atom.element) in ['nitrogen','oxygen','sulfur']) for atom in self.topology._atoms])
-
-
-    def _combine_data(self,data_list):
-
-        assert type(data_list[0]) == np.ndarray
-
-        data_list.sort(key = lambda d:d[0,1])
-        data = np.concatenate(data_list)
-        data[:, 0] = np.arange(0, len(data), dtype=int)
-        self._data = AS_Data(data, self)
-
-
-    def _gen_pockets(self):
-        assert self._data is not None
-        self._pockets_alpha_idx = {i: {} for i in range(self.n_frames)}
-        pocket_snapshot_dict = self._data[:,[0,1,13]]
-        for i in range(self.n_frames):
-            reversed_dict = defaultdict(list)
-            current_frame_pocket_idx = pocket_snapshot_dict[pocket_snapshot_dict[:,1] == i]
-            for idx,ss_idx,p_idx in current_frame_pocket_idx:
-                reversed_dict[p_idx].append(idx)
-            self._pockets_alpha_idx[i] = reversed_dict
-
-    def pockets(self,snapshot_idx=0):
-        if len(self._pockets_alpha_idx) == 0:
-            self._gen_pockets()
-        for pocket_idx, pocket_content in self._pockets_alpha_idx[snapshot_idx].items():
-            yield AS_Pocket(pocket_content,snapshot_idx,pocket_idx,self)
-
-    def pocket(self, pocket_idx, snapshot_idx=0):
-        if self._pockets_alpha_idx:
-            self._gen_pockets()
-        if snapshot_idx in self._pockets_alpha_idx:
-            if pocket_idx in self._pockets_alpha_idx[snapshot_idx]:
-                return AS_Pocket(self._pockets_alpha_idx[snapshot_idx][pocket_idx], snapshot_idx, pocket_idx, self)
-            else:
-                return None
-        else:
-            return None
-
-
-
-    def __repr__(self):
-        return "{} Structure with {} frames, {} residues, {} atoms".format(
-                ['Receptor','Binder','Misc.'][self.structure_type],self.n_frames,self.n_residues,self.n_atoms)
-
-
-    @property
-    def top(self):
-        return self.trajectory.topology
-
-    @property
     def traj(self):
+        """
+        :return: trajectory of this structure
+        """
         return self.trajectory
 
     @property
     def n_atoms(self):
+        """
+        Get total number of atoms
+        :return: int
+        """
         return self.trajectory.n_atoms
 
     @property
     def n_frames(self):
+        """
+        Get the total number of frames.
+        Same as n_snapshots
+        :return: int
+        """
         return self.trajectory.n_frames
 
     @property
     def n_snapshots(self):
+        """
+        Get the total number of snapshots.
+        Same as n_frames
+        :return: int
+        """
         return self.trajectory.n_frames
 
     @property
     def n_residues(self):
+        """
+        Get the total number of residues in the structure
+        :return:
+        """
         return self.topology.n_residues
 
     @property
     def topology(self):
+        """
+        :return: topology of this structure
+        """
+        return self.trajectory.topology
+
+    @property
+    def top(self):
+        """
+        :return: topology of this structure
+        """
         return self.trajectory.topology
 
     @property
     def residues(self):
         """
         Residue iterator
-        :return: iter
+        :return: iter residue topology
         """
         return self.topology.residues
 
@@ -203,16 +206,20 @@ class AS_Structure:
         Atom iterator
         :return: iter
         """
-        for atom in self.top._atoms:
-            yield atom
+        return self.top._atoms
+        #
+        # for atom in self.top._atoms:
+        #     yield atom
+
 
     @property
-    def __len__(self):
+    def is_polar(self):
         """
-        Returns number of frames
-        :return: int
+        Returns an array of if the atom in the topology is a polar atom.
+        :return: np.ndarray N of n atoms in the structure
         """
-        return self.n_frames
+        return np.array([(str(atom.element) in ['nitrogen','oxygen','sulfur']) for atom in self.topology._atoms])
+
 
     def residue(self,idx):
         """
@@ -244,6 +251,55 @@ class AS_Structure:
         else:
             return len(alpha_idx)
 
+    def _combine_data(self,data_list):
+
+        assert type(data_list[0]) == np.ndarray
+
+        data_list.sort(key = lambda d:d[0,1])
+        data = np.concatenate(data_list)
+        data[:, 0] = np.arange(0, len(data), dtype=int)
+        self._data = AS_Data(data, self)
+
+
+    def _gen_pockets(self):
+        assert self._data is not None
+        self._pockets_alpha_idx = {i: {} for i in range(self.n_frames)}
+        pocket_snapshot_dict = self._data[:,[0,1,13]]
+        for i in range(self.n_frames):
+            reversed_dict = defaultdict(list)
+            current_frame_pocket_idx = pocket_snapshot_dict[pocket_snapshot_dict[:,1] == i]
+            for idx,ss_idx,p_idx in current_frame_pocket_idx:
+                reversed_dict[p_idx].append(idx)
+            self._pockets_alpha_idx[i] = reversed_dict
+
+    def pockets(self,snapshot_idx=0):
+        """
+        Generate an iterator of the pockets in the given snapshot
+        :param snapshot_idx: int
+        :return: iter, alphaspace.AS_Pocket
+        """
+        if len(self._pockets_alpha_idx) == 0:
+            self._gen_pockets()
+        for pocket_idx, pocket_content in self._pockets_alpha_idx[snapshot_idx].items():
+            yield AS_Pocket(pocket_content,snapshot_idx,pocket_idx,self)
+
+    def pocket(self, pocket_idx, snapshot_idx=0):
+        """
+        Get a pocket by index and snapshot index
+        None if it does not exist
+        :param pocket_idx: int
+        :param snapshot_idx: int
+        :return: None or AS_Pocket
+        """
+        if self._pockets_alpha_idx:
+            self._gen_pockets()
+        if snapshot_idx in self._pockets_alpha_idx:
+            if pocket_idx in self._pockets_alpha_idx[snapshot_idx]:
+                return AS_Pocket(self._pockets_alpha_idx[snapshot_idx][pocket_idx], snapshot_idx, pocket_idx, self)
+            else:
+                return None
+        else:
+            return None
 
 
 
