@@ -6,7 +6,7 @@ Currently the use of this software is limited to group member of Yingkai Zhang's
 
 Based on the algorithm of original AlphaSpace published [here](http://pubs.acs.org/doi/abs/10.1021/acs.jcim.5b00103), the current 2.0+ version is rewritten, multiple new features are added for a more friendly user interface and performance boost. 
 
-The documentation can be found [here](https://lenhsherr.github.io/AlphaSpace/)
+The documentation can be found at [https://lenhsherr.github.io/AlphaSpace/](https://lenhsherr.github.io/AlphaSpace/)
 Key features:
 1. Clear and pythonic object based API for manipulation of pockets, alpha atoms, and communities. 
 2. Integrated trajectory loading and interpretation from **mdtraj**.
@@ -15,7 +15,7 @@ Key features:
 
 # Getting started
 
-## Dependencies
+## Requirements
 ```python 3.6
 numpy
 scipy
@@ -30,19 +30,21 @@ ipywidgets==7.0
 Download the zip package and unzip it in you preferred installation location.
 Navigate to the AlphaSpace folder, where you should see this README.md file
 
-Install by entering:
+Due to a pip bug you need to install cython and numpy individualy by entering:
 ```
 pip install cython
 pip install numpy
+```
+And then you can install the AlphaSpace by entering:
+```
 pip install .
 ```
-The dependencies should be automatically installed through pip.
+The rest of the dependencies should be automatically installed through pip.
 
 
 
 ## Activate ipython widget environment
 To enable jupyter notebook visualization, you may need to enable ipython widget extension. 
-
 ```
 jupyter-nbextension enable --py --sys-prefix widgetsnbextension
 jupyter-nbextension enable --py --sys-prefix nglview
