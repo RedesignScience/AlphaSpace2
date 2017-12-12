@@ -1,7 +1,7 @@
 """
 This file contains the container classes for cluster based objects.
 
-AS_Data: A numpy.ndarray inheritence that stores and enumerates data
+AS_Data: A numpy.ndarray inheritance that stores and enumerates data
 AS_Pocket: A mask container for pocket information, gets data from AS_Data
 AS_AlphaAtom: A mast container for alpha atom, gets data from AS_Data
 AS_BetaATOM: same as alpha atom
@@ -33,7 +33,9 @@ ASDATA_total_lining_atom_asa = 17
 
 class AS_Data(np.ndarray):
     """
-    Container object inherited from numpy array object, you can access information directly here
+    Container object inherited from numpy array object, you can access information directly here.
+    Most of AS_Data runs under the hood so you can safely ignore this part until needed.
+
     Column, Content,   default value
     0       idx
     1       snapshot_idx
@@ -69,7 +71,7 @@ class AS_Data(np.ndarray):
         """
         return self[np.array(idx), 0]
 
-    def snapshot_idx(self, idx):
+    def snapshot_idx(self, idx: int):
         """
         Get the snapshot_index of an row
         :param idx: int

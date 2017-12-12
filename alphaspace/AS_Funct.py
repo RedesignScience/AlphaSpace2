@@ -7,10 +7,10 @@ from scipy.spatial.distance import cdist
 from itertools import combinations_with_replacement
 
 
-def getTetrahedronVolume(coord_list):
+def getTetrahedronVolume(coord_list: list):
     """
-    generate the volume
-    :param coord_list: list 4*3
+    Calculate the volume of a tetrahedron described by four 3-d points.
+    :param coord_list: list 4*3 4 points xyz
     :return: float
     """
     coord_matrix = np.concatenate((np.array(coord_list), np.ones((4, 1))), axis=1)
@@ -21,6 +21,8 @@ def getTetrahedronVolume(coord_list):
 
 def getContactMatrix(coord_list_1, coord_list_2, threshold):
     """
+    For two sets of points A and B, generate the contact matrix M,
+    where M(i,j) = (if Ai,Bj is in contact)
     get M by N bool matrix of if there is a contact.
     :param coord_list_1: np.ndarray N * 3
     :param coord_list_2: np.ndarray M * 3
@@ -31,21 +33,20 @@ def getContactMatrix(coord_list_1, coord_list_2, threshold):
     return (distance_matrix < threshold).astype(int)
 
 
-def getIfContact(coord_list_1, coord_list_2, threshold):
+def getIfContact(checked_coord_list, ref_coord_list, threshold):
     """
-    check which one in the coordinate list is in contact with the second coordinate
-    :param coord_list_1: list of array N*3
-    :param coord_list_2: list of array M*3
+    Check which one in the coordinate list is in contact with the second coordinate
+    :param checked_coord_list: list of array N*3 to be checked
+    :param ref_coord_list: list of array M*3
     :param threshold: float
-    :return: np.ndarray 2*N
+    :return: np.ndarray 2*N [index in contact][index not in contact]
     """
-
-    return np.where(getContactMatrix(coord_list_1, coord_list_2, threshold))
+    return np.where(getContactMatrix(checked_coord_list, ref_coord_list, threshold))
 
 
 def getGridVolume(coord_list, threshold=1.6, resolution=0.05):
     """
-    calculate the volume of a point set using grid point approximation
+    Calculate the volume of a point set using grid point approximation
     :param coord_list: array N * 3
     :param threshold: float
     :param resolution: float
@@ -62,6 +63,12 @@ def getGridVolume(coord_list, threshold=1.6, resolution=0.05):
 
 
 def getCosAngleBetween(v1, v2):
+    """
+    Calculate the Cos of the angle be vector v1 and v2
+    :param v1: numpy.ndarray vector1
+    :param v2: numpy.ndarray vector2
+    :return: float
+    """
     def unit_vector(vector):
         norm = np.linalg.norm(vector)
         assert norm > 0
@@ -81,11 +88,10 @@ def combination_intersection_count(indices_list: list, total_index: int) -> np.n
     between i and j.
     Note this D matrix is symmetrical.
     The total_index is maximum of all indices in the indices list.
-    :param indices_list:
-    :param total_index:
-    :return:
+    :param indices_list: list [[indices].]
+    :param total_index: int, upper limits of the indices
+    :return: np.ndarray N * N where (i,j) means count of i and j element wise intersection
     """
-
     item_binary_vectors = np.empty((len(indices_list), total_index))
     item_binary_vectors.fill(0)
     for pocket_idx, lining_atoms_idx in enumerate(indices_list):
@@ -107,7 +113,6 @@ def combination_intersection_count(indices_list: list, total_index: int) -> np.n
     overlap_matrix.fill(0)
     for i, j in combinations_with_replacement(range(len(indices_list)), 2):
         overlap = np.dot(item_binary_vectors[i], item_binary_vectors[j])
-
         overlap_matrix[i][j] = overlap_matrix[j][i] = overlap
 
     return overlap_matrix
@@ -116,14 +121,14 @@ def combination_intersection_count(indices_list: list, total_index: int) -> np.n
 def combination_union_count(indices_list, total_index: int) -> np.ndarray:
     """
     Given a list of indices list, such as [ [1,2,3], [4,5,6] , [2,3,4]]
-    This function calculates the union count between each pair in the list, which is len(set(i,j))
-    if indices_list is a N list of M indices, the return array D is a N * N ndarray, where Dij is the uniond count
+    This function calculates the union count between each pair in the list
+    if indices_list is a N list of M indices, the return array D is a N * N ndarray, where Dij is the union count
     between i and j.
     Note this D matrix is symmetrical.
     The total_index is maximum of all indices in the indices list.
-    :param indices_list:
-    :param total_index:
-    :return:
+    :param indices_list: list [[indices].]
+    :param total_index: int, upper limits of the indices
+    :return: np.ndarray N * N where (i,j) means count of i and j element wise union
     """
 
     indices_list = np.array(indices_list)
@@ -160,7 +165,7 @@ def getSASA(protein_snapshot, cover_atom_coords=None):
     AAC are set to resemble Carbon with a radii - 0.17
     :param protein_snapshot: mdtraj object
     :param cover_atom_coords: np.ndarray n*3
-    :return: np.ndarray n
+    :return: np.ndarray n for each atom
     """
     probe_radius = 0.14
     n_sphere_points = 960
@@ -206,6 +211,13 @@ def screenContact(data, binder_xyz, threshold):
 
 # noinspection PyUnresolvedReferences
 def _tessellation(arglist):
+    """
+    This is the main AlphaSpace function, it's simplified and contained so you can run it in
+    multiprocessing.
+
+    :param arglist:
+    :return:
+    """
     assert len(arglist) == 5
 
     protein_snapshot, binder_snapshot, config, snapshot_idx, is_polar = arglist
@@ -327,26 +339,6 @@ def _tessellation(arglist):
                            ), axis=-1)
     assert data.shape[1] == 18
 
-    """
-    0       idx
-    1       snapshot_idx
-    2       x
-    3       y
-    4       z
-    5       lining_atom_idx_1
-    6       lining_atom_idx_1
-    7       lining_atom_idx_1
-    8       lining_atom_idx_1
-    9       polar_space 0
-    10      nonpolar_space 0
-    11      is_active 1
-    12      is_contact 0
-    13      pocket_idx
-    14      radii
-    15      closest atom idx
-    16      closest atom dist
-    17      total lining atom asa
-    """
     print('{} snapshot processed'.format(snapshot_idx))
     return data
 
