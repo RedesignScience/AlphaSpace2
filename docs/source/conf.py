@@ -128,7 +128,9 @@ html_sidebars = {
     ]
 }
 
-
+# source_parsers = {
+#    '.md': 'recommonmark.parser.CommonMarkParser',
+# }
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
