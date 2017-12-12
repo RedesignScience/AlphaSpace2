@@ -86,18 +86,35 @@ class AS_Data(np.ndarray):
         return np.sort(np.unique(self[:, 1])).astype(int)
 
     def snapshot(self, snapshot_idx):
+        """
+        Get all entries with in the given snapshot
+        :param snapshot_idx: int
+        :return: np.ndarray
+        """
         return self[self.snapshot_alpha_idx(snapshot_idx)]
 
     def xyz(self, idx=None):
+        """
+        Get the coordinate of an entry
+        :param idx: int or numpy.array or None
+        :return: array of 3 or 3*N or all xyz
+        """
         if idx is not None:
             return self[np.array(idx), 2:5]
         else:
             return self[:, 2:5]
 
     def get_polar_space(self, idx):
+        """
+        get the polar space value of a given entry
+        :param idx:  int or numpy.array
+        :return: polar_space
+        :rtype: alphaspace.AS_Cluster.AS_Data
+        """
         return self[np.array(idx), 9]
 
     def get_nonpolar_space(self, idx):
+
         return self[np.array(idx), 10]
 
     def lining_atoms_idx(self, idx):
@@ -246,8 +263,12 @@ class AS_Pocket:
     def snapshot_idx(self):
         return self._snapshot_idx
 
-
     def set_contact(self, other):
+        """
+        Mark two pockets as contact and link them together.
+        :param other: the other pocket
+
+        """
         self._contact_pockets.add(other.index)
         other.contact_pockets.add(self.index)
 
@@ -255,7 +276,10 @@ class AS_Pocket:
         return not self.__eq__(other)
 
     def __repr__(self):
-        return "<Pocket {} in snapshot {} with space {} and {}% occupied>".format(self.reordered_index,self._snapshot_idx,math.ceil(self.space),math.ceil(self.occupancy*100))
+        return "<Pocket {} in snapshot {} with space {} and {}% occupied>".format(self.reordered_index,
+                                                                                  self._snapshot_idx,
+                                                                                  math.ceil(self.space),
+                                                                                  math.ceil(self.occupancy * 100))
 
     @property
     def index(self):
@@ -267,6 +291,11 @@ class AS_Pocket:
 
     @property
     def reordered_index(self):
+        """
+        This returns the index of the pocket in the snapshot AFTER ranking them by space, and is mutable.
+        If the reordered_index hasn't been set, original index is returned.
+        :return: int
+        """
         if self._reordered_index is None:
             return self.index
         else:
@@ -285,9 +314,15 @@ class AS_Pocket:
         return len(self._alpha_idx)
 
     def activate(self):
+        """
+        activate this pocket, and all the member alpha atoms in the pocket.
+        """
         self._data.activate(self.alpha_idx)
 
     def deactivate(self):
+        """
+        deactivate this pocket, and all the member alpha atoms in the pocket.
+        """
         self._data.deactivate(self.alpha_idx)
 
     @property
@@ -296,6 +331,10 @@ class AS_Pocket:
 
     @property
     def alphas(self):
+        """
+        Generator of all alpha atoms in the pocket
+        :return: alp
+        """
         for i in self.alpha_idx:
             yield AS_AlphaAtom(i, self.parent_structure, self)
 
@@ -362,7 +401,8 @@ class AS_Pocket:
     @property
     def occupancy(self):
         if self.is_contact:
-            return float(self.get_space(contact_only=True,space_type='ALL')/self.get_space(contact_only=False,space_type='ALL'))
+            return float(self.get_space(contact_only=True, space_type='ALL') / self.get_space(contact_only=False,
+                                                                                              space_type='ALL'))
         else:
             return 0.0
 
@@ -388,7 +428,7 @@ class AS_Pocket:
         return float(np.sum(self.get_spaces(space_type, contact_only)))
 
     def get_polar_space(self) -> float:
-        return  float(np.sum(self._data.get_polar_space(self.alpha_idx)))
+        return float(np.sum(self._data.get_polar_space(self.alpha_idx)))
 
     def get_polar_spaces(self) -> np.ndarray:
         return self._data.get_polar_space(self.alpha_idx)
@@ -403,7 +443,8 @@ class AS_Pocket:
         return self.get_polar_space() + self.get_nonpolar_space()
 
     def get_total_spaces(self):
-        return self.get_polar_spaces()+self.get_nonpolar_spaces()
+        return self.get_polar_spaces() + self.get_nonpolar_spaces()
+
     @property
     def polar_space(self):
         return self.get_polar_space()
@@ -456,8 +497,6 @@ class AS_Pocket:
         return float(len(self.intersection(other))) / len(self.union(other))
 
 
-
-
 class AS_BetaAtom:
     def __init__(self, alpha_idx_in_pocket: list, pocket: AS_Pocket):
         self._pocket = pocket
@@ -484,11 +523,6 @@ class AS_BetaAtom:
     @property
     def space(self):
         return np.sum([alpha.space for alpha in self.alphas])
-
-
-
-
-
 
 
 class AS_D_Pocket:

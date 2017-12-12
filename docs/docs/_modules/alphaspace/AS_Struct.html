@@ -1,0 +1,413 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>alphaspace.AS_Struct &#8212; AlphaSpace 2.0b documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2.0b',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for alphaspace.AS_Struct</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">defaultdict</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.cluster.hierarchy</span> <span class="k">import</span> <span class="n">linkage</span><span class="p">,</span> <span class="n">fcluster</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="k">import</span> <span class="n">Voronoi</span><span class="p">,</span> <span class="n">Delaunay</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="k">import</span> <span class="n">squareform</span>
+<span class="kn">from</span> <span class="nn">.AS_Cluster</span> <span class="k">import</span> <span class="n">AS_D_Pocket</span><span class="p">,</span> <span class="n">AS_Data</span><span class="p">,</span> <span class="n">AS_Pocket</span>
+<span class="kn">from</span> <span class="nn">.AS_Funct</span> <span class="k">import</span> <span class="n">getTetrahedronVolume</span><span class="p">,</span> <span class="n">getSASA</span><span class="p">,</span> <span class="n">getIfContact</span>
+
+
+<div class="viewcode-block" id="AS_Structure"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Struct.AS_Structure">[docs]</a><span class="k">class</span> <span class="nc">AS_Structure</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trajectory</span><span class="p">,</span> <span class="n">structure_type</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Container for structure trajectory and topology in a AS_Session</span>
+<span class="sd">        :param trajectory: MDtraj trajectory object</span>
+<span class="sd">        :param structure_type: int 0 for receptor, 1 for binder, 2 for other</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># 0 for receptor, 1 for binder, 2 for unassigned</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">structure_type</span> <span class="o">=</span> <span class="n">structure_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trajectory</span> <span class="o">=</span> <span class="n">trajectory</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="n">parent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">universe</span> <span class="o">=</span> <span class="n">parent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">config</span>
+        <span class="c1"># self.contact_cluster = [[None for i in range(self.n_residues)] for j in range(self.n_frames)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pockets_alpha_idx</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pockets</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span> <span class="nf">__bool__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="nf">_tessellation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="c1"># Generate Raw Tessellation simplexes</span>
+        <span class="n">raw_alpha_lining_idx</span> <span class="o">=</span> <span class="n">Delaunay</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trajectory</span><span class="o">.</span><span class="n">xyz</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">])</span><span class="o">.</span><span class="n">simplices</span>
+        <span class="c1"># Take coordinates from xyz file</span>
+        <span class="n">raw_alpha_lining_xyz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trajectory</span><span class="o">.</span><span class="n">xyz</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">],</span> <span class="n">raw_alpha_lining_idx</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># generate alpha atom coordinates</span>
+        <span class="n">raw_alpha_xyz</span> <span class="o">=</span> <span class="n">Voronoi</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">traj</span><span class="o">.</span><span class="n">xyz</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">])</span><span class="o">.</span><span class="n">vertices</span>
+
+        <span class="c1"># Calculate alpha sphere radii</span>
+        <span class="n">raw_alpha_sphere_radii</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">raw_alpha_lining_xyz</span> <span class="o">-</span> <span class="n">raw_alpha_xyz</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Filter the data based on radii cutoff</span>
+        <span class="n">filtered_alpha_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">min_r</span> <span class="o">/</span> <span class="mf">10.0</span> <span class="o">&lt;=</span> <span class="n">raw_alpha_sphere_radii</span><span class="p">,</span>
+                                                     <span class="n">raw_alpha_sphere_radii</span> <span class="o">&lt;=</span> <span class="n">config</span><span class="o">.</span><span class="n">max_r</span> <span class="o">/</span> <span class="mf">10.0</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">filtered_alpha_radii</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">raw_alpha_sphere_radii</span><span class="p">,</span><span class="n">filtered_alpha_idx</span><span class="p">)</span>
+
+        <span class="n">alpha_lining</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">raw_alpha_lining_idx</span><span class="p">,</span><span class="n">filtered_alpha_idx</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">filtered_alpha_xyz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">raw_alpha_xyz</span><span class="p">,</span><span class="n">filtered_alpha_idx</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># cluster the remaining vertices to assign index of belonging pockets</span>
+        <span class="n">zmat</span> <span class="o">=</span> <span class="n">linkage</span><span class="p">(</span><span class="n">filtered_alpha_xyz</span><span class="p">,</span><span class="n">method</span><span class="o">=</span><span class="s1">&#39;average&#39;</span><span class="p">)</span>
+
+        <span class="n">alpha_pocket_index</span> <span class="o">=</span> <span class="n">fcluster</span><span class="p">(</span><span class="n">zmat</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">clust_dist</span> <span class="o">/</span> <span class="mi">10</span><span class="p">,</span>
+                                      <span class="n">criterion</span><span class="o">=</span><span class="s1">&#39;distance&#39;</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>  <span class="c1"># because cluster index start from 1</span>
+
+        <span class="c1"># Load trajectories</span>
+        <span class="n">filtered_lining_xyz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">traj</span><span class="o">.</span><span class="n">xyz</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">],</span> <span class="n">alpha_lining</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="c1"># calculate the polarity of alpha atoms</span>
+        <span class="n">_total_space</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">getTetrahedronVolume</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span>
+                 <span class="n">filtered_lining_xyz</span><span class="p">])</span> <span class="o">*</span> <span class="mi">1000</span>  <span class="c1"># here the 1000 is to convert nm^3 to A^3</span>
+
+        <span class="n">atom_sasa</span> <span class="o">=</span> <span class="n">getSASA</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trajectory</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">])</span>
+        <span class="n">atom_covered_sasa</span> <span class="o">=</span> <span class="n">getSASA</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">traj</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">],</span> <span class="n">filtered_alpha_xyz</span><span class="p">)</span>
+        <span class="n">pocket_sasa</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">atom_sasa</span> <span class="o">-</span> <span class="n">atom_covered_sasa</span><span class="p">,</span><span class="n">alpha_lining</span><span class="p">)</span>
+
+        <span class="n">is_polar</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                <span class="p">[(</span><span class="nb">str</span><span class="p">(</span><span class="n">atom</span><span class="o">.</span><span class="n">element</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;nitrogen&#39;</span><span class="p">,</span><span class="s1">&#39;oxygen&#39;</span><span class="p">,</span><span class="s1">&#39;sulfur&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">_atoms</span><span class="p">])</span>
+        <span class="n">polar_ratio</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">is_polar</span><span class="p">,</span><span class="n">alpha_lining</span><span class="p">),</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">weights</span><span class="o">=</span><span class="n">pocket_sasa</span><span class="p">)</span>
+
+        <span class="n">_polar_space</span> <span class="o">=</span> <span class="n">_total_space</span> <span class="o">*</span> <span class="n">polar_ratio</span>
+
+        <span class="n">_nonpolar_space</span> <span class="o">=</span> <span class="n">_total_space</span> <span class="o">-</span> <span class="n">_polar_space</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">alpha_pocket_index</span><span class="p">),</span><span class="mi">1</span><span class="p">)),</span>
+                               <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">alpha_pocket_index</span><span class="p">),</span><span class="mi">1</span><span class="p">),</span><span class="n">snapshot_idx</span><span class="p">),</span>
+                               <span class="n">filtered_alpha_xyz</span><span class="p">,</span>
+                               <span class="n">alpha_lining</span><span class="p">,</span>
+                               <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">_polar_space</span><span class="p">,</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+                               <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">_nonpolar_space</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+                               <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">alpha_pocket_index</span><span class="p">),</span><span class="mi">1</span><span class="p">)),</span>
+                               <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">alpha_pocket_index</span><span class="p">),</span><span class="mi">1</span><span class="p">)),</span>
+                               <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">alpha_pocket_index</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+                               <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">filtered_alpha_radii</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+                               <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">alpha_pocket_index</span><span class="p">),</span> <span class="mi">1</span><span class="p">))</span> <span class="o">*</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span>
+                               <span class="p">),</span><span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        0       idx</span>
+<span class="sd">        1       snapshot_idx</span>
+<span class="sd">        2       x</span>
+<span class="sd">        3       y</span>
+<span class="sd">        4       z</span>
+<span class="sd">        5       lining_atom_idx_1</span>
+<span class="sd">        6       lining_atom_idx_1</span>
+<span class="sd">        7       lining_atom_idx_1</span>
+<span class="sd">        8       lining_atom_idx_1</span>
+<span class="sd">        9       polar_space 0</span>
+<span class="sd">        10      nonpolar_space 0</span>
+<span class="sd">        11      is_active 1</span>
+<span class="sd">        12      is_contact 0</span>
+<span class="sd">        13      pocket_idx</span>
+<span class="sd">        14      radii</span>
+<span class="sd">        15      closest binder atom idx</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">data</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_polar</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="nb">str</span><span class="p">(</span><span class="n">atom</span><span class="o">.</span><span class="n">element</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;nitrogen&#39;</span><span class="p">,</span><span class="s1">&#39;oxygen&#39;</span><span class="p">,</span><span class="s1">&#39;sulfur&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">_atoms</span><span class="p">])</span>
+
+
+    <span class="k">def</span> <span class="nf">_combine_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data_list</span><span class="p">):</span>
+
+        <span class="k">assert</span> <span class="nb">type</span><span class="p">(</span><span class="n">data_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
+
+        <span class="n">data_list</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">d</span><span class="p">:</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">data_list</span><span class="p">)</span>
+        <span class="n">data</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">AS_Data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">_gen_pockets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pockets_alpha_idx</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="p">{}</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_frames</span><span class="p">)}</span>
+        <span class="n">pocket_snapshot_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[:,[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">13</span><span class="p">]]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_frames</span><span class="p">):</span>
+            <span class="n">reversed_dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+            <span class="n">current_frame_pocket_idx</span> <span class="o">=</span> <span class="n">pocket_snapshot_dict</span><span class="p">[</span><span class="n">pocket_snapshot_dict</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">i</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span><span class="n">ss_idx</span><span class="p">,</span><span class="n">p_idx</span> <span class="ow">in</span> <span class="n">current_frame_pocket_idx</span><span class="p">:</span>
+                <span class="n">reversed_dict</span><span class="p">[</span><span class="n">p_idx</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pockets_alpha_idx</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">reversed_dict</span>
+
+<div class="viewcode-block" id="AS_Structure.pockets"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Struct.AS_Structure.pockets">[docs]</a>    <span class="k">def</span> <span class="nf">pockets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">snapshot_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pockets_alpha_idx</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_gen_pockets</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">pocket_idx</span><span class="p">,</span> <span class="n">pocket_content</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pockets_alpha_idx</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">yield</span> <span class="n">AS_Pocket</span><span class="p">(</span><span class="n">pocket_content</span><span class="p">,</span><span class="n">snapshot_idx</span><span class="p">,</span><span class="n">pocket_idx</span><span class="p">,</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AS_Structure.pocket"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Struct.AS_Structure.pocket">[docs]</a>    <span class="k">def</span> <span class="nf">pocket</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pocket_idx</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pockets_alpha_idx</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_gen_pockets</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">snapshot_idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pockets_alpha_idx</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">pocket_idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pockets_alpha_idx</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="n">AS_Pocket</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pockets_alpha_idx</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">][</span><span class="n">pocket_idx</span><span class="p">],</span> <span class="n">snapshot_idx</span><span class="p">,</span> <span class="n">pocket_idx</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> Structure with </span><span class="si">{}</span><span class="s2"> frames, </span><span class="si">{}</span><span class="s2"> residues, </span><span class="si">{}</span><span class="s2"> atoms&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="p">[</span><span class="s1">&#39;Receptor&#39;</span><span class="p">,</span><span class="s1">&#39;Binder&#39;</span><span class="p">,</span><span class="s1">&#39;Misc.&#39;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">structure_type</span><span class="p">],</span><span class="bp">self</span><span class="o">.</span><span class="n">n_frames</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">n_residues</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">n_atoms</span><span class="p">)</span>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">top</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">trajectory</span><span class="o">.</span><span class="n">topology</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">traj</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">trajectory</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">n_atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">trajectory</span><span class="o">.</span><span class="n">n_atoms</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">n_frames</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">trajectory</span><span class="o">.</span><span class="n">n_frames</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">n_snapshots</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">trajectory</span><span class="o">.</span><span class="n">n_frames</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">n_residues</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">n_residues</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">topology</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">trajectory</span><span class="o">.</span><span class="n">topology</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">residues</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Residue iterator</span>
+<span class="sd">        :return: iter</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">residues</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Atom iterator</span>
+<span class="sd">        :return: iter</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">top</span><span class="o">.</span><span class="n">_atoms</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">atom</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns number of frames</span>
+<span class="sd">        :return: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_frames</span>
+
+<div class="viewcode-block" id="AS_Structure.residue"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Struct.AS_Structure.residue">[docs]</a>    <span class="k">def</span> <span class="nf">residue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">idx</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gives a residue with idx</span>
+<span class="sd">        :param idx: int</span>
+<span class="sd">        :return: Residue</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">residue</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AS_Structure.atom"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Struct.AS_Structure.atom">[docs]</a>    <span class="k">def</span> <span class="nf">atom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">idx</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gives an atom with idx</span>
+<span class="sd">        :param idx: int</span>
+<span class="sd">        :return: object atom</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">atom</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AS_Structure.n_alphas"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Struct.AS_Structure.n_alphas">[docs]</a>    <span class="k">def</span> <span class="nf">n_alphas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">snapshot_idx</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span><span class="n">active_only</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        return the number of alpha atoms in a particular snapshot</span>
+<span class="sd">        :param snapshot_idx: int</span>
+<span class="sd">        :param active_only: bool</span>
+<span class="sd">        :return: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">alpha_idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">snapshot_alpha_idx</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="o">=</span><span class="n">snapshot_idx</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">active_only</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">is_active</span><span class="p">(</span><span class="n">alpha_idx</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">alpha_idx</span><span class="p">)</span></div>
+
+
+
+
+<div class="viewcode-block" id="AS_Structure.calculate_contact"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Struct.AS_Structure.calculate_contact">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_contact</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">snapshot_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the contact index of the alpha cluster against the designated binder.</span>
+<span class="sd">        The contact distance cutoff can be set in config</span>
+<span class="sd">        :param snapshot_idx: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">alpha_idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">snapshot_alpha_idx</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="p">)</span>
+        <span class="n">snapshot_cluster_coord_matrix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">xyz</span><span class="p">(</span><span class="n">alpha_idx</span><span class="p">)</span>
+        <span class="n">binder_coords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">universe</span><span class="o">.</span><span class="n">binder</span><span class="o">.</span><span class="n">trajectory</span><span class="o">.</span><span class="n">xyz</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span>
+        <span class="n">contact_alpha</span> <span class="o">=</span> <span class="n">getIfContact</span><span class="p">(</span><span class="n">snapshot_cluster_coord_matrix</span><span class="p">,</span> <span class="n">binder_coords</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">hit_dist</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">contact_alpha_idx</span> <span class="o">=</span> <span class="n">alpha_idx</span><span class="p">[</span><span class="n">contact_alpha</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">contact_alpha_idx</span><span class="p">,</span><span class="mi">12</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span></div></div>
+
+    <span class="c1"># def assign_binder_contact_pocket(self,AS_Cluster,snapshot_idx):</span>
+    <span class="c1">#     contact_matrix = AS_Cluster._get_contact_list(self.trajectory[snapshot_idx])</span>
+    <span class="c1">#     for residue in self.topology.residues:</span>
+    <span class="c1">#         self.contact_cluster[snapshot_idx][residue.index] = AS_Cluster._get_pockets_by_binder_contact(</span>
+    <span class="c1">#                 contact_matrix=contact_matrix,</span>
+    <span class="c1">#                 binder_residue=residue)</span>
+
+    <span class="c1"># def get_residue_contact_pocket(self,AS_Cluster,residue_index):</span>
+    <span class="c1">#     if self.contact_cluster[AS_Cluster.alpha_snapshot_idx][0] is None:</span>
+    <span class="c1">#         self.assign_binder_contact_pocket(AS_Cluster, AS_Cluster.alpha_snapshot_idx)</span>
+    <span class="c1">#     contact_pocket_index = self.contact_cluster[AS_Cluster.alpha_snapshot_idx][residue_index]</span>
+    <span class="c1">#     for i in contact_pocket_index:</span>
+    <span class="c1">#         yield AS_Cluster.pocket(i)</span>
+
+    <span class="c1">#</span>
+    <span class="c1"># def _gen_d_pockets(self):</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#     Generate d-pocket dictionary of list of indices</span>
+    <span class="c1">#     :return: dict of d_pockets</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#     assert self._data is not None</span>
+    <span class="c1">#</span>
+    <span class="c1">#</span>
+    <span class="c1">#</span>
+    <span class="c1">#     pockets = []</span>
+    <span class="c1">#     lining_atoms = []</span>
+    <span class="c1">#     for i in range(self.n_frames):</span>
+    <span class="c1">#         for pocket in self.pockets(i):</span>
+    <span class="c1">#             pockets.append(pocket)</span>
+    <span class="c1">#             lining_atoms.append(pocket.lining_atoms)</span>
+    <span class="c1">#</span>
+    <span class="c1">#     lining_atom_diff_matrix = np.zeros((len(lining_atoms),len(lining_atoms)))</span>
+    <span class="c1">#</span>
+    <span class="c1">#     for i in range(len(lining_atoms)):</span>
+    <span class="c1">#         for j in range(i,len(lining_atoms)):</span>
+    <span class="c1">#             lining_atom_diff_matrix[i,j] = lining_atom_diff_matrix[j,i] = len(</span>
+    <span class="c1">#                     lining_atoms[i].symmetric_difference(lining_atoms[j])) / len(</span>
+    <span class="c1">#                 lining_atoms[i].union(lining_atoms[j]))</span>
+    <span class="c1">#</span>
+    <span class="c1">#     clustered_list = list(fcluster(Z=linkage(squareform(lining_atom_diff_matrix),</span>
+    <span class="c1">#                                              method=&#39;complete&#39;),</span>
+    <span class="c1">#                                    t=self.config.dpocket_cluster_cutoff,</span>
+    <span class="c1">#                                    criterion=&#39;distance&#39;))</span>
+    <span class="c1">#</span>
+    <span class="c1">#     d_pockets_idx_dict = {}</span>
+    <span class="c1">#     for pocket,d_pocket_idx in zip(pockets,clustered_list):</span>
+    <span class="c1">#         snapshot_idx = pocket.cluster.alpha_snapshot_idx</span>
+    <span class="c1">#         pocket_idx = pocket.index</span>
+    <span class="c1">#         if d_pocket_idx not in d_pockets_idx_dict:</span>
+    <span class="c1">#             d_pockets_idx_dict[d_pocket_idx] = []</span>
+    <span class="c1">#         d_pockets_idx_dict[d_pocket_idx].append((snapshot_idx,pocket_idx))</span>
+    <span class="c1">#</span>
+    <span class="c1">#     for idx,item in d_pockets_idx_dict.items():</span>
+    <span class="c1">#         yield AS_D_Pocket(self,pocket_indices=item)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">AlphaSpace</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Haotian Li.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

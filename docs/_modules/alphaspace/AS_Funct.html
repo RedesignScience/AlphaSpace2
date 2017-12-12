@@ -48,6 +48,7 @@
 <span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="k">import</span> <span class="n">cdist</span>
 <span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">combinations_with_replacement</span>
 
+
 <div class="viewcode-block" id="getTetrahedronVolume"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Funct.getTetrahedronVolume">[docs]</a><span class="k">def</span> <span class="nf">getTetrahedronVolume</span><span class="p">(</span><span class="n">coord_list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    generate the volume</span>
@@ -245,6 +246,7 @@
         <span class="n">data</span><span class="p">[</span><span class="n">alpha_idx</span><span class="p">,</span> <span class="mi">12</span><span class="p">]</span> <span class="o">=</span> <span class="n">contact_matrix</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span></div>
 
 
+<span class="c1"># noinspection PyUnresolvedReferences</span>
 <span class="k">def</span> <span class="nf">_tessellation</span><span class="p">(</span><span class="n">arglist</span><span class="p">):</span>
     <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">arglist</span><span class="p">)</span> <span class="o">==</span> <span class="mi">5</span>
 
@@ -351,8 +353,8 @@
     <span class="sd">&quot;&quot;&quot;if use ligand contact&quot;&quot;&quot;</span>
     <span class="n">is_active</span> <span class="o">=</span> <span class="n">is_contact</span> <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">screen_by_lig_cntct</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">alpha_pocket_index</span><span class="p">)</span>
 
-    <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">alpha_pocket_index</span><span class="p">),</span> <span class="mi">1</span><span class="p">)),</span>  <span class="c1"># 0         idx</span>
-                           <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">alpha_pocket_index</span><span class="p">),</span> <span class="mi">1</span><span class="p">),</span> <span class="n">snapshot_idx</span><span class="p">),</span>  <span class="c1"># 1         snapshot_idx</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">alpha_pocket_index</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">)),</span>  <span class="c1"># 0         idx</span>
+                           <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">alpha_pocket_index</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">),</span> <span class="n">snapshot_idx</span><span class="p">),</span>  <span class="c1"># 1         snapshot_idx</span>
                            <span class="n">filtered_alpha_xyz</span><span class="p">,</span>  <span class="c1"># 2 3 4     x y z</span>
                            <span class="n">alpha_lining</span><span class="p">,</span>  <span class="c1"># 5 6 7 8   lining_atom_idx_1 - 4</span>
                            <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">_polar_space</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>  <span class="c1"># 9         polar_space 0</span>
@@ -389,6 +391,39 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> snapshot processed&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">data</span>
+
+
+<div class="viewcode-block" id="extractResidue"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Funct.extractResidue">[docs]</a><span class="k">def</span> <span class="nf">extractResidue</span><span class="p">(</span><span class="n">traj</span><span class="p">,</span> <span class="n">residue_number</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">residue_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">clip</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function is used to extract a residue from a trajectory, given a residue number or the residue name.</span>
+
+<span class="sd">    :param traj: mdtraj trajectory object, will be modified</span>
+<span class="sd">    :param residue_number: int, residue number</span>
+<span class="sd">    :param residue_name: str</span>
+<span class="sd">    :param clip: bool, default True, setting if you want the extracted residue to be clipped from the trajectory</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">top</span> <span class="o">=</span> <span class="n">traj</span><span class="o">.</span><span class="n">top</span>
+    <span class="n">residues</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">residue_number</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">residue_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">residues</span> <span class="o">=</span> <span class="p">[</span><span class="n">residue</span> <span class="k">for</span> <span class="n">residue</span> <span class="ow">in</span> <span class="n">top</span><span class="o">.</span><span class="n">residues</span> <span class="k">if</span> <span class="n">residue</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">residue_name</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">residues</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No Residue named </span><span class="si">{}</span><span class="s2"> found in the trajectory&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">residue_name</span><span class="p">))</span>
+
+    <span class="k">elif</span> <span class="n">residue_number</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">residue_number</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">residues</span> <span class="o">=</span> <span class="p">[</span><span class="n">residue</span> <span class="k">for</span> <span class="n">residue</span> <span class="ow">in</span> <span class="n">top</span><span class="o">.</span><span class="n">residues</span> <span class="k">if</span> <span class="n">residue</span><span class="o">.</span><span class="n">index</span> <span class="o">==</span> <span class="n">residue_number</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">residues</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No Residue named </span><span class="si">{}</span><span class="s2"> found in the trajectory&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">residue_name</span><span class="p">))</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Must specify either residue_name or residue_number&quot;</span><span class="p">)</span>
+
+    <span class="n">extracted_atom_idx</span> <span class="o">=</span> <span class="p">[</span><span class="n">atom</span><span class="o">.</span><span class="n">index</span> <span class="k">for</span> <span class="n">residue</span> <span class="ow">in</span> <span class="n">residues</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">residue</span><span class="p">]</span>
+    <span class="n">kept_atom_idx</span> <span class="o">=</span> <span class="p">[</span><span class="n">atom</span><span class="o">.</span><span class="n">index</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">top</span><span class="o">.</span><span class="n">atoms</span> <span class="k">if</span> <span class="n">atom</span><span class="o">.</span><span class="n">index</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">extracted_atom_idx</span><span class="p">)]</span>
+    <span class="n">extracted_traj</span> <span class="o">=</span> <span class="n">traj</span><span class="o">.</span><span class="n">atom_slice</span><span class="p">(</span><span class="n">extracted_atom_idx</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">clip</span><span class="p">:</span>
+        <span class="n">traj</span><span class="o">.</span><span class="n">atom_slice</span><span class="p">(</span><span class="n">kept_atom_idx</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">extracted_traj</span></div>
 </pre></div>
 
           </div>
@@ -406,6 +441,11 @@
 
 
 <h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">alphaspace</a></li>
+</ul>
 
 <div class="relations">
 <h3>Related Topics</h3>

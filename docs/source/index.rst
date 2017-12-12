@@ -6,9 +6,15 @@
 Welcome to AlphaSpace's documentation!
 ======================================
 
+This is an introduction to AlphaSpace, you will find examples of how to run AlphaSpace as well as API guides for creating flexible scripts.
+
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
+
+   intro
+   modules
 
 
 

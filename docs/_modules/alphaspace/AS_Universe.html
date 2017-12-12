@@ -40,16 +40,17 @@
           <div class="body" role="main">
             
   <h1>Source code for alphaspace.AS_Universe</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">mdtraj</span>
+<span></span><span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">chain</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">scipy.cluster.hierarchy</span> <span class="k">import</span> <span class="n">linkage</span><span class="p">,</span> <span class="n">fcluster</span>
 <span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="k">import</span> <span class="n">squareform</span>
+<span class="kn">import</span> <span class="nn">mdtraj</span>
 
-<span class="kn">from</span> <span class="nn">.AS_Cluster</span> <span class="k">import</span> <span class="n">AS_D_Pocket</span><span class="p">,</span> <span class="n">AS_Pocket</span>
+<span class="kn">from</span> <span class="nn">.AS_Cluster</span> <span class="k">import</span> <span class="n">AS_D_Pocket</span>
 <span class="kn">from</span> <span class="nn">.AS_Config</span> <span class="k">import</span> <span class="n">AS_Config</span>
 <span class="kn">from</span> <span class="nn">.AS_Funct</span> <span class="k">import</span> <span class="n">getCosAngleBetween</span><span class="p">,</span> <span class="n">combination_intersection_count</span><span class="p">,</span> <span class="n">combination_union_count</span>
 <span class="kn">from</span> <span class="nn">.AS_Struct</span> <span class="k">import</span> <span class="n">AS_Structure</span>
-<span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">combinations</span><span class="p">,</span> <span class="n">chain</span>
 
 
 <span class="c1"># noinspection PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit</span>
@@ -246,7 +247,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">binder</span> <span class="o">=</span> <span class="n">AS_Structure</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">structure_type</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="AS_Universe.set_receptor"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe.set_receptor">[docs]</a>    <span class="k">def</span> <span class="nf">set_receptor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">keepH</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="AS_Universe.set_receptor"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe.set_receptor">[docs]</a>    <span class="k">def</span> <span class="nf">set_receptor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">keepH</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        set receptor (protein) in session</span>
 <span class="sd">        :param structure: trajectory</span>
@@ -307,11 +308,13 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">_combine_data</span><span class="p">(</span><span class="n">data_list</span><span class="p">)</span></div>
 
+
     <span class="k">def</span> <span class="nf">_get_face_atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate the snapshot interface atom.</span>
 <span class="sd">        The interface atom is defined as whose ASA is reduced with introduction of ligand.</span>
-<span class="sd">        :return: numpy.array</span>
+<span class="sd">        :return: ndarray num_snapshots * num_atom_receptor</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">receptor_snapshot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">traj</span>
 
@@ -321,12 +324,11 @@
 
         <span class="n">complex_snapshot_sasa</span> <span class="o">=</span> <span class="n">mdtraj</span><span class="o">.</span><span class="n">shrake_rupley</span><span class="p">(</span><span class="n">complex_snapshot</span><span class="p">)</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="n">receptor_snapshot_sasa</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">complex_snapshot_sasa</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-
         <span class="n">sasa_diff</span> <span class="o">=</span> <span class="n">receptor_snapshot_sasa</span> <span class="o">-</span> <span class="n">complex_snapshot_sasa</span><span class="p">[:,</span> <span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">n_atoms</span><span class="p">]</span>
 
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">sasa_diff</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">sasa_diff</span> <span class="o">&gt;</span> <span class="mi">0</span>
+
+        <span class="c1"># return np.where((sasa_diff &gt; 0).any(axis=0))[0]</span>
 
     <span class="k">def</span> <span class="nf">_gen_communities_legacy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="kn">import</span> <span class="nn">networkx</span>
@@ -583,6 +585,11 @@
 
 
 <h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">alphaspace</a></li>
+</ul>
 
 <div class="relations">
 <h3>Related Topics</h3>
