@@ -53,7 +53,7 @@ def binding_mode_cluster(traj_file, top_file, dend_out_file):
     # pocket_d_idx = list(fcluster(Z=linkage(squareform(distance_matrix), method='average'),
     #                              t=0.75, criterion='distance') - 1)
 
-    plt.figure()
+    # plt.figure()
     plt.title('Hierarchical Clustering Dendrogram')
     plt.xlabel('sample index')
     plt.ylabel('distance')

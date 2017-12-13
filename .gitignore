@@ -61,3 +61,5 @@ target/
 \.idea/
 
 \.DS_Store
+
+\doctrees

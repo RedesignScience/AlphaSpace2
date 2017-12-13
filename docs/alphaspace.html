@@ -95,6 +95,8 @@
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro.html#what-is-this-alphaspace">What is this AlphaSpace?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro.html#getting-started">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="residue selection.html">How to load files and select receptor and binder</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">alphaspace</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">alphaspace package</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
@@ -103,7 +105,10 @@
 <li class="toctree-l3"><a class="reference internal" href="#module-alphaspace.AS_Funct">alphaspace.AS_Funct module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-alphaspace.AS_IO">alphaspace.AS_IO module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-alphaspace.AS_Struct">alphaspace.AS_Struct module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-alphaspace.AS_Universe">alphaspace.AS_Universe module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-alphaspace.AS_Universe">alphaspace.AS_Universe module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#the-main-container-as-universe">The main container AS_Universe</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#module-alphaspace">Module contents</a></li>
 </ul>
 </li>
@@ -1093,6 +1098,37 @@ None if it does not exist
 </div>
 <div class="section" id="module-alphaspace.AS_Universe">
 <span id="alphaspace-as-universe-module"></span><h2>alphaspace.AS_Universe module<a class="headerlink" href="#module-alphaspace.AS_Universe" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="the-main-container-as-universe">
+<h3>The main container AS_Universe<a class="headerlink" href="#the-main-container-as-universe" title="Permalink to this headline">¶</a></h3>
+<p>When creating a new alphaspace instance, all the data are stored in an object being referred to as universe.
+And nearly all functions can be done by calling methods in the AS_Universe.</p>
+<div class="section" id="initialization">
+<h4>Initialization<a class="headerlink" href="#initialization" title="Permalink to this headline">¶</a></h4>
+<p>You can initialize the universe object by calling it and passing receptor and binder objects.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">alphaspace</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">mdtraj</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="go">&gt;&gt;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">universe</span> <span class="o">=</span> <span class="n">AS_Universe</span><span class="p">(</span><span class="n">receptor</span><span class="o">=</span><span class="n">mdtraj</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">),</span><span class="n">binder</span><span class="o">=</span><span class="n">mdtraj</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">2</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>AS_Universe can intelligently construct molecules from your input structure and guess which one is the receptor or
+binder. This is implemented that by default, the largest molecule (one with most atoms) is considered to be receptor,
+the second largest is considered binder, if that molecule is not a solvent or ion.</p>
+<p>If you wish to guess the receptor and binder based on their appearance in the file:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">universe</span> <span class="o">=</span> <span class="n">AS_Universe</span><span class="p">(</span><span class="n">receptor</span><span class="o">=</span><span class="n">mdtraj</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">),</span><span class="n">binder</span><span class="o">=</span><span class="n">mdtraj</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">2</span><span class="p">),</span>
+<span class="gp">&gt;&gt;&gt; </span>                                        <span class="n">guess_by_order</span><span class="o">=</span><span class="kc">True</span> <span class="p">)</span>
+</pre></div>
+</div>
+<p>If you wish to define the receptor and binder yourself, or the guessing algorithm does not work properly,
+you can load them separately.
+You can set the receptor and binder after you have initialized the universe.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">universe</span> <span class="o">=</span> <span class="n">AS_Universe</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">universe</span><span class="o">.</span><span class="n">set_receptor</span><span class="p">(</span><span class="n">mdtraj</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">universe</span><span class="o">.</span><span class="n">set_binder</span><span class="p">(</span><span class="n">mdtraj</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>You can checkout more on how to load and select molecular object in the receptor_binder_selection.py</p>
 <dl class="class">
 <dt id="alphaspace.AS_Universe.AS_Universe">
 <em class="property">class </em><code class="descclassname">alphaspace.AS_Universe.</code><code class="descname">AS_Universe</code><span class="sig-paren">(</span><em>receptor=None</em>, <em>binder=None</em>, <em>guess_receptor_binder=True</em>, <em>guess_by_order=True</em>, <em>config=None</em>, <em>tag=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Universe.html#AS_Universe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Universe.AS_Universe" title="Permalink to this definition">¶</a></dt>
@@ -1251,6 +1287,8 @@ This process automatically removes water and other solvents
 
 </dd></dl>
 
+</div>
+</div>
 </div>
 <div class="section" id="module-alphaspace">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-alphaspace" title="Permalink to this headline">¶</a></h2>

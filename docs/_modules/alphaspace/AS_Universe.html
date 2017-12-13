@@ -95,6 +95,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../intro.html#what-is-this-alphaspace">What is this AlphaSpace?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../intro.html#getting-started">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../residue selection.html">How to load files and select receptor and binder</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../modules.html">alphaspace</a></li>
 </ul>
 
@@ -160,7 +161,50 @@
            <div itemprop="articleBody">
             
   <h1>Source code for alphaspace.AS_Universe</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">chain</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">The main container AS_Universe</span>
+<span class="sd">==============================</span>
+
+<span class="sd">When creating a new alphaspace instance, all the data are stored in an object being referred to as universe.</span>
+<span class="sd">And nearly all functions can be done by calling methods in the AS_Universe.</span>
+
+<span class="sd">Initialization</span>
+<span class="sd">--------------</span>
+
+<span class="sd">You can initialize the universe object by calling it and passing receptor and binder objects.</span>
+
+<span class="sd">&gt;&gt;&gt; from alphaspace import *</span>
+<span class="sd">&gt;&gt;&gt; import mdtraj</span>
+<span class="sd">&gt;&gt;&gt; import sys</span>
+<span class="sd">&gt;&gt;&gt;</span>
+<span class="sd">&gt;&gt;&gt; universe = AS_Universe(receptor=mdtraj.load(sys.argv[1),binder=mdtraj.load(sys.argv[2))</span>
+
+
+<span class="sd">AS_Universe can intelligently construct molecules from your input structure and guess which one is the receptor or</span>
+<span class="sd">binder. This is implemented that by default, the largest molecule (one with most atoms) is considered to be receptor,</span>
+<span class="sd">the second largest is considered binder, if that molecule is not a solvent or ion.</span>
+
+<span class="sd">If you wish to guess the receptor and binder based on their appearance in the file:</span>
+
+<span class="sd">&gt;&gt;&gt; universe = AS_Universe(receptor=mdtraj.load(sys.argv[1),binder=mdtraj.load(sys.argv[2),</span>
+<span class="sd">&gt;&gt;&gt;                                         guess_by_order=True )</span>
+
+<span class="sd">If you wish to define the receptor and binder yourself, or the guessing algorithm does not work properly,</span>
+<span class="sd">you can load them separately.</span>
+<span class="sd">You can set the receptor and binder after you have initialized the universe.</span>
+
+<span class="sd">&gt;&gt;&gt; universe = AS_Universe()</span>
+<span class="sd">&gt;&gt;&gt; universe.set_receptor(mdtraj.load(sys.argv[1))</span>
+<span class="sd">&gt;&gt;&gt; universe.set_binder(mdtraj.load(sys.argv[2])</span>
+
+<span class="sd">You can checkout more on how to load and select molecular object in the receptor_binder_selection.py</span>
+
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">chain</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">scipy.cluster.hierarchy</span> <span class="k">import</span> <span class="n">linkage</span><span class="p">,</span> <span class="n">fcluster</span>
@@ -171,6 +215,8 @@
 <span class="kn">from</span> <span class="nn">.AS_Config</span> <span class="k">import</span> <span class="n">AS_Config</span>
 <span class="kn">from</span> <span class="nn">.AS_Funct</span> <span class="k">import</span> <span class="n">getCosAngleBetween</span><span class="p">,</span> <span class="n">combination_intersection_count</span><span class="p">,</span> <span class="n">combination_union_count</span>
 <span class="kn">from</span> <span class="nn">.AS_Struct</span> <span class="k">import</span> <span class="n">AS_Structure</span>
+
+
 
 
 <span class="c1"># noinspection PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit</span>

@@ -1,3 +1,46 @@
+"""
+The main container AS_Universe
+==============================
+
+When creating a new alphaspace instance, all the data are stored in an object being referred to as universe.
+And nearly all functions can be done by calling methods in the AS_Universe.
+
+Initialization
+--------------
+
+You can initialize the universe object by calling it and passing receptor and binder objects.
+
+>>> from alphaspace import *
+>>> import mdtraj
+>>> import sys
+>>>
+>>> universe = AS_Universe(receptor=mdtraj.load(sys.argv[1),binder=mdtraj.load(sys.argv[2))
+
+
+AS_Universe can intelligently construct molecules from your input structure and guess which one is the receptor or
+binder. This is implemented that by default, the largest molecule (one with most atoms) is considered to be receptor,
+the second largest is considered binder, if that molecule is not a solvent or ion.
+
+If you wish to guess the receptor and binder based on their appearance in the file:
+
+>>> universe = AS_Universe(receptor=mdtraj.load(sys.argv[1),binder=mdtraj.load(sys.argv[2),
+>>>                                         guess_by_order=True )
+
+If you wish to define the receptor and binder yourself, or the guessing algorithm does not work properly,
+you can load them separately.
+You can set the receptor and binder after you have initialized the universe.
+
+>>> universe = AS_Universe()
+>>> universe.set_receptor(mdtraj.load(sys.argv[1))
+>>> universe.set_binder(mdtraj.load(sys.argv[2])
+
+You can checkout more on how to load and select molecular object in the receptor_binder_selection.py
+
+
+"""
+
+
+
 from itertools import chain
 
 import numpy as np
@@ -9,6 +52,8 @@ from .AS_Cluster import AS_D_Pocket
 from .AS_Config import AS_Config
 from .AS_Funct import getCosAngleBetween, combination_intersection_count, combination_union_count
 from .AS_Struct import AS_Structure
+
+
 
 
 # noinspection PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit
