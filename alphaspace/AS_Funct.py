@@ -69,6 +69,7 @@ def getCosAngleBetween(v1, v2):
     :param v2: numpy.ndarray vector2
     :return: float
     """
+
     def unit_vector(vector):
         norm = np.linalg.norm(vector)
         assert norm > 0
@@ -343,31 +344,39 @@ def _tessellation(arglist):
     return data
 
 
-def extractResidue(traj, residue_number=None, residue_name=None, clip=True):
+def extractResidue(traj, residue_numbers=None, residue_names=None, clip=True):
     """
     This function is used to extract a residue from a trajectory, given a residue number or the residue name.
     :param traj: mdtraj trajectory object, will be modified
-    :param residue_number: int, residue number
-    :param residue_name: str
+    :param residue_numbers: int, residue number
+    :param residue_names: str
     :param clip: bool, default True, setting if you want the extracted residue to be clipped from the trajectory
-    :return: mdtraj traj object, the extracted trajectory.
+    :return: mdtraj trajectory object, the extracted trajectory.
     """
+
     top = traj.top
     residues = []
-    if residue_number is None and residue_name is not None:
-        residues = [residue for residue in top.residues if residue.name == residue_name]
+    if residue_numbers is None and residue_names is not None:
+        if type(residue_names) is str:
+            residue_names = [residue_names]
+        residues = [residue for residue in top.residues if residue.name in set(residue_names)]
         if not residues:
-            raise ValueError("No Residue named {} found in the trajectory".format(residue_name))
+            raise ValueError("No Residue named {} found in the trajectory".format(residue_names))
 
-    elif residue_number is not None and residue_number is None:
-        residues = [residue for residue in top.residues if residue.index == residue_number]
+    elif residue_numbers is not None and residue_names is None:
+        if type(residue_numbers) is int:
+            residue_numbers = [residue_numbers]
+        residues = [residue for residue in top.residues if residue.index in set(residue_numbers)]
         if not residues:
-            raise ValueError("No Residue named {} found in the trajectory".format(residue_name))
+            raise ValueError("No Residue numbered {} found in the trajectory".format(residue_names))
 
     else:
         raise ValueError("Must specify either residue_name or residue_number")
 
-    extracted_atom_idx = [atom.index for residue in residues for atom in residue]
+    extracted_atom_idx = []
+    for residue in residues:
+        extracted_atom_idx.extend([atom.index for atom in residue.atoms])
+
     kept_atom_idx = [atom.index for atom in top.atoms if atom.index not in set(extracted_atom_idx)]
     extracted_traj = traj.atom_slice(extracted_atom_idx)
     if clip:

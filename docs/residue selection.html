@@ -224,11 +224,23 @@ append structures by setting the append option as True</p>
 </pre></div>
 </div>
 <p>If the ligand residue number is 100</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">binder_traj</span> <span class="o">=</span> <span class="n">alphaspace</span><span class="o">.</span><span class="n">extractResidue</span><span class="p">(</span><span class="n">traj</span><span class="o">=</span><span class="n">trajectory</span><span class="p">,</span> <span class="n">residue_number</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">clip</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <div class="highlight-default">
+        <div class="highlight"><pre><span></span><span class="n">binder_traj</span> <span class="o">=</span> <span
+                class="n">alphaspace</span><span class="o">.</span><span class="n">extractResidue</span><span class="p">(</span><span
+                class="n">traj</span><span class="o">=</span><span class="n">trajectory</span><span
+                class="p">,</span> <span class="n">residue_numbers</span><span class="o">=</span><span
+                class="p">[</span><span class="mi">100</span><span class="p">],</span> <span class="n">clip</span><span
+                class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>If the ligand residue name is ‘p53’</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">binder_traj</span> <span class="o">=</span> <span class="n">alphaspace</span><span class="o">.</span><span class="n">extractResidue</span><span class="p">(</span><span class="n">traj</span><span class="o">=</span><span class="n">trajectory</span><span class="p">,</span> <span class="n">residue_name</span><span class="o">=</span><span class="s1">&#39;p53&#39;</span><span class="p">,</span> <span class="n">clip</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <div class="highlight-default">
+        <div class="highlight"><pre><span></span><span class="n">binder_traj</span> <span class="o">=</span> <span
+                class="n">alphaspace</span><span class="o">.</span><span class="n">extractResidue</span><span class="p">(</span><span
+                class="n">traj</span><span class="o">=</span><span class="n">trajectory</span><span
+                class="p">,</span> <span class="n">residue_names</span><span class="o">=</span><span
+                class="p">[</span><span class="s1">&#39;p53&#39;</span><span class="p">],</span> <span
+                class="n">clip</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">receptor_traj</span> <span class="o">=</span> <span class="n">trajectory</span>  <span class="c1"># since the binder has been clipped</span>
 <span class="n">universe</span><span class="o">.</span><span class="n">set_receptor</span><span class="p">(</span><span class="n">receptor_traj</span><span class="p">)</span>
 <span class="n">universe</span><span class="o">.</span><span class="n">set_binder</span><span class="p">(</span><span class="n">binder_traj</span><span class="p">)</span>

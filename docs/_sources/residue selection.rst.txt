@@ -74,13 +74,13 @@ If the ligand residue number is 100
 
 ::
 
-    binder_traj = alphaspace.extractResidue(traj=trajectory, residue_number=100, clip=True)
+    binder_traj = alphaspace.extractResidue(traj=trajectory, residue_numbers=[100], clip=True)
 
 If the ligand residue name is 'p53'
 
 ::
 
-    binder_traj = alphaspace.extractResidue(traj=trajectory, residue_name='p53', clip=True)
+    binder_traj = alphaspace.extractResidue(traj=trajectory, residue_names=['p53'], clip=True)
     receptor_traj = trajectory  # since the binder has been clipped
     universe.set_receptor(receptor_traj)
     universe.set_binder(binder_traj)
