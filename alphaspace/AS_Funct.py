@@ -6,6 +6,9 @@ from scipy.spatial import Voronoi, Delaunay
 from scipy.spatial.distance import cdist
 from itertools import combinations_with_replacement
 
+from alphaspace.AS_Cluster import AS_Data
+
+import multiprocessing as mp
 
 def getTetrahedronVolume(coord_list: list):
     """
@@ -211,25 +214,31 @@ def screenContact(data, binder_xyz, threshold):
 
 
 # noinspection PyUnresolvedReferences
-def _tessellation(arglist):
+def _tessellation(**kwargs):
     """
-    This is the main AlphaSpace function, it's simplified and contained so you can run it in
-    multiprocessing.
+    This is the main AlphaSpace function, it's self contained so you can run it in
+    multiprocessing module.
 
-    :param arglist:
-    :return:
+
     """
-    assert len(arglist) == 5
+    assert len(kwargs) == 6
 
-    protein_snapshot, binder_snapshot, config, snapshot_idx, is_polar = arglist
-    xyz = protein_snapshot.xyz[0]
+    receptor_xyz = kwargs['receptor_xyz']
+    binder_xyz = kwargs['binder_xyz']
+    atom_radii = kwargs['atom_radii']
+    is_polar = kwargs['is_polar']
+
+    config = kwargs['config']
+    snapshot_idx = kwargs['snapshot_idx']
+
+
     # Generate Raw Tessellation simplexes
-    raw_alpha_lining_idx = Delaunay(xyz).simplices
+    raw_alpha_lining_idx = Delaunay(receptor_xyz).simplices
     # Take coordinates from xyz file
-    raw_alpha_lining_xyz = np.take(xyz, raw_alpha_lining_idx[:, 0].flatten(), axis=0)
+    raw_alpha_lining_xyz = np.take(receptor_xyz, raw_alpha_lining_idx[:, 0].flatten(), axis=0)
 
     # generate alpha atom coordinates
-    raw_alpha_xyz = Voronoi(xyz).vertices
+    raw_alpha_xyz = Voronoi(receptor_xyz).vertices
     # Calculate alpha sphere radii
     raw_alpha_sphere_radii = np.linalg.norm(raw_alpha_lining_xyz - raw_alpha_xyz, axis=1)
 
@@ -250,26 +259,24 @@ def _tessellation(arglist):
                                   criterion='distance') - 1  # because cluster index start from 1
 
     # Load trajectories
-    filtered_lining_xyz = np.take(xyz, alpha_lining, axis=0)
+    filtered_lining_xyz = np.take(receptor_xyz, alpha_lining, axis=0)
     # calculate the polarity of alpha atoms
     _total_space = np.array(
         [getTetrahedronVolume(i) for i in filtered_lining_xyz]) * 1000  # here the 1000 is to convert nm^3 to A^3
 
     """if calculate polar nonpolar space"""
     if config.use_asa:
-        element = [str(atom.element.symbol) for atom in protein_snapshot.topology._atoms]
-        atom_radii = [_ATOMIC_RADII[e] for e in element]
         alpha_radii = [0.17 for _ in range(len(alpha_pocket_index))]
-        _xyz = np.array(np.expand_dims(np.concatenate((xyz, filtered_alpha_xyz), axis=0), axis=0),
+        _xyz = np.array(np.expand_dims(np.concatenate((protein_xyz, filtered_alpha_xyz), axis=0), axis=0),
                         dtype=np.float32)
         dim1 = _xyz.shape[1]
         atom_mapping = np.arange(dim1, dtype=np.int32)
         covered = np.zeros((1, dim1), dtype=np.float32)
         radii = np.array(atom_radii + alpha_radii, np.float32) + config.probe_radius
         _geometry._sasa(_xyz, radii, int(config.n_sphere_points), atom_mapping, covered)
-        covered = covered[:, :xyz.shape[0]]
+        covered = covered[:, :protein_xyz.shape[0]]
 
-        _xyz = np.array(np.expand_dims(xyz, axis=0),
+        _xyz = np.array(np.expand_dims(protein_xyz, axis=0),
                         dtype=np.float32)
         dim1 = _xyz.shape[1]
         atom_mapping = np.arange(dim1, dtype=np.int32)
@@ -288,16 +295,14 @@ def _tessellation(arglist):
         _nonpolar_space = _total_space - _polar_space
 
     else:
-        _polar_space = _total_space * 0
-        _nonpolar_space = _total_space
+        _nonpolar_space =_polar_space = _total_space /2
 
-    if binder_snapshot:
+    if binder_xyz is not None:
 
         """
         Calculate the contact matrix, and link each alpha with closest atom.
         """
-
-        dist_matrix = cdist(filtered_alpha_xyz, binder_snapshot.xyz[0])
+        dist_matrix = cdist(filtered_alpha_xyz, binder_xyz)
 
         min_idx = np.argmin(dist_matrix, axis=1)
         mins = np.min(dist_matrix, axis=1) * 10  # nm to A
@@ -309,9 +314,7 @@ def _tessellation(arglist):
         is_contact = np.zeros(filtered_alpha_xyz.shape[0])
 
     """lining atom asa"""
-    element = [str(atom.element.symbol) for atom in protein_snapshot.topology._atoms]
-    atom_radii = [_ATOMIC_RADII[e] for e in element]
-    _xyz = np.array(np.expand_dims(xyz, axis=0),
+    _xyz = np.array(np.expand_dims(receptor_xyz, axis=0),
                     dtype=np.float32)
     dim1 = _xyz.shape[1]
     atom_mapping = np.arange(dim1, dtype=np.int32)
@@ -321,7 +324,7 @@ def _tessellation(arglist):
 
     alpha_lining_asa = np.take(asa[0], alpha_lining).sum(axis=1) * 100  # nm2 to A2
 
-    """if use ligand contact"""
+    """set contact to active if use ligand contact is True"""
     is_active = is_contact if config.screen_by_lig_cntct else np.zeros_like(alpha_pocket_index)
 
     data = np.concatenate((np.zeros((alpha_pocket_index.shape[0], 1)),  # 0         idx
@@ -340,8 +343,106 @@ def _tessellation(arglist):
                            ), axis=-1)
     assert data.shape[1] == 18
 
-    print('{} snapshot processed'.format(snapshot_idx))
+    print('{} snapshot processed'.format(snapshot_idx+1))
     return data
+
+
+class Consumer(mp.Process):
+
+    def __init__(self, task_queue, result_queue):
+        mp.Process.__init__(self)
+        self.task_queue = task_queue
+        self.result_queue = result_queue
+
+    def run(self):
+        while True:
+            next_task = self.task_queue.get()
+            if next_task is None:
+                # Poison pill means shutdown
+                self.task_queue.task_done()
+                break
+            answer = next_task()
+            self.task_queue.task_done()
+            self.result_queue.put(answer)
+        return
+
+class Task(object):
+    def __init__(self, receptor_xyz,
+                 binder_xyz,
+                 atom_radii,
+                 is_polar,
+                 config,
+                 snapshot_idx):
+        self.snapshot_idx = snapshot_idx
+        self.config = config
+        self.is_polar = is_polar
+        self.atom_radii = atom_radii
+        self.binder_xyz = binder_xyz
+        self.receptor_xyz = receptor_xyz
+
+    def __call__(self):
+        return _tessellation(snapshot_idx=self.snapshot_idx,
+                             config=self.config,
+                             is_polar=self.is_polar,
+                             atom_radii=self.atom_radii,
+                             binder_xyz=self.binder_xyz,
+                             receptor_xyz=self.receptor_xyz)
+
+    def __str__(self):
+        return '{}+1 snapshot processing'.format(self.snapshot_idx)
+
+def _tessellation_mp(universe,cpu = None):
+
+    # Establish communication queues
+    tasks = mp.JoinableQueue()
+    results = mp.Queue()
+
+    # Start consumers
+    num_consumers = cpu if cpu is not None else mp.cpu_count()
+    consumers = [Consumer(tasks, results) for _ in range(num_consumers)]
+
+    for w in consumers:
+        w.start()
+
+    # Enqueue jobs
+
+    atom_radii = [_ATOMIC_RADII[atom.element.symbol] for atom in universe.receptor.top.atoms]
+    is_polar = universe.receptor.is_polar
+    for i in range(universe.n_frames):
+        receptor_xyz = universe.receptor.traj.xyz[i]
+        if universe.binder:
+            binder_xyz = universe.binder.traj.xyz[i]
+        else:
+            binder_xyz = None
+        tasks.put(Task(receptor_xyz=receptor_xyz,
+                       binder_xyz=binder_xyz,
+                       atom_radii=atom_radii,
+                       snapshot_idx=i,
+                       is_polar=is_polar,
+                       config=universe.config))
+
+    # Add a poison pill for each consumer
+    for i in range(num_consumers):
+        tasks.put(None)
+
+    # Wait for all of the tasks to finish
+    tasks.join()
+    num_jobs = universe.n_frames
+    # Start printing results
+    data_list = []
+    while num_jobs:
+        data_list.append(results.get())
+        num_jobs -= 1
+    universe._data = AS_Data(combine_data(data_list), universe)
+
+
+def combine_data(data_list):
+    assert type(data_list[0]) == np.ndarray
+    data_list.sort(key=lambda d: d[0, 1])
+    data = np.concatenate(data_list)
+    data[:, 0] = np.arange(0, len(data), dtype=int)
+    return data
+
 
 
 def extractResidue(traj, residue_numbers=None, residue_names=None, clip=True):

@@ -39,21 +39,18 @@ You can checkout more on how to load and select molecular object in the receptor
 
 """
 
-
-
 from itertools import chain
 
 import numpy as np
 from scipy.cluster.hierarchy import linkage, fcluster
 from scipy.spatial.distance import squareform
+from mdtraj.geometry.sasa import _ATOMIC_RADII
 import mdtraj
 
 from .AS_Cluster import AS_D_Pocket
 from .AS_Config import AS_Config
-from .AS_Funct import getCosAngleBetween, combination_intersection_count, combination_union_count
+from .AS_Funct import _tessellation_mp,getCosAngleBetween, combination_intersection_count, combination_union_count
 from .AS_Struct import AS_Structure
-
-
 
 
 # noinspection PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit
@@ -90,9 +87,6 @@ class AS_Universe(object):
 
         self.tag = tag
 
-
-
-
     def __repr__(self):
         return "Receptor of {} residues {} atoms | Binder of {} residues {} atoms".format(self.receptor.n_residues,
                                                                                           self.receptor.n_atoms,
@@ -100,7 +94,7 @@ class AS_Universe(object):
                                                                                           self.binder.n_atoms)
 
     @property
-    def _data(self):
+    def data(self):
         return self.receptor._data
 
     @property
@@ -196,9 +190,6 @@ class AS_Universe(object):
 
         return pocket_list
 
-
-
-
     def guess_receptor_binder(self, traj, by_order: bool = True) -> bool:
         """
         Divide receptor trajectory based on connectivity, set larger molecule as receptor.
@@ -273,43 +264,12 @@ class AS_Universe(object):
             self.receptor = AS_Structure(structure, structure_type=0, parent=self)
 
     def run_alphaspace(self):
-        self.run_alphaspace_mp()
+        self.run_alphaspace_mp(cpu=1)
 
-    def run_alphaspace_mp(self, cpu=None):
-
-        """
-        :type cpu: int
-        """
-        import multiprocessing as mp
-        from .AS_Funct import _tessellation
-        from concurrent.futures import ProcessPoolExecutor
-
-        if not self.binder:
-            self.config.screen_by_face = self.config.screen_by_lig_cntct = False
-
-        # Disable screen by contact and face when there is no binder.
+    def run_alphaspace_mp(self,cpu = None):
+        _tessellation_mp(self,cpu=cpu)
 
 
-
-        cpu = mp.cpu_count() if not cpu else int(cpu)
-
-        def executor(argslist):
-            with ProcessPoolExecutor(max_workers=cpu) as ex:
-                return ex.map(_tessellation, argslist)
-
-        receptor_ss = [self.receptor.traj[i] for i in range(self.n_frames)]
-        if self.binder:
-            binder_ss = [self.binder.traj[i] for i in range(self.n_frames)]
-        else:
-            binder_ss = [[] for i in range(self.n_frames)]
-        config = [self.config for i in range(self.n_frames)]
-        snapshot_indices = range(self.n_frames)
-        is_polar = [self.receptor.is_polar for _ in range(self.n_frames)]
-        arglist = list(zip(receptor_ss, binder_ss, config, snapshot_indices, is_polar))
-
-        data_list = list(executor(arglist))
-
-        self.receptor._combine_data(data_list)
 
 
     def _get_face_atoms(self):
@@ -409,9 +369,6 @@ class AS_Universe(object):
     def snapshots_indices(self):
         return iter(range(self.n_frames))
 
-
-
-
     def screen_pockets(self):
         assert len(list(self.receptor._data.snapshots_idx)) == self.n_frames
         data = self.receptor._data
@@ -502,8 +459,6 @@ class AS_Universe(object):
             if i not in core_d_pockets:
                 print(len([True for p in pockets if p._connected]))
 
-
-
     """
     Visualization methods
     """
@@ -556,7 +511,6 @@ class AS_Universe(object):
         for pocket in self.pockets(snapshot_idx):
             self._view.add_surface(selection=list(pocket.lining_atoms_idx), opacity=1.0, color=pocket.color,
                                    surfaceType='sas')
-
 
 if __name__ == '__main__':
     import mdtraj
