@@ -842,13 +842,17 @@ The total_index is maximum of all indices in the indices list.
 
 <dl class="function">
 <dt id="alphaspace.AS_Funct.extractResidue">
-<code class="descclassname">alphaspace.AS_Funct.</code><code class="descname">extractResidue</code><span class="sig-paren">(</span><em>traj</em>, <em>residue_number=None</em>, <em>residue_name=None</em>, <em>clip=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Funct.html#extractResidue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Funct.extractResidue" title="Permalink to this definition">¶</a></dt>
+    <code class="descclassname">alphaspace.AS_Funct.</code><code class="descname">extractResidue</code><span
+        class="sig-paren">(</span><em>traj</em>, <em>residue_numbers=None</em>, <em>residue_names=None</em>, <em>clip=True</em><span
+        class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Funct.html#extractResidue"><span
+        class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Funct.extractResidue"
+                                                    title="Permalink to this definition">¶</a></dt>
 <dd><p>This function is used to extract a residue from a trajectory, given a residue number or the residue name.
 :param traj: mdtraj trajectory object, will be modified
-:param residue_number: int, residue number
-:param residue_name: str
+    :param residue_numbers: int, residue number
+    :param residue_names: str
 :param clip: bool, default True, setting if you want the extracted residue to be clipped from the trajectory
-:return: mdtraj traj object, the extracted trajectory.</p>
+    :return: mdtraj trajectory object, the extracted trajectory.</p>
 </dd></dl>
 
 <dl class="function">
