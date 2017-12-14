@@ -1,5 +1,14 @@
+"""
+AS_Vina contains function and classes for scoring probes using vina scoring function.
+=====================================================================================
+
+
+
+"""
+
 import numpy as np
 from scipy import spatial
+
 
 # Import hp-type and load dictionary
 with open('hp_types_dict.dat', 'r') as f:
@@ -59,7 +68,6 @@ def P_interp(r):  ##step for polar
         x = 0.0
     else:
         x = -r / 0.7
-    #        x=np.interp(r, [0.i5,1.5], [1,0])
     return x
 
 
@@ -185,56 +193,39 @@ def pre_process_pdbqt(pdbqt_file):
 
 def prep_temp_dict(type_list):
     temp_prb_dict = {}
-    for t in type_list:
-        temp_prb_dict[t] = []
+    for i in type_list:
+        temp_prb_dict[i] = []
     return temp_prb_dict
 
 
-nrdld_pscore_dict = {}
+def get_probe_score(prot_coord, prot_types, hp_type, don_type, acc_type, probe_coords):
+    dist = spatial.distance.cdist(probe_coords, prot_coord)
 
-for i in ['train', 'val']:
-    nrdld_pscore_dict[i] = {}
-    for j in ['drug', 'nondrug']:
-        nrdld_pscore_dict[i][j] = {}
-        for k in nrdld_list_dict[i][j]:
-            try:
-                nrdld_pscore_dict[i][j][k] = {}
-                prot_coord, prot_types, hp_type, acc_type, don_type = pre_process_pdbqt(
-                    i + '/' + j + '/' + k + '/protein.pdbqt')  ### this part pdbqt
-                for pxx in space_communities_dict[i][j][k].keys():
-                    pock_list = [pp for pp in
-                                 space_communities_dict[i][j][k][pxx][0] + space_communities_dict[i][j][k][pxx][1] +
-                                 space_communities_dict[i][j][k][pxx][2]]  ## where to feed coordinates
-                    coords_list = []
-                    for pp in pock_list:
-                        coords_list.extend(beta_space_coords_dict[i][j][k][pp][0])
-                    dist = scipy.spatial.distance.cdist(coords_list, prot_coord)
-                    temp_prb_dict = prep_temp_dict(['C', 'Br', 'F', 'Cl', 'I', 'OA', 'SA', 'N', 'P'])
-                    for px in range(0, len(coords_list)):
-                        dist_bool = dist[px] <= 8.0
-                        temp_dist = dist[px][dist_bool]
-                        temp_type = prot_types[dist_bool]
-                        NP_type = (hp_type[dist_bool] == 'NP')
-                        Pdon_type = (don_type[dist_bool] == 'P')
-                        Pacc_type = (acc_type[dist_bool] == 'P')
-                        dist_radii = np.array([autodock_types_dict[ty][0] for ty in temp_type])
-                        for prb in ['C', 'Br', 'F', 'Cl', 'I', 'OA', 'SA', 'N', 'P']:
-                            probe_dist = autodock_types_dict[prb][0]
-                            proc_dist = temp_dist - dist_radii - probe_dist
-                            g1 = np.sum(np.exp(-(proc_dist / 0.5) ** 2))
-                            g2 = np.sum(np.exp(-((proc_dist - 3.0) / 2.0) ** 2))
-                            rep = np.sum([dd ** 2 if dd < 0.0 else 0.0 for dd in proc_dist])
-                            if prb in ['C', 'Br', 'Cl', 'F', 'I']:
-                                h1 = np.sum([NP_interp(dd) for dd in proc_dist[NP_type]])
-                                h2 = 0.0
-                            elif prb in ['OA', 'SA']:
-                                h1 = 0.0
-                                h2 = np.sum([P_interp(dd) for dd in proc_dist[Pdon_type]])
-                            elif prb in ['N', 'P']:
-                                h1 = 0.0
-                                h2 = np.sum([P_interp(dd) for dd in proc_dist[Pacc_type]])
-                            temp_prb_dict[prb].append([calc_score(g1, g2, rep, h1, h2), g1, g2, rep, h1, h2])
-                    nrdld_pscore_dict[i][j][k][pxx] = temp_prb_dict
-            except:
-                print('ERR', i, j, k)
-            print(i, j, k)
+    temp_prb_dict = prep_temp_dict(['C', 'Br', 'F', 'Cl', 'I', 'OA', 'SA', 'N', 'P'])
+
+    for px in range(len(probe_coords)):
+        dist_bool = dist[px] <= 8.0
+        temp_dist = dist[px][dist_bool]
+
+        temp_type = prot_types[dist_bool]
+        NP_type = (hp_type[dist_bool] == 'NP')
+        Pdon_type = (don_type[dist_bool] == 'P')
+        Pacc_type = (acc_type[dist_bool] == 'P')
+        dist_radii = np.array([autodock_types_dict[ty][0] for ty in temp_type])
+
+        for prb in ['C', 'Br', 'F', 'Cl', 'I', 'OA', 'SA', 'N', 'P']:
+            probe_dist = autodock_types_dict[prb][0]
+            proc_dist = temp_dist - dist_radii - probe_dist
+            g1 = np.sum(np.exp(-(proc_dist / 0.5) ** 2))
+            g2 = np.sum(np.exp(-((proc_dist - 3.0) / 2.0) ** 2))
+            rep = np.sum([dd ** 2 if dd < 0.0 else 0.0 for dd in proc_dist])
+            if prb in ['C', 'Br', 'Cl', 'F', 'I']:
+                h1 = np.sum([NP_interp(dd) for dd in proc_dist[NP_type]])
+                h2 = 0.0
+            elif prb in ['OA', 'SA']:
+                h1 = 0.0
+                h2 = np.sum([P_interp(dd) for dd in proc_dist[Pdon_type]])
+            elif prb in ['N', 'P']:
+                h1 = 0.0
+                h2 = np.sum([P_interp(dd) for dd in proc_dist[Pacc_type]])
+            temp_prb_dict[prb].append([calc_score(g1, g2, rep, h1, h2), g1, g2, rep, h1, h2])
