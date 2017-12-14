@@ -1,3 +1,9 @@
+************************************
+How to select entities in AlphaSpace
+************************************
+
+
+
 How to load files and select receptor and binder
 ================================================
 
@@ -84,3 +90,57 @@ If the ligand residue name is 'p53'
     receptor_traj = trajectory  # since the binder has been clipped
     universe.set_receptor(receptor_traj)
     universe.set_binder(binder_traj)
+
+
+
+How to select pockets based on lining atoms and residues
+========================================================
+
+Here shows you how you can select pockets by screening them against a list of anchoring residues
+
+By Lining Atom
+--------------
+
+If you want to screen out certain pockets not containing a given set of atoms, say from number 100 to number 300:
+
+.. code-block:: python
+
+    import alphaspace
+    import mdtraj
+    import sys
+
+    receptor_path, binder_path = sys.argv[1], sys.argv[2]
+
+    universe = alphaspace.AS_Universe()
+    universe.set_receptor(structure=mdtraj.load(receptor_path), keepH=True)
+    universe.set_binder(structure=mdtraj.load(binder_path))
+
+    universe.run_alphaspace()
+
+
+    for pocket in universe.pockets(snapshot_idx=0, active_only=False):
+        if not set(pocket.lining_atoms_idx).intersection([100, 101, 102])
+
+    for pocket in universe.pockets(snapshot_idx=0, active_only=False):
+        if not set(pocket.lining_residues_idx).intersection(set(range(100,301))):
+            pocket.deactivate()
+
+Note this only deactivate the pockets that does not have the given lining residues. Now if you want to iterate through 
+pockets that's active, you can:
+
+.. code-block:: python
+    
+    for pocket in universe.pockets(snapshot_idx=0,active_only=True)
+
+By Lining Residue
+-----------------
+
+Let's say you only want pockets that have lining atoms from residue 100,101,102, you can choose to deactivate all
+that does not satisfy this criteria by simply calling the lining_residue_idx property .
+
+.. code-block:: python
+
+    for pocket in universe.pockets(snapshot_idx=0, active_only=False):
+        if not set(pocket.lining_residues_idx).intersection({100, 101, 102}):
+            pocket.deactivate()
+    
