@@ -1,6 +1,7 @@
 import sys
 
 from alphaspace import *
+from alphaspace.AS_Funct import _tessellation_mp
 import mdtraj
 import networkx
 from itertools import combinations, chain
@@ -11,7 +12,7 @@ def main(r_path, b_path):
     universe = AS_Universe(receptor=mdtraj.load(r_path), binder=mdtraj.load(b_path))
 
     """Run alphaspace with 4 cpu cores"""
-    universe.run_alphaspace_mp()
+    universe.run_alphaspace_mp(4)
 
     """Iterate over pockets in a particular snapshot"""
     snapshot_idx = 0
@@ -34,22 +35,25 @@ def bcl2_test():
         protein = mdtraj.load(test_protein_path)
         universe.set_receptor(protein, append=True)
         universe.set_binder(ligand, append=True)
-        break
 
-    universe.config.screen_by_lig_cntct = True
     """Run alphaspace with 4 cpu cores"""
-    universe.run_alphaspace_mp()
+    universe.run_alphaspace_mp(4)
 
-    for atom in universe.binder.atoms:
-        atom.linked_alpha = []
 
-    for pocket in universe.pockets(active_only=True):
-        for alpha in pocket.alphas:
-            universe.binder.atom(alpha.closest_atom_idx).linked_alpha.append(alpha)
 
-    for atom in universe.binder.atoms:
-        if (len(atom.linked_alpha)) > 0:
-            print(len(atom.linked_alpha))
+
+
+
+    # for atom in universe.binder.atoms:
+    #     atom.linked_alpha = []
+    #
+    # for pocket in universe.pockets(active_only=True):
+    #     for alpha in pocket.alphas:
+    #         universe.binder.atom(alpha.closest_atom_idx).linked_alpha.append(alpha)
+    #
+    # for atom in universe.binder.atoms:
+    #     if (len(atom.linked_alpha)) > 0:
+    #         print(len(atom.linked_alpha))
 
 
 def generate_communities():
@@ -127,4 +131,5 @@ def generate_dtm_communities():
 
 
 if __name__ == '__main__':
-    generate_dtm_communities()
+    # generate_dtm_communities()
+    bcl2_test()
