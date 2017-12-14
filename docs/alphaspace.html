@@ -96,7 +96,7 @@
 <li class="toctree-l1"><a class="reference internal" href="intro.html#what-is-this-alphaspace">What is this AlphaSpace?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro.html#getting-started">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="residue selection.html">How to load files and select receptor and binder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Selection.html">How to select entities in AlphaSpace</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">alphaspace</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">alphaspace package</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
@@ -842,17 +842,13 @@ The total_index is maximum of all indices in the indices list.
 
 <dl class="function">
 <dt id="alphaspace.AS_Funct.extractResidue">
-    <code class="descclassname">alphaspace.AS_Funct.</code><code class="descname">extractResidue</code><span
-        class="sig-paren">(</span><em>traj</em>, <em>residue_numbers=None</em>, <em>residue_names=None</em>, <em>clip=True</em><span
-        class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Funct.html#extractResidue"><span
-        class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Funct.extractResidue"
-                                                    title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">alphaspace.AS_Funct.</code><code class="descname">extractResidue</code><span class="sig-paren">(</span><em>traj</em>, <em>residue_numbers=None</em>, <em>residue_names=None</em>, <em>clip=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Funct.html#extractResidue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Funct.extractResidue" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function is used to extract a residue from a trajectory, given a residue number or the residue name.
 :param traj: mdtraj trajectory object, will be modified
-    :param residue_numbers: int, residue number
-    :param residue_names: str
+:param residue_numbers: int, residue number
+:param residue_names: str
 :param clip: bool, default True, setting if you want the extracted residue to be clipped from the trajectory
-    :return: mdtraj trajectory object, the extracted trajectory.</p>
+:return: mdtraj trajectory object, the extracted trajectory.</p>
 </dd></dl>
 
 <dl class="function">
