@@ -28,21 +28,20 @@ def main(r_path, b_path):
 def bcl2_test():
     """Loading 10 snapshots of bcl2 simulation from test/bcl2 folder."""
     universe = AS_Universe()
-    for i in range(1, 1 + 10):
-        test_ligand_path = 'alphaspace/tests/bcl2/lig/{}.pdb'.format(i)
-        test_protein_path = 'alphaspace/tests/bcl2/prot/{}.pdb'.format(i)
-        ligand = mdtraj.load(test_ligand_path)
-        protein = mdtraj.load(test_protein_path)
-        universe.set_receptor(protein, append=True)
-        universe.set_binder(ligand, append=True)
+    for _ in range(1):
+        for i in range(1, 1 + 10):
+            test_ligand_path = 'alphaspace/tests/bcl2/lig/{}.pdb'.format(i)
+            test_protein_path = 'alphaspace/tests/bcl2/prot/{}.pdb'.format(i)
+            ligand = mdtraj.load(test_ligand_path)
+            protein = mdtraj.load(test_protein_path)
+            universe.set_receptor(protein, append=True)
+            universe.set_binder(ligand, append=True)
 
     """Run alphaspace with 4 cpu cores"""
-    universe.run_alphaspace_mp(4)
+    universe.run_alphaspace_mp(8)
 
-
-
-
-
+    for pocket in universe.pockets():
+        print(pocket)
 
     # for atom in universe.binder.atoms:
     #     atom.linked_alpha = []
@@ -120,14 +119,6 @@ def generate_dtm_communities():
     for i, pockets in d_pockets.items():
         if i not in core_d_pockets:
             print(len([True for p in pockets if p._connected]))
-
-
-
-
-
-
-
-
 
 
 if __name__ == '__main__':

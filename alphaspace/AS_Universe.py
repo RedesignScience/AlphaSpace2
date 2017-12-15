@@ -162,7 +162,6 @@ class AS_Universe(object):
     def pockets(self, snapshot_idx: int = 0, active_only: bool = True) -> list:
         if snapshot_idx not in self._pocket_list:
             self._pocket_list[snapshot_idx] = self.pocket_list(snapshot_idx, active_only)
-
         return self._pocket_list[snapshot_idx]
 
     def alphas(self, snapshot_idx=0):
