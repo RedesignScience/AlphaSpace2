@@ -6,7 +6,7 @@ from scipy.spatial import Voronoi, Delaunay
 from scipy.spatial.distance import cdist
 from itertools import combinations_with_replacement
 
-from alphaspace.AS_Cluster import AS_Data
+from alphaspace.AS_Cluster import AS_Data,AS_Snapshot
 
 import multiprocessing as mp
 
@@ -259,18 +259,16 @@ def getSASA(protein_snapshot, cover_atom_coords=None):
 def screenContact(data, binder_xyz, threshold):
     """
     Mark the contact in AS_Data as true for each frame.
-    :param data: AS_Data
+    :param data: AS_Snapshot
     :param binder_xyz: np.ndarray
     :param threshold: float
     """
     assert len(binder_xyz.shape) == 3
     assert binder_xyz.shape[-1] == 3
 
-    for snapshot_idx in data.snapshots_idx:
-        alpha_idx = data.snapshot_alpha_idx(snapshot_idx)
-        alpha_xyz = data.xyz(alpha_idx)
-        contact_matrix = getContactMatrix(alpha_xyz, binder_xyz[snapshot_idx], threshold)
-        data[alpha_idx, 12] = contact_matrix.any(axis=1).astype(int)
+    alpha_xyz = data.xyz()
+    contact_matrix = getContactMatrix(alpha_xyz, binder_xyz[data.snapshot_idx()], threshold)
+    data[:, 12] = contact_matrix.any(axis=1).astype(int)
 
 
 # noinspection PyUnresolvedReferences
@@ -451,20 +449,21 @@ def _tessellation_mp(universe, cpu=None):
     tasks.join()
     num_jobs = universe.n_frames
     # Start printing results
-    data_list = []
+    data_list = {}
     while num_jobs:
-        data_list.append(results.get())
+        ss = AS_Snapshot(results.get())
+        data_list[ss.snapshot_idx()] = ss
         num_jobs -= 1
-    universe.receptor._data = AS_Data(combine_data(data_list), universe)
+    universe.receptor._data = AS_Data(data_list, universe)
 
 
-
-def combine_data(data_list):
-    assert type(data_list[0]) == np.ndarray
-    data_list.sort(key=lambda d: d[0, 1])
-    data = np.concatenate(data_list)
-    data[:, 0] = np.arange(0, len(data), dtype=int)
-    return data
+#
+# def combine_data(data_list):
+#     assert type(data_list[0]) == np.ndarray
+#     data_list.sort(key=lambda d: d[0, 1])
+#     data = np.concatenate(data_list)
+#     data[:, 0] = np.arange(0, len(data), dtype=int)
+#     return data
 
 
 def extractResidue(traj, residue_numbers=None, residue_names=None, clip=True):
