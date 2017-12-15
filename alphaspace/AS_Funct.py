@@ -10,6 +10,66 @@ from alphaspace.AS_Cluster import AS_Data
 
 import multiprocessing as mp
 
+
+class _Consumer(mp.Process):
+    """
+    Consumer for multiprocessing
+    """
+
+    def __init__(self, task_queue, result_queue):
+        mp.Process.__init__(self)
+        self.task_queue = task_queue
+        self.result_queue = result_queue
+
+    def run(self):
+        while True:
+            next_task = self.task_queue.get()
+            if next_task is None:
+                # Poison pill means shutdown
+                self.task_queue.task_done()
+                break
+            answer = next_task()
+            self.task_queue.task_done()
+            self.result_queue.put(answer)
+        return
+
+
+class _Task(object):
+    def __init__(self, receptor_xyz,
+                 binder_xyz,
+                 atom_radii,
+                 is_polar,
+                 config,
+                 snapshot_idx):
+        self.snapshot_idx = snapshot_idx
+        self.config = config
+        self.is_polar = is_polar
+        self.atom_radii = atom_radii
+        self.binder_xyz = binder_xyz
+        self.receptor_xyz = receptor_xyz
+
+    def __call__(self):
+        return _tessellation(snapshot_idx=self.snapshot_idx,
+                             config=self.config,
+                             is_polar=self.is_polar,
+                             atom_radii=self.atom_radii,
+                             binder_xyz=self.binder_xyz,
+                             receptor_xyz=self.receptor_xyz)
+
+    def __str__(self):
+        return '{}+1 snapshot processing'.format(self.snapshot_idx)
+
+
+class Task(object):
+
+    def __init__(self, *args, **kwargs):
+        self.kwargs = kwargs
+        self.function = args[0]
+
+    def __call__(self, ):
+        return self.function(**self.kwargs)
+
+
 def getTetrahedronVolume(coord_list: list):
     """
     Calculate the volume of a tetrahedron described by four 3-d points.
@@ -231,7 +291,6 @@ def _tessellation(**kwargs):
     config = kwargs['config']
     snapshot_idx = kwargs['snapshot_idx']
 
-
     # Generate Raw Tessellation simplexes
     raw_alpha_lining_idx = Delaunay(receptor_xyz).simplices
     # Take coordinates from xyz file
@@ -295,7 +354,7 @@ def _tessellation(**kwargs):
         _nonpolar_space = _total_space - _polar_space
 
     else:
-        _nonpolar_space =_polar_space = _total_space /2
+        _nonpolar_space = _polar_space = _total_space / 2
 
     if binder_xyz is not None:
 
@@ -343,63 +402,18 @@ def _tessellation(**kwargs):
                            ), axis=-1)
     assert data.shape[1] == 18
 
-    print('{} snapshot processed'.format(snapshot_idx+1))
+    print('{} snapshot processed'.format(snapshot_idx + 1))
     return data
 
 
-class Consumer(mp.Process):
-
-    def __init__(self, task_queue, result_queue):
-        mp.Process.__init__(self)
-        self.task_queue = task_queue
-        self.result_queue = result_queue
-
-    def run(self):
-        while True:
-            next_task = self.task_queue.get()
-            if next_task is None:
-                # Poison pill means shutdown
-                self.task_queue.task_done()
-                break
-            answer = next_task()
-            self.task_queue.task_done()
-            self.result_queue.put(answer)
-        return
-
-class Task(object):
-    def __init__(self, receptor_xyz,
-                 binder_xyz,
-                 atom_radii,
-                 is_polar,
-                 config,
-                 snapshot_idx):
-        self.snapshot_idx = snapshot_idx
-        self.config = config
-        self.is_polar = is_polar
-        self.atom_radii = atom_radii
-        self.binder_xyz = binder_xyz
-        self.receptor_xyz = receptor_xyz
-
-    def __call__(self):
-        return _tessellation(snapshot_idx=self.snapshot_idx,
-                             config=self.config,
-                             is_polar=self.is_polar,
-                             atom_radii=self.atom_radii,
-                             binder_xyz=self.binder_xyz,
-                             receptor_xyz=self.receptor_xyz)
-
-    def __str__(self):
-        return '{}+1 snapshot processing'.format(self.snapshot_idx)
-
-def _tessellation_mp(universe,cpu = None):
-
+def _tessellation_mp(universe, cpu=None):
     # Establish communication queues
     tasks = mp.JoinableQueue()
     results = mp.Queue()
 
     # Start consumers
     num_consumers = cpu if cpu is not None else mp.cpu_count()
-    consumers = [Consumer(tasks, results) for _ in range(num_consumers)]
+    consumers = [_Consumer(tasks, results) for _ in range(num_consumers)]
 
     for w in consumers:
         w.start()
@@ -414,7 +428,15 @@ def _tessellation_mp(universe,cpu = None):
             binder_xyz = universe.binder.traj.xyz[i]
         else:
             binder_xyz = None
-        tasks.put(Task(receptor_xyz=receptor_xyz,
+        # tasks.put(_Task(receptor_xyz=receptor_xyz,
+        #                 binder_xyz=binder_xyz,
+        #                 atom_radii=atom_radii,
+        #                 snapshot_idx=i,
+        #                 is_polar=is_polar,
+        #                 config=universe.config))
+
+        tasks.put(Task(_tessellation,
+                       receptor_xyz=receptor_xyz,
                        binder_xyz=binder_xyz,
                        atom_radii=atom_radii,
                        snapshot_idx=i,
@@ -433,7 +455,8 @@ def _tessellation_mp(universe,cpu = None):
     while num_jobs:
         data_list.append(results.get())
         num_jobs -= 1
-    universe._data = AS_Data(combine_data(data_list), universe)
+    universe.receptor._data = AS_Data(combine_data(data_list), universe)
+
 
 
 def combine_data(data_list):
@@ -442,7 +465,6 @@ def combine_data(data_list):
     data = np.concatenate(data_list)
     data[:, 0] = np.arange(0, len(data), dtype=int)
     return data
-
 
 
 def extractResidue(traj, residue_numbers=None, residue_names=None, clip=True):

@@ -262,7 +262,7 @@ class AS_Structure:
 
 
     def _gen_pockets(self):
-        assert self._data is not None
+
         self._pockets_alpha_idx = {i: {} for i in range(self.n_frames)}
         pocket_snapshot_dict = self._data[:,[0,1,13]]
         for i in range(self.n_frames):
