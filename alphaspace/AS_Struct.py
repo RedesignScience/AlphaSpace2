@@ -263,14 +263,17 @@ class AS_Structure:
 
     def _gen_pockets(self):
 
-        self._pockets_alpha_idx = {i: {} for i in range(self.n_frames)}
+        self._pockets_alpha_idx = {}
 
         for i in range(self.n_frames):
             pocket_snapshot_dict = self._data[i][:, [0,13]]
+
+            print(pocket_snapshot_dict)
             reversed_dict = defaultdict(list)
             for idx,p_idx in pocket_snapshot_dict:
                 reversed_dict[p_idx].append(idx)
             self._pockets_alpha_idx[i] = reversed_dict
+
 
     def pockets(self,snapshot_idx=0):
         """

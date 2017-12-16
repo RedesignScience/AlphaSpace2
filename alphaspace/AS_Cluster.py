@@ -326,6 +326,24 @@ class AS_Pocket:
     """
     This is the pocket container for the topological information of a pocket
     A pocket is a collection of alpha atoms clustered by average linkage
+
+
+    Initialize pocket object by calling .pockets or .pocket method in AS_Universe.
+
+    Example:
+
+    --------
+
+    If you want to see pockets from snapshot # 3
+
+    >>>   import alphaspace
+    >>>   universe = alphaspace.AS_Universe()
+    >>>   for pocket in universe.pockets(snapshot_idx = 3, active_only = True):
+    >>>      print(pocket)
+
+    The pocket object is a mask container linked to AS_Data,
+    you can use the build in methods to access the data such as contact, occupancy, space or geometric info.
+
     """
 
     def __init__(self, alpha_idx, snapshot_idx, pocket_idx, parent_structure):
@@ -333,33 +351,66 @@ class AS_Pocket:
         self._snapshot_idx = snapshot_idx
         self._alpha_idx = alpha_idx
         self.parent_structure = parent_structure
-
         self._contact_pockets = set()
         self._lining_atoms_idx = None
         self._reordered_index = None
-
         self._connected = False
         self._is_core_d = False
 
     @property
     def snapshot_idx(self):
+        """
+
+        Returns
+        -------
+
+        int
+            The index of snapshot this pocket in located
+
+        """
         return self._snapshot_idx
 
     def set_contact(self, other):
         """
         Mark two pockets as contact and link them together.
-        :param other: the other pocket
+
+        Parameters
+        ----------
+
+        other : AS_Pocket
+            The other pocket to be linked
 
         """
         self._contact_pockets.add(other.index)
-        other.contact_pockets.add(self.index)
+        other._contact_pockets.add(self.index)
+
 
     @property
     def index(self):
+        """
+        Gives the absolute index of this pocket in the snapshot,
+        this index is used fo pocket look up.
+
+        Returns
+        -------
+
+        int
+
+        """
         return int(self._idx)
 
     @property
     def universe(self):
+        """
+        Traceback to the parent universe
+
+        Returns
+        -------
+
+        universe : AS_Universe
+            parent universe
+
+        """
         return self.parent_structure.universe
 
     @property
@@ -367,7 +418,12 @@ class AS_Pocket:
         """
         This returns the index of the pocket in the snapshot AFTER ranking them by space, and is mutable.
         If the reordered_index hasn't been set, original index is returned.
-        :return: int
+
+        Returns
+        -------
+
+        int
+
         """
         if self._reordered_index is None:
             return self.index
@@ -395,11 +451,20 @@ class AS_Pocket:
 
 
     def __len__(self) -> int:
+        """
+        Number of alpha atoms
+
+        Returns
+        -------
+
+        int
+        """
         return len(self._alpha_idx)
 
     def activate(self):
         """
         activate this pocket, and all the member alpha atoms in the pocket.
+
         """
         self._data.activate(self.alpha_idx)
 
@@ -411,19 +476,42 @@ class AS_Pocket:
 
     @property
     def config(self):
+        """
+        Get the configuration container
+
+        Returns
+        -------
+
+        AS_Config
+
+        """
         return self.parent_structure.config
 
     @property
     def alphas(self):
         """
         Generator of all alpha atoms in the pocket
-        :return: alp
+
+        Returns
+        -------
+
+        iterable : AS_AlphaAtom
+
         """
         for i in self.alpha_idx:
             yield AS_AlphaAtom(i, self.parent_structure, self)
 
     @property
     def alpha_idx(self):
+        """
+        Get a numpy array of child alpha atom indices
+
+        Returns
+        -------
+
+        indicies : np.ndarray
+
+        """
         return np.array(self._alpha_idx, dtype=int)
 
     @property
@@ -432,6 +520,22 @@ class AS_Pocket:
 
     @property
     def is_active(self, anyone=True):
+        """
+        Toggle for if pocket is active
+
+        Parameters
+        ----------
+
+        anyone : bool
+            default if True, any active alpha atom in the pocket will toggle the pocket as active.
+            false requires all alphas to be active.
+
+        Returns
+        -------
+
+        bool
+
+        """
         if anyone:
             return self._data.is_active(self.alpha_idx).any()
         else:

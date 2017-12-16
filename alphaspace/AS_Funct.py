@@ -384,7 +384,7 @@ def _tessellation(**kwargs):
     """set contact to active if use ligand contact is True"""
     is_active = is_contact if config.screen_by_lig_cntct else np.zeros_like(alpha_pocket_index)
 
-    data = np.concatenate((np.zeros((alpha_pocket_index.shape[0], 1)),  # 0         idx
+    data = np.concatenate((np.array([range(alpha_pocket_index.shape[0])]).transpose(),  # 0         idx
                            np.full((alpha_pocket_index.shape[0], 1), snapshot_idx),  # 1         snapshot_idx
                            filtered_alpha_xyz,  # 2 3 4     x y z
                            alpha_lining,  # 5 6 7 8   lining_atom_idx_1 - 4
@@ -454,6 +454,7 @@ def _tessellation_mp(universe, cpu=None):
         ss = AS_Snapshot(results.get())
         data_list[ss.snapshot_idx()] = ss
         num_jobs -= 1
+
     universe.receptor._data = AS_Data(data_list, universe)
 
 

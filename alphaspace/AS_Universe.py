@@ -197,7 +197,6 @@ class AS_Universe(object):
         for pocket in pocket_list:
             pocket._reordered_index = i
             i += 1
-
         return pocket_list
 
     def guess_receptor_binder(self, traj, by_order: bool = True) -> bool:
@@ -261,7 +260,7 @@ class AS_Universe(object):
 
         if structure is None:
             self.receptor = None
-            return
+            return False
 
         if not keepH:
             non_h_idx = structure.topology.select_atom_indices(selection='heavy')
@@ -402,9 +401,7 @@ class AS_Universe(object):
                 for pocket in self.pockets(snapshot_idx):
                     if len(pocket.alpha_idx) <= self.config.min_num_alph:
                         pocket.deactivate()
-    @property
-    def data(self):
-        return self.receptor._data
+
 
 
     def _gen_d_pockets(self):
