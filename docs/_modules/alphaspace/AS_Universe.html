@@ -96,7 +96,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../intro.html#getting-started">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../examples.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Selection.html">How to select entities in AlphaSpace</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../modules.html">alphaspace</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">API Guide</a></li>
 </ul>
 
             
@@ -202,21 +202,18 @@
 
 <span class="sd">&quot;&quot;&quot;</span>
 
-
-
 <span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">chain</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">scipy.cluster.hierarchy</span> <span class="k">import</span> <span class="n">linkage</span><span class="p">,</span> <span class="n">fcluster</span>
 <span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="k">import</span> <span class="n">squareform</span>
+<span class="kn">from</span> <span class="nn">mdtraj.geometry.sasa</span> <span class="k">import</span> <span class="n">_ATOMIC_RADII</span>
 <span class="kn">import</span> <span class="nn">mdtraj</span>
 
 <span class="kn">from</span> <span class="nn">.AS_Cluster</span> <span class="k">import</span> <span class="n">AS_D_Pocket</span>
 <span class="kn">from</span> <span class="nn">.AS_Config</span> <span class="k">import</span> <span class="n">AS_Config</span>
-<span class="kn">from</span> <span class="nn">.AS_Funct</span> <span class="k">import</span> <span class="n">getCosAngleBetween</span><span class="p">,</span> <span class="n">combination_intersection_count</span><span class="p">,</span> <span class="n">combination_union_count</span>
+<span class="kn">from</span> <span class="nn">.AS_Funct</span> <span class="k">import</span> <span class="n">_tessellation_mp</span><span class="p">,</span><span class="n">getCosAngleBetween</span><span class="p">,</span> <span class="n">combination_intersection_count</span><span class="p">,</span> <span class="n">combination_union_count</span>
 <span class="kn">from</span> <span class="nn">.AS_Struct</span> <span class="k">import</span> <span class="n">AS_Structure</span>
-
-
 
 
 <span class="c1"># noinspection PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit</span>
@@ -253,9 +250,6 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">tag</span> <span class="o">=</span> <span class="n">tag</span>
 
-
-
-
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;Receptor of </span><span class="si">{}</span><span class="s2"> residues </span><span class="si">{}</span><span class="s2"> atoms | Binder of </span><span class="si">{}</span><span class="s2"> residues </span><span class="si">{}</span><span class="s2"> atoms&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">n_residues</span><span class="p">,</span>
                                                                                           <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">n_atoms</span><span class="p">,</span>
@@ -263,13 +257,18 @@
                                                                                           <span class="bp">self</span><span class="o">.</span><span class="n">binder</span><span class="o">.</span><span class="n">n_atoms</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">_data</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">frames</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_frames</span><span class="p">):</span>
             <span class="k">yield</span> <span class="n">i</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">frame_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">frames</span>
+
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">n_frames</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -309,6 +308,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">d_pockets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AS_D_Pocket</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        TODO</span>
 <span class="sd">        calculate the d pockets and give a iterator os AS_D_Pocket</span>
 <span class="sd">        :return: object, AS_D_Pocket</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -318,6 +318,11 @@
             <span class="k">yield</span> <span class="n">p</span>
 
 <div class="viewcode-block" id="AS_Universe.d_pocket"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe.d_pocket">[docs]</a>    <span class="k">def</span> <span class="nf">d_pocket</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AS_D_Pocket</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        todo</span>
+<span class="sd">        :param i:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d_pockets</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_d_pockets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">_gen_d_pockets</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d_pockets</span><span class="p">[</span><span class="n">i</span><span class="p">]</span></div>
@@ -331,7 +336,6 @@
 <div class="viewcode-block" id="AS_Universe.pockets"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe.pockets">[docs]</a>    <span class="k">def</span> <span class="nf">pockets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">active_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">snapshot_idx</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pocket_list</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_pocket_list</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pocket_list</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="p">,</span> <span class="n">active_only</span><span class="p">)</span>
-
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pocket_list</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="AS_Universe.alphas"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe.alphas">[docs]</a>    <span class="k">def</span> <span class="nf">alphas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
@@ -356,11 +360,7 @@
         <span class="k">for</span> <span class="n">pocket</span> <span class="ow">in</span> <span class="n">pocket_list</span><span class="p">:</span>
             <span class="n">pocket</span><span class="o">.</span><span class="n">_reordered_index</span> <span class="o">=</span> <span class="n">i</span>
             <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
-
         <span class="k">return</span> <span class="n">pocket_list</span></div>
-
-
-
 
 <div class="viewcode-block" id="AS_Universe.guess_receptor_binder"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe.guess_receptor_binder">[docs]</a>    <span class="k">def</span> <span class="nf">guess_receptor_binder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">traj</span><span class="p">,</span> <span class="n">by_order</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -423,7 +423,7 @@
 
         <span class="k">if</span> <span class="n">structure</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="k">return</span>
+            <span class="k">return</span> <span class="kc">False</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">keepH</span><span class="p">:</span>
             <span class="n">non_h_idx</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">select_atom_indices</span><span class="p">(</span><span class="n">selection</span><span class="o">=</span><span class="s1">&#39;heavy&#39;</span><span class="p">)</span>
@@ -436,43 +436,12 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span> <span class="o">=</span> <span class="n">AS_Structure</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">structure_type</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="AS_Universe.run_alphaspace"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe.run_alphaspace">[docs]</a>    <span class="k">def</span> <span class="nf">run_alphaspace</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">run_alphaspace_mp</span><span class="p">()</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">run_alphaspace_mp</span><span class="p">(</span><span class="n">cpu</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="AS_Universe.run_alphaspace_mp"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe.run_alphaspace_mp">[docs]</a>    <span class="k">def</span> <span class="nf">run_alphaspace_mp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cpu</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        :type cpu: int</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">import</span> <span class="nn">multiprocessing</span> <span class="k">as</span> <span class="nn">mp</span>
-        <span class="kn">from</span> <span class="nn">.AS_Funct</span> <span class="k">import</span> <span class="n">_tessellation</span>
-        <span class="kn">from</span> <span class="nn">concurrent.futures</span> <span class="k">import</span> <span class="n">ProcessPoolExecutor</span>
-
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">binder</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">screen_by_face</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">screen_by_lig_cntct</span> <span class="o">=</span> <span class="kc">False</span>
-
-        <span class="c1"># Disable screen by contact and face when there is no binder.</span>
+<div class="viewcode-block" id="AS_Universe.run_alphaspace_mp"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe.run_alphaspace_mp">[docs]</a>    <span class="k">def</span> <span class="nf">run_alphaspace_mp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">cpu</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">_tessellation_mp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">cpu</span><span class="o">=</span><span class="n">cpu</span><span class="p">)</span></div>
 
 
-
-        <span class="n">cpu</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">cpu</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">cpu</span><span class="p">)</span>
-
-        <span class="k">def</span> <span class="nf">executor</span><span class="p">(</span><span class="n">argslist</span><span class="p">):</span>
-            <span class="k">with</span> <span class="n">ProcessPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="n">cpu</span><span class="p">)</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">ex</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">_tessellation</span><span class="p">,</span> <span class="n">argslist</span><span class="p">)</span>
-
-        <span class="n">receptor_ss</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">traj</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_frames</span><span class="p">)]</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">binder</span><span class="p">:</span>
-            <span class="n">binder_ss</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">binder</span><span class="o">.</span><span class="n">traj</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_frames</span><span class="p">)]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">binder_ss</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_frames</span><span class="p">)]</span>
-        <span class="n">config</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_frames</span><span class="p">)]</span>
-        <span class="n">snapshot_indices</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_frames</span><span class="p">)</span>
-        <span class="n">is_polar</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">is_polar</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_frames</span><span class="p">)]</span>
-        <span class="n">arglist</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">receptor_ss</span><span class="p">,</span> <span class="n">binder_ss</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">snapshot_indices</span><span class="p">,</span> <span class="n">is_polar</span><span class="p">))</span>
-
-        <span class="n">data_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">executor</span><span class="p">(</span><span class="n">arglist</span><span class="p">))</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">_combine_data</span><span class="p">(</span><span class="n">data_list</span><span class="p">)</span></div>
 
 
     <span class="k">def</span> <span class="nf">_get_face_atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -572,12 +541,8 @@
     <span class="k">def</span> <span class="nf">snapshots_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_frames</span><span class="p">))</span>
 
-
-
-
 <div class="viewcode-block" id="AS_Universe.screen_pockets"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe.screen_pockets">[docs]</a>    <span class="k">def</span> <span class="nf">screen_pockets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">snapshots_idx</span><span class="p">))</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_frames</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">_data</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">snapshots_idx</span><span class="p">))</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_frames</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">screen_by_face</span><span class="p">:</span>
             <span class="n">interface_atom_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_face_atoms</span><span class="p">())</span>
@@ -585,7 +550,7 @@
                 <span class="k">for</span> <span class="n">pocket</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pockets</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="p">):</span>
                     <span class="n">atom_list</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">pocket</span><span class="o">.</span><span class="n">lining_atoms_idx</span><span class="p">,</span> <span class="n">interface_atom_idx</span><span class="p">])</span>
                     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">atom_list</span><span class="p">))</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">atom_list</span><span class="p">):</span>
-                        <span class="n">data</span><span class="p">[</span><span class="n">pocket</span><span class="o">.</span><span class="n">alpha_idx</span><span class="p">,</span> <span class="mi">11</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">pocket</span><span class="o">.</span><span class="n">alpha_idx</span><span class="p">,</span> <span class="mi">11</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">screen_by_space</span><span class="p">:</span>
             <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">min_space</span> <span class="o">&gt;</span> <span class="mi">0</span>
@@ -600,19 +565,22 @@
                     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pocket</span><span class="o">.</span><span class="n">alpha_idx</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">min_num_alph</span><span class="p">:</span>
                         <span class="n">pocket</span><span class="o">.</span><span class="n">deactivate</span><span class="p">()</span></div>
 
+
+
     <span class="k">def</span> <span class="nf">_gen_d_pockets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        todo</span>
 <span class="sd">        Generate d-pocket dictionary of list of indices</span>
 <span class="sd">        :return: dict of d_pockets</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;No Data available &#39;</span><span class="p">)</span>
 
         <span class="n">pockets_all</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">snapshot_idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">snapshots_indices</span><span class="p">:</span>
             <span class="n">pockets_all</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pockets</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="p">))</span>
 
-        <span class="n">lining_atom_indices</span> <span class="o">=</span> <span class="p">[</span><span class="n">pocket</span><span class="o">.</span><span class="n">lining_atoms_idx_redu</span> <span class="k">for</span> <span class="n">pocket</span> <span class="ow">in</span> <span class="n">pockets_all</span><span class="p">]</span>
+        <span class="n">lining_atom_indices</span> <span class="o">=</span> <span class="p">[</span><span class="n">pocket</span><span class="o">.</span><span class="n">lining_atoms_idx</span> <span class="k">for</span> <span class="n">pocket</span> <span class="ow">in</span> <span class="n">pockets_all</span><span class="p">]</span>
 
         <span class="c1"># calculate jaccard_diff_matrix</span>
 
@@ -664,8 +632,6 @@
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">pockets</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d_pockets</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">core_d_pockets</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">([</span><span class="kc">True</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pockets</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">_connected</span><span class="p">]))</span>
-
-
 
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Visualization methods</span>
@@ -719,7 +685,6 @@
         <span class="k">for</span> <span class="n">pocket</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pockets</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_view</span><span class="o">.</span><span class="n">add_surface</span><span class="p">(</span><span class="n">selection</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">pocket</span><span class="o">.</span><span class="n">lining_atoms_idx</span><span class="p">),</span> <span class="n">opacity</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">pocket</span><span class="o">.</span><span class="n">color</span><span class="p">,</span>
                                    <span class="n">surfaceType</span><span class="o">=</span><span class="s1">&#39;sas&#39;</span><span class="p">)</span></div></div>
-
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">mdtraj</span>

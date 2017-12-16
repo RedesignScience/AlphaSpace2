@@ -8,8 +8,14 @@ from itertools import combinations, chain
 from alphaspace.AS_Funct import combination_intersection_count, combination_union_count
 
 
-def main(r_path, b_path):
-    universe = AS_Universe(receptor=mdtraj.load(r_path), binder=mdtraj.load(b_path))
+testProteins_bcl2 = ['alphaspace/tests/bcl2/prot/{}.pdb'.format(i) for i in range(1, 1 + 10)]
+
+testLigand_bcl2 = ['alphaspace/tests/bcl2/lig/{}.pdb'.format(i) for i in range(1, 1 + 10)]
+
+
+
+def custom_test(receptor_path, ligand_path):
+    universe = AS_Universe(receptor=mdtraj.load(receptor_path), binder=mdtraj.load(ligand_path))
 
     """Run alphaspace with 4 cpu cores"""
     universe.run_alphaspace_mp(4)
@@ -29,9 +35,8 @@ def bcl2_test():
     """Loading 10 snapshots of bcl2 simulation from test/bcl2 folder."""
     universe = AS_Universe()
     for _ in range(1):
-        for i in range(1, 1 + 10):
-            test_ligand_path = 'alphaspace/tests/bcl2/lig/{}.pdb'.format(i)
-            test_protein_path = 'alphaspace/tests/bcl2/prot/{}.pdb'.format(i)
+        for test_protein_path, test_ligand_path in zip(testProteins_bcl2,testLigand_bcl2):
+            # print(test_protein_path,test_ligand_path)
             ligand = mdtraj.load(test_ligand_path)
             protein = mdtraj.load(test_protein_path)
             universe.set_receptor(protein, append=True)

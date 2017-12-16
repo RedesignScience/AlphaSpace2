@@ -103,6 +103,11 @@ class AS_Universe(object):
             yield i
 
     @property
+    def frame_indices(self):
+        return self.frames
+
+
+    @property
     def n_frames(self):
         if self.receptor is None:
             return 0
@@ -140,6 +145,7 @@ class AS_Universe(object):
     @property
     def d_pockets(self) -> AS_D_Pocket:
         """
+        TODO
         calculate the d pockets and give a iterator os AS_D_Pocket
         :return: object, AS_D_Pocket
         """
@@ -149,6 +155,11 @@ class AS_Universe(object):
             yield p
 
     def d_pocket(self, i) -> AS_D_Pocket:
+        """
+        todo
+        :param i:
+        :return:
+        """
         if not self._d_pockets:
             self._d_pockets = self.receptor._gen_d_pockets()
         return self._d_pockets[i]
@@ -186,7 +197,6 @@ class AS_Universe(object):
         for pocket in pocket_list:
             pocket._reordered_index = i
             i += 1
-
         return pocket_list
 
     def guess_receptor_binder(self, traj, by_order: bool = True) -> bool:
@@ -250,7 +260,7 @@ class AS_Universe(object):
 
         if structure is None:
             self.receptor = None
-            return
+            return False
 
         if not keepH:
             non_h_idx = structure.topology.select_atom_indices(selection='heavy')
@@ -369,8 +379,7 @@ class AS_Universe(object):
         return iter(range(self.n_frames))
 
     def screen_pockets(self):
-        assert len(list(self.receptor._data.snapshots_idx)) == self.n_frames
-        data = self.receptor._data
+        assert len(list(self.data.snapshots_idx)) == self.n_frames
 
         if self.config.screen_by_face:
             interface_atom_idx = np.sort(self._get_face_atoms())
@@ -378,7 +387,7 @@ class AS_Universe(object):
                 for pocket in self.pockets(snapshot_idx):
                     atom_list = np.concatenate([pocket.lining_atoms_idx, interface_atom_idx])
                     if len(np.unique(atom_list)) == len(atom_list):
-                        data[pocket.alpha_idx, 11] = 0
+                        self.data[pocket.alpha_idx, 11] = 0
 
         if self.config.screen_by_space:
             assert self.config.min_space > 0
@@ -393,19 +402,22 @@ class AS_Universe(object):
                     if len(pocket.alpha_idx) <= self.config.min_num_alph:
                         pocket.deactivate()
 
+
+
     def _gen_d_pockets(self):
         """
+        todo
         Generate d-pocket dictionary of list of indices
         :return: dict of d_pockets
         """
-        if self._data is None:
+        if self.data is None:
             raise Exception('No Data available ')
 
         pockets_all = []
         for snapshot_idx in self.snapshots_indices:
             pockets_all.extend(self.pockets(snapshot_idx))
 
-        lining_atom_indices = [pocket.lining_atoms_idx_redu for pocket in pockets_all]
+        lining_atom_indices = [pocket.lining_atoms_idx for pocket in pockets_all]
 
         # calculate jaccard_diff_matrix
 

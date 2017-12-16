@@ -245,32 +245,35 @@ class AS_Structure:
         :param active_only: bool
         :return: int
         """
-        alpha_idx = self._data.snapshot_alpha_idx(snapshot_idx=snapshot_idx)
+
         if active_only:
-            return len(np.where(self._data.is_active(alpha_idx)))
+            return len(np.where(self._data[snapshot_idx].is_active()))
         else:
-            return len(alpha_idx)
+            return len(self._data[snapshot_idx])
 
-    def _combine_data(self,data_list):
-
-        assert type(data_list[0]) == np.ndarray
-
-        data_list.sort(key = lambda d:d[0,1])
-        data = np.concatenate(data_list)
-        data[:, 0] = np.arange(0, len(data), dtype=int)
-        self._data = AS_Data(data, self)
+    # def _combine_data(self,data_list):
+    #
+    #     assert type(data_list[0]) == np.ndarray
+    #
+    #     data_list.sort(key = lambda d:d[0,1])
+    #     data = np.concatenate(data_list)
+    #     data[:, 0] = np.arange(0, len(data), dtype=int)
+    #     self._data = AS_Data(data, self)
 
 
     def _gen_pockets(self):
 
-        self._pockets_alpha_idx = {i: {} for i in range(self.n_frames)}
-        pocket_snapshot_dict = self._data[:,[0,1,13]]
+        self._pockets_alpha_idx = {}
+
         for i in range(self.n_frames):
+            pocket_snapshot_dict = self._data[i][:, [0,13]]
+
+            print(pocket_snapshot_dict)
             reversed_dict = defaultdict(list)
-            current_frame_pocket_idx = pocket_snapshot_dict[pocket_snapshot_dict[:,1] == i]
-            for idx,ss_idx,p_idx in current_frame_pocket_idx:
+            for idx,p_idx in pocket_snapshot_dict:
                 reversed_dict[p_idx].append(idx)
             self._pockets_alpha_idx[i] = reversed_dict
+
 
     def pockets(self,snapshot_idx=0):
         """
@@ -303,18 +306,23 @@ class AS_Structure:
 
 
 
-    def calculate_contact(self,snapshot_idx=0):
+    def calculate_contact(self,snapshot_idx=None):
         """
         Calculate the contact index of the alpha cluster against the designated binder.
         The contact distance cutoff can be set in config
         :param snapshot_idx: int
         """
-        alpha_idx = self._data.snapshot_alpha_idx(snapshot_idx)
-        snapshot_cluster_coord_matrix = self._data.xyz(alpha_idx)
-        binder_coords = self.universe.binder.trajectory.xyz[snapshot_idx]
-        contact_alpha = getIfContact(snapshot_cluster_coord_matrix, binder_coords, self.config.hit_dist)[0]
-        contact_alpha_idx = alpha_idx[contact_alpha]
-        self._data[contact_alpha_idx,12] = 1
+
+        if snapshot_idx is not None:
+
+            snapshot_cluster_coord_matrix = self._data[snapshot_idx].xyz()
+            binder_coords = self.universe.binder.trajectory.xyz[snapshot_idx]
+            contact_alpha = getIfContact(snapshot_cluster_coord_matrix, binder_coords, self.config.hit_dist)[0]
+            self._data[snapshot_idx][contact_alpha,12] = 1
+
+        else:
+            for i in range(self.n_snapshots):
+                self.calculate_contact(i)
 
     # def assign_binder_contact_pocket(self,AS_Cluster,snapshot_idx):
     #     contact_matrix = AS_Cluster._get_contact_list(self.trajectory[snapshot_idx])

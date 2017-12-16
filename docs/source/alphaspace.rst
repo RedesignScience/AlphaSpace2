@@ -1,8 +1,21 @@
-alphaspace package
-==================
+Classes
+=======
 
-Submodules
-----------
+alphaspace\.AS\_Universe module
+-------------------------------
+
+.. automodule:: alphaspace.AS_Universe
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+alphaspace\.AS\_Struct module
+-----------------------------
+
+.. automodule:: alphaspace.AS_Struct
+    :members:
+    :undoc-members:
+    :show-inheritance:
 
 alphaspace\.AS\_Cluster module
 ------------------------------
@@ -20,6 +33,11 @@ alphaspace\.AS\_Config module
     :undoc-members:
     :show-inheritance:
 
+
+Functions
+=========
+
+
 alphaspace\.AS\_Funct module
 ----------------------------
 
@@ -36,27 +54,4 @@ alphaspace\.AS\_IO module
     :undoc-members:
     :show-inheritance:
 
-alphaspace\.AS\_Struct module
------------------------------
 
-.. automodule:: alphaspace.AS_Struct
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-alphaspace\.AS\_Universe module
--------------------------------
-
-.. automodule:: alphaspace.AS_Universe
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-Module contents
----------------
-
-.. automodule:: alphaspace
-    :members:
-    :undoc-members:
-    :show-inheritance:

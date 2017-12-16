@@ -96,7 +96,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../intro.html#getting-started">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../examples.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Selection.html">How to select entities in AlphaSpace</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../modules.html">alphaspace</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">API Guide</a></li>
 </ul>
 
             
@@ -408,32 +408,35 @@
 <span class="sd">        :param active_only: bool</span>
 <span class="sd">        :return: int</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">alpha_idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">snapshot_alpha_idx</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="o">=</span><span class="n">snapshot_idx</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">active_only</span><span class="p">:</span>
-            <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">is_active</span><span class="p">(</span><span class="n">alpha_idx</span><span class="p">)))</span>
+            <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span><span class="o">.</span><span class="n">is_active</span><span class="p">()))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">alpha_idx</span><span class="p">)</span></div>
+            <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">])</span></div>
 
-    <span class="k">def</span> <span class="nf">_combine_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data_list</span><span class="p">):</span>
-
-        <span class="k">assert</span> <span class="nb">type</span><span class="p">(</span><span class="n">data_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
-
-        <span class="n">data_list</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">d</span><span class="p">:</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">])</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">data_list</span><span class="p">)</span>
-        <span class="n">data</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">AS_Data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+    <span class="c1"># def _combine_data(self,data_list):</span>
+    <span class="c1">#</span>
+    <span class="c1">#     assert type(data_list[0]) == np.ndarray</span>
+    <span class="c1">#</span>
+    <span class="c1">#     data_list.sort(key = lambda d:d[0,1])</span>
+    <span class="c1">#     data = np.concatenate(data_list)</span>
+    <span class="c1">#     data[:, 0] = np.arange(0, len(data), dtype=int)</span>
+    <span class="c1">#     self._data = AS_Data(data, self)</span>
 
 
     <span class="k">def</span> <span class="nf">_gen_pockets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_pockets_alpha_idx</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="p">{}</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_frames</span><span class="p">)}</span>
-        <span class="n">pocket_snapshot_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[:,[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">13</span><span class="p">]]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pockets_alpha_idx</span> <span class="o">=</span> <span class="p">{}</span>
+
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_frames</span><span class="p">):</span>
+            <span class="n">pocket_snapshot_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">i</span><span class="p">][:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">13</span><span class="p">]]</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="n">pocket_snapshot_dict</span><span class="p">)</span>
             <span class="n">reversed_dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
-            <span class="n">current_frame_pocket_idx</span> <span class="o">=</span> <span class="n">pocket_snapshot_dict</span><span class="p">[</span><span class="n">pocket_snapshot_dict</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">i</span><span class="p">]</span>
-            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span><span class="n">ss_idx</span><span class="p">,</span><span class="n">p_idx</span> <span class="ow">in</span> <span class="n">current_frame_pocket_idx</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span><span class="n">p_idx</span> <span class="ow">in</span> <span class="n">pocket_snapshot_dict</span><span class="p">:</span>
                 <span class="n">reversed_dict</span><span class="p">[</span><span class="n">p_idx</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_pockets_alpha_idx</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">reversed_dict</span>
+
 
 <div class="viewcode-block" id="AS_Structure.pockets"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Struct.AS_Structure.pockets">[docs]</a>    <span class="k">def</span> <span class="nf">pockets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">snapshot_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -466,18 +469,23 @@
 
 
 
-<div class="viewcode-block" id="AS_Structure.calculate_contact"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Struct.AS_Structure.calculate_contact">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_contact</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">snapshot_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<div class="viewcode-block" id="AS_Structure.calculate_contact"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Struct.AS_Structure.calculate_contact">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_contact</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">snapshot_idx</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate the contact index of the alpha cluster against the designated binder.</span>
 <span class="sd">        The contact distance cutoff can be set in config</span>
 <span class="sd">        :param snapshot_idx: int</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">alpha_idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">snapshot_alpha_idx</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="p">)</span>
-        <span class="n">snapshot_cluster_coord_matrix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">xyz</span><span class="p">(</span><span class="n">alpha_idx</span><span class="p">)</span>
-        <span class="n">binder_coords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">universe</span><span class="o">.</span><span class="n">binder</span><span class="o">.</span><span class="n">trajectory</span><span class="o">.</span><span class="n">xyz</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span>
-        <span class="n">contact_alpha</span> <span class="o">=</span> <span class="n">getIfContact</span><span class="p">(</span><span class="n">snapshot_cluster_coord_matrix</span><span class="p">,</span> <span class="n">binder_coords</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">hit_dist</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">contact_alpha_idx</span> <span class="o">=</span> <span class="n">alpha_idx</span><span class="p">[</span><span class="n">contact_alpha</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">contact_alpha_idx</span><span class="p">,</span><span class="mi">12</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span></div></div>
+
+        <span class="k">if</span> <span class="n">snapshot_idx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+
+            <span class="n">snapshot_cluster_coord_matrix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span><span class="o">.</span><span class="n">xyz</span><span class="p">()</span>
+            <span class="n">binder_coords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">universe</span><span class="o">.</span><span class="n">binder</span><span class="o">.</span><span class="n">trajectory</span><span class="o">.</span><span class="n">xyz</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span>
+            <span class="n">contact_alpha</span> <span class="o">=</span> <span class="n">getIfContact</span><span class="p">(</span><span class="n">snapshot_cluster_coord_matrix</span><span class="p">,</span> <span class="n">binder_coords</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">hit_dist</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">][</span><span class="n">contact_alpha</span><span class="p">,</span><span class="mi">12</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_snapshots</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">calculate_contact</span><span class="p">(</span><span class="n">i</span><span class="p">)</span></div></div>
 
     <span class="c1"># def assign_binder_contact_pocket(self,AS_Cluster,snapshot_idx):</span>
     <span class="c1">#     contact_matrix = AS_Cluster._get_contact_list(self.trajectory[snapshot_idx])</span>

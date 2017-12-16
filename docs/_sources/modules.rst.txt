@@ -1,5 +1,5 @@
-alphaspace
-==========
+API Guide
+=========
 
 .. toctree::
    :maxdepth: 4
