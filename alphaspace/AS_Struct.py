@@ -268,7 +268,6 @@ class AS_Structure:
         for i in range(self.n_frames):
             pocket_snapshot_dict = self._data[i][:, [0,13]]
 
-            print(pocket_snapshot_dict)
             reversed_dict = defaultdict(list)
             for idx,p_idx in pocket_snapshot_dict:
                 reversed_dict[p_idx].append(idx)

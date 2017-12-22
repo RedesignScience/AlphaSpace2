@@ -88,10 +88,17 @@ class AS_Universe(object):
         self.tag = tag
 
     def __repr__(self):
-        return "Receptor of {} residues {} atoms | Binder of {} residues {} atoms".format(self.receptor.n_residues,
-                                                                                          self.receptor.n_atoms,
-                                                                                          self.binder.n_residues,
-                                                                                          self.binder.n_atoms)
+        rec_res = self.receptor.n_residues if self.receptor else 0
+        rec_atm = self.receptor.n_atoms if self.receptor else 0
+        bind_res = self.receptor.n_residues if self.binder else 0
+        bind_atm = self.receptor.n_atoms if self.binder else 0
+
+
+
+        return "Receptor of {} residues {} atoms | Binder of {} residues {} atoms".format(rec_res,
+                                                                                          rec_atm,
+                                                                                          bind_res,
+                                                                                          bind_atm)
 
     @property
     def data(self):
@@ -347,7 +354,6 @@ class AS_Universe(object):
         self.communities = {}
         self._pocket_network = {}
         for snapshot_idx in self.snapshots_indices:
-            print(snapshot_idx)
             pocket_graph = networkx.Graph()
             pocket_graph.add_nodes_from(self.pockets(snapshot_idx, active_only=False))
 
@@ -466,9 +472,9 @@ class AS_Universe(object):
                     for cp in network[p]:
                         cp._connected = True
 
-        for i, pockets in self._d_pockets.items():
-            if i not in core_d_pockets:
-                print(len([True for p in pockets if p._connected]))
+        # for i, pockets in self._d_pockets.items():
+        #     if i not in core_d_pockets:
+        #         print(len([True for p in pockets if p._connected]))
 
     """
     Visualization methods

@@ -174,7 +174,7 @@
 <span class="kn">import</span> <span class="nn">multiprocessing</span> <span class="k">as</span> <span class="nn">mp</span>
 
 
-<span class="k">class</span> <span class="nc">_Consumer</span><span class="p">(</span><span class="n">mp</span><span class="o">.</span><span class="n">Process</span><span class="p">):</span>
+<div class="viewcode-block" id="Consumer"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Funct.Consumer">[docs]</a><span class="k">class</span> <span class="nc">Consumer</span><span class="p">(</span><span class="n">mp</span><span class="o">.</span><span class="n">Process</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Consumer for multiprocessing</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -184,7 +184,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">task_queue</span> <span class="o">=</span> <span class="n">task_queue</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">result_queue</span> <span class="o">=</span> <span class="n">result_queue</span>
 
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Consumer.run"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Funct.Consumer.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
             <span class="n">next_task</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">task_queue</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">next_task</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -194,33 +195,7 @@
             <span class="n">answer</span> <span class="o">=</span> <span class="n">next_task</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">task_queue</span><span class="o">.</span><span class="n">task_done</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">result_queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">answer</span><span class="p">)</span>
-        <span class="k">return</span>
-
-
-<span class="k">class</span> <span class="nc">_Task</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">receptor_xyz</span><span class="p">,</span>
-                 <span class="n">binder_xyz</span><span class="p">,</span>
-                 <span class="n">atom_radii</span><span class="p">,</span>
-                 <span class="n">is_polar</span><span class="p">,</span>
-                 <span class="n">config</span><span class="p">,</span>
-                 <span class="n">snapshot_idx</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">snapshot_idx</span> <span class="o">=</span> <span class="n">snapshot_idx</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">is_polar</span> <span class="o">=</span> <span class="n">is_polar</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">atom_radii</span> <span class="o">=</span> <span class="n">atom_radii</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">binder_xyz</span> <span class="o">=</span> <span class="n">binder_xyz</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">receptor_xyz</span> <span class="o">=</span> <span class="n">receptor_xyz</span>
-
-    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">_tessellation</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">snapshot_idx</span><span class="p">,</span>
-                             <span class="n">config</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span>
-                             <span class="n">is_polar</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">is_polar</span><span class="p">,</span>
-                             <span class="n">atom_radii</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">atom_radii</span><span class="p">,</span>
-                             <span class="n">binder_xyz</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">binder_xyz</span><span class="p">,</span>
-                             <span class="n">receptor_xyz</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">receptor_xyz</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">+1 snapshot processing&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">snapshot_idx</span><span class="p">)</span>
+        <span class="k">return</span></div></div>
 
 
 <div class="viewcode-block" id="Task"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Funct.Task">[docs]</a><span class="k">class</span> <span class="nc">Task</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -548,7 +523,7 @@
     <span class="n">is_active</span> <span class="o">=</span> <span class="n">is_contact</span> <span class="k">if</span> <span class="n">config</span><span class="o">.</span><span class="n">screen_by_lig_cntct</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">alpha_pocket_index</span><span class="p">)</span>
 
     <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">range</span><span class="p">(</span><span class="n">alpha_pocket_index</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])])</span><span class="o">.</span><span class="n">transpose</span><span class="p">(),</span>  <span class="c1"># 0         idx</span>
-                           <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">alpha_pocket_index</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">),</span> <span class="n">snapshot_idx</span><span class="p">),</span>  <span class="c1"># 1         snapshot_idx</span>
+                           <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">alpha_pocket_index</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">),</span> <span class="n">snapshot_idx</span><span class="p">,</span><span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">),</span>  <span class="c1"># 1         snapshot_idx</span>
                            <span class="n">filtered_alpha_xyz</span><span class="p">,</span>  <span class="c1"># 2 3 4     x y z</span>
                            <span class="n">alpha_lining</span><span class="p">,</span>  <span class="c1"># 5 6 7 8   lining_atom_idx_1 - 4</span>
                            <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">_polar_space</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>  <span class="c1"># 9         polar_space 0</span>
@@ -574,7 +549,7 @@
 
     <span class="c1"># Start consumers</span>
     <span class="n">num_consumers</span> <span class="o">=</span> <span class="n">cpu</span> <span class="k">if</span> <span class="n">cpu</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">mp</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span>
-    <span class="n">consumers</span> <span class="o">=</span> <span class="p">[</span><span class="n">_Consumer</span><span class="p">(</span><span class="n">tasks</span><span class="p">,</span> <span class="n">results</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_consumers</span><span class="p">)]</span>
+    <span class="n">consumers</span> <span class="o">=</span> <span class="p">[</span><span class="n">Consumer</span><span class="p">(</span><span class="n">tasks</span><span class="p">,</span> <span class="n">results</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_consumers</span><span class="p">)]</span>
 
     <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">consumers</span><span class="p">:</span>
         <span class="n">w</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
@@ -583,18 +558,13 @@
 
     <span class="n">atom_radii</span> <span class="o">=</span> <span class="p">[</span><span class="n">_ATOMIC_RADII</span><span class="p">[</span><span class="n">atom</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">symbol</span><span class="p">]</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">universe</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">top</span><span class="o">.</span><span class="n">atoms</span><span class="p">]</span>
     <span class="n">is_polar</span> <span class="o">=</span> <span class="n">universe</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">is_polar</span>
+
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">universe</span><span class="o">.</span><span class="n">n_frames</span><span class="p">):</span>
         <span class="n">receptor_xyz</span> <span class="o">=</span> <span class="n">universe</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">traj</span><span class="o">.</span><span class="n">xyz</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">universe</span><span class="o">.</span><span class="n">binder</span><span class="p">:</span>
             <span class="n">binder_xyz</span> <span class="o">=</span> <span class="n">universe</span><span class="o">.</span><span class="n">binder</span><span class="o">.</span><span class="n">traj</span><span class="o">.</span><span class="n">xyz</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">binder_xyz</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="c1"># tasks.put(_Task(receptor_xyz=receptor_xyz,</span>
-        <span class="c1">#                 binder_xyz=binder_xyz,</span>
-        <span class="c1">#                 atom_radii=atom_radii,</span>
-        <span class="c1">#                 snapshot_idx=i,</span>
-        <span class="c1">#                 is_polar=is_polar,</span>
-        <span class="c1">#                 config=universe.config))</span>
 
         <span class="n">tasks</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">Task</span><span class="p">(</span><span class="n">_tessellation</span><span class="p">,</span>
                        <span class="n">receptor_xyz</span><span class="o">=</span><span class="n">receptor_xyz</span><span class="p">,</span>
@@ -610,9 +580,11 @@
 
     <span class="c1"># Wait for all of the tasks to finish</span>
     <span class="n">tasks</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
+
     <span class="n">num_jobs</span> <span class="o">=</span> <span class="n">universe</span><span class="o">.</span><span class="n">n_frames</span>
     <span class="c1"># Start printing results</span>
     <span class="n">data_list</span> <span class="o">=</span> <span class="p">{}</span>
+
     <span class="k">while</span> <span class="n">num_jobs</span><span class="p">:</span>
         <span class="n">ss</span> <span class="o">=</span> <span class="n">AS_Snapshot</span><span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
         <span class="n">data_list</span><span class="p">[</span><span class="n">ss</span><span class="o">.</span><span class="n">snapshot_idx</span><span class="p">()]</span> <span class="o">=</span> <span class="n">ss</span>
@@ -641,7 +613,6 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">top</span> <span class="o">=</span> <span class="n">traj</span><span class="o">.</span><span class="n">top</span>
-    <span class="n">residues</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">if</span> <span class="n">residue_numbers</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">residue_names</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">residue_names</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
             <span class="n">residue_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">residue_names</span><span class="p">]</span>
@@ -668,6 +639,7 @@
     <span class="k">if</span> <span class="n">clip</span><span class="p">:</span>
         <span class="n">traj</span><span class="o">.</span><span class="n">atom_slice</span><span class="p">(</span><span class="n">kept_atom_idx</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">extracted_traj</span></div>
+
 </pre></div>
 
            </div>

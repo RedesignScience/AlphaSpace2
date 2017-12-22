@@ -11,7 +11,7 @@ from alphaspace.AS_Cluster import AS_Data,AS_Snapshot
 import multiprocessing as mp
 
 
-class _Consumer(mp.Process):
+class Consumer(mp.Process):
     """
     Consumer for multiprocessing
     """
@@ -22,6 +22,7 @@ class _Consumer(mp.Process):
         self.result_queue = result_queue
 
     def run(self):
+
         while True:
             next_task = self.task_queue.get()
             if next_task is None:
@@ -32,32 +33,6 @@ class _Consumer(mp.Process):
             self.task_queue.task_done()
             self.result_queue.put(answer)
         return
-
-
-class _Task(object):
-    def __init__(self, receptor_xyz,
-                 binder_xyz,
-                 atom_radii,
-                 is_polar,
-                 config,
-                 snapshot_idx):
-        self.snapshot_idx = snapshot_idx
-        self.config = config
-        self.is_polar = is_polar
-        self.atom_radii = atom_radii
-        self.binder_xyz = binder_xyz
-        self.receptor_xyz = receptor_xyz
-
-    def __call__(self):
-        return _tessellation(snapshot_idx=self.snapshot_idx,
-                             config=self.config,
-                             is_polar=self.is_polar,
-                             atom_radii=self.atom_radii,
-                             binder_xyz=self.binder_xyz,
-                             receptor_xyz=self.receptor_xyz)
-
-    def __str__(self):
-        return '{}+1 snapshot processing'.format(self.snapshot_idx)
 
 
 class Task(object):
@@ -385,7 +360,7 @@ def _tessellation(**kwargs):
     is_active = is_contact if config.screen_by_lig_cntct else np.zeros_like(alpha_pocket_index)
 
     data = np.concatenate((np.array([range(alpha_pocket_index.shape[0])]).transpose(),  # 0         idx
-                           np.full((alpha_pocket_index.shape[0], 1), snapshot_idx),  # 1         snapshot_idx
+                           np.full((alpha_pocket_index.shape[0], 1), snapshot_idx,dtype=int),  # 1         snapshot_idx
                            filtered_alpha_xyz,  # 2 3 4     x y z
                            alpha_lining,  # 5 6 7 8   lining_atom_idx_1 - 4
                            np.expand_dims(_polar_space, axis=1),  # 9         polar_space 0
@@ -411,7 +386,7 @@ def _tessellation_mp(universe, cpu=None):
 
     # Start consumers
     num_consumers = cpu if cpu is not None else mp.cpu_count()
-    consumers = [_Consumer(tasks, results) for _ in range(num_consumers)]
+    consumers = [Consumer(tasks, results) for _ in range(num_consumers)]
 
     for w in consumers:
         w.start()
@@ -420,18 +395,13 @@ def _tessellation_mp(universe, cpu=None):
 
     atom_radii = [_ATOMIC_RADII[atom.element.symbol] for atom in universe.receptor.top.atoms]
     is_polar = universe.receptor.is_polar
+
     for i in range(universe.n_frames):
         receptor_xyz = universe.receptor.traj.xyz[i]
         if universe.binder:
             binder_xyz = universe.binder.traj.xyz[i]
         else:
             binder_xyz = None
-        # tasks.put(_Task(receptor_xyz=receptor_xyz,
-        #                 binder_xyz=binder_xyz,
-        #                 atom_radii=atom_radii,
-        #                 snapshot_idx=i,
-        #                 is_polar=is_polar,
-        #                 config=universe.config))
 
         tasks.put(Task(_tessellation,
                        receptor_xyz=receptor_xyz,
@@ -447,9 +417,11 @@ def _tessellation_mp(universe, cpu=None):
 
     # Wait for all of the tasks to finish
     tasks.join()
+
     num_jobs = universe.n_frames
     # Start printing results
     data_list = {}
+
     while num_jobs:
         ss = AS_Snapshot(results.get())
         data_list[ss.snapshot_idx()] = ss
@@ -478,7 +450,6 @@ def extractResidue(traj, residue_numbers=None, residue_names=None, clip=True):
     """
 
     top = traj.top
-    residues = []
     if residue_numbers is None and residue_names is not None:
         if type(residue_names) is str:
             residue_names = [residue_names]
@@ -505,3 +476,4 @@ def extractResidue(traj, residue_numbers=None, residue_names=None, clip=True):
     if clip:
         traj.atom_slice(kept_atom_idx, inplace=True)
     return extracted_traj
+

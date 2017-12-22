@@ -2,14 +2,20 @@
 This file contains the container classes for cluster based objects.
 
 AS_Data: A numpy.ndarray inheritance that stores and enumerates data
+
 AS_Pocket: A mask container for pocket information, gets data from AS_Data
+
 AS_AlphaAtom: A mast container for alpha atom, gets data from AS_Data
+
 AS_BetaATOM: same as alpha atom
+
 """
 import math
 
 import numpy as np
 from scipy.cluster.hierarchy import linkage, fcluster
+
+import alphaspace
 
 ASDATA_idx = 0
 ASDATA_snapshot_idx = 1
@@ -70,7 +76,6 @@ class AS_Snapshot(np.ndarray):
         """
         return self[np.array(idx), 0]
 
-
     def snapshot_idx(self):
         """
         Get the snapshot_index
@@ -105,9 +110,9 @@ class AS_Snapshot(np.ndarray):
     def lining_atoms_idx(self, idx):
         return np.array(self[np.array(idx, dtype=int), 5:9], dtype=int)
 
-    def is_active(self, idx = None):
+    def is_active(self, idx=None):
         if idx is None:
-            return self[:,11]
+            return self[:, 11]
         else:
             return self[np.array(idx), 11]
 
@@ -149,8 +154,9 @@ class AS_Snapshot(np.ndarray):
     def lining_atom_asa(self, idx):
         return self[idx, 17]
 
+
 class AS_Data():
-    def __init__(self, data_dict, parent_structure = None):
+    def __init__(self, data_dict, parent_structure=None):
         self.parent_structure = parent_structure
         self.data_dict = data_dict
 
@@ -177,7 +183,7 @@ class AS_Data():
         """
         return self[snapshot_idx]
 
-    def xyz(self, alpha_idx,snapshot_idx):
+    def xyz(self, alpha_idx, snapshot_idx):
         """
         Get the coordinate of an entry
         :param alpha_idx: int or numpy.array or None
@@ -186,8 +192,7 @@ class AS_Data():
 
         return self[snapshot_idx].xyz(alpha_idx)
 
-
-    def get_polar_space(self, alpha_idx,snapshot_idx):
+    def get_polar_space(self, alpha_idx, snapshot_idx):
         """
         get the polar space value of a given entry
         :param idx:  int or numpy.array
@@ -196,73 +201,87 @@ class AS_Data():
         """
         return self[snapshot_idx].get_polar_space(alpha_idx)
 
-
-
-    def get_nonpolar_space(self, alpha_idx,snapshot_idx):
+    def get_nonpolar_space(self, alpha_idx, snapshot_idx):
         return self[snapshot_idx].get_nonpolar_space(alpha_idx)
 
-
-    def lining_atoms_idx(self, alpha_idx,snapshot_idx):
+    def lining_atoms_idx(self, alpha_idx, snapshot_idx):
         return self[snapshot_idx].lining_atoms_idx(alpha_idx)
 
-    def is_active(self, alpha_idx,snapshot_idx):
+    def is_active(self, alpha_idx, snapshot_idx):
         return self[snapshot_idx].is_active(alpha_idx)
 
-    def is_contact(self, alpha_idx,snapshot_idx):
+    def is_contact(self, alpha_idx, snapshot_idx):
         return self[snapshot_idx].xyz(alpha_idx)
 
-    def pocket(self, alpha_idx,snapshot_idx):
+    def pocket(self, alpha_idx, snapshot_idx):
         return self[snapshot_idx].pocket(alpha_idx)
 
     def snapshot_alpha_idx(self, snapshot_idx=0):
         return self[snapshot_idx].snapshot_alpha_idx()
 
-    def radii(self, alpha_idx,snapshot_idx):
+    def radii(self, alpha_idx, snapshot_idx):
         return self[snapshot_idx].radii(alpha_idx)
 
-    def activate(self, alpha_idx,snapshot_idx):
+    def activate(self, alpha_idx, snapshot_idx):
         self[snapshot_idx].activate(alpha_idx)
 
-    def deactivate(self, alpha_idx,snapshot_idx):
+    def deactivate(self, alpha_idx, snapshot_idx):
         self[snapshot_idx].deactivate(alpha_idx)
 
-    def get_closest_atom_idx(self, alpha_idx,snapshot_idx):
+    def get_closest_atom_idx(self, alpha_idx, snapshot_idx):
         return self[snapshot_idx].get_closest_atom_idx(alpha_idx)
 
-    def get_closest_atom_dist(self, alpha_idx,snapshot_idx):
+    def get_closest_atom_dist(self, alpha_idx, snapshot_idx):
         return self[snapshot_idx].get_closest_atom_idx(alpha_idx)
 
     def set_closest_atom(self, alpha_idx, values, snapshot_idx):
         assert len(alpha_idx) == len(values)
         self[snapshot_idx].set_closest_atom(alpha_idx, values)
 
-    def lining_atom_asa(self, alpha_idx,snapshot_idx):
+    def lining_atom_asa(self, alpha_idx, snapshot_idx):
         return self[snapshot_idx].lining_atom_asa(alpha_idx)
-
-
-
-
 
 
 class AS_AlphaAtom:
     """
     This is the alpha atom container, which is the constituents of the pocket object.
+
     This object only contains reference of alpha atom id, and all info is stored in the array you can access by methods.
     """
 
-    def __init__(self, idx,snapshot_idx, parent_structure, parent_pocket=None):
+    def __init__(self, idx, snapshot_idx, parent_structure, parent_pocket=None):
+        """
+
+        Parameters
+        ----------
+        idx: int
+        snapshot_idx: int
+        parent_structure : AS_Struct
+        parent_pocket: AS_Pocket or None
+        """
         self._idx = idx
         self._snapshot_idx = snapshot_idx
         self.parent_structure = parent_structure
         self.parent_pocket = parent_pocket
 
     def __repr__(self):
-        return "AlphaAtom #{} in Snapshot {}".format(self._idx,self.snapshot_idx)
+        return "AlphaAtom #{} in Snapshot {}".format(self._idx, self.snapshot_idx)
 
     def __bool__(self):
         return self.is_active
 
     def __sub__(self, other):
+        """
+        Use subtraction to get the distance between two alpha atoms
+
+        Parameters
+        ----------
+        other : AS_AlphaAtom
+
+        Returns
+        -------
+        distance : float
+        """
         return np.linalg.norm(self.xyz - other.xyz)
 
     @property
@@ -271,54 +290,160 @@ class AS_AlphaAtom:
 
     @property
     def is_active(self):
-        return bool(self._data.is_active(self.idx,self.snapshot_idx))
+        """
+        See if this alpha atom is activated, default is based on screening threshold.
+
+        Returns
+        -------
+        bool
+
+        """
+        return bool(self._data.is_active(self.idx, self.snapshot_idx))
 
     @property
     def idx(self):
+        """
+        Get the index
+
+        Returns
+        -------
+        index : int
+        """
         return self._idx
+
     @property
     def snapshot_idx(self):
+        """
+        Get the parent snapshot index
+
+        Returns
+        -------
+
+        snapshot_idx: float
+
+        """
         return self._snapshot_idx
 
     @property
     def xyz(self):
-        return self._data.xyz(self._idx,self.snapshot_idx)
+        """
+
+        Returns
+        -------
+
+        xyz : np.ndarray
+            size 3
+
+        """
+        return self._data.xyz(self._idx, self.snapshot_idx)
 
     @property
     def polar_space(self):
-        return self._data.get_polar_space(self._idx,self.snapshot_idx)
+        """
+
+        Returns
+        -------
+        float
+
+        """
+        return self._data.get_polar_space(self._idx, self.snapshot_idx)
 
     @property
     def nonpolar_space(self):
-        return self._data.get_nonpolar_space(self._idx,self.snapshot_idx)
+        """
+
+        Returns
+        -------
+        float
+
+        """
+        return self._data.get_nonpolar_space(self._idx, self.snapshot_idx)
 
     @property
     def space(self):
+        """
+
+        Returns
+        -------
+        space : float
+
+
+        """
         return self.polar_space + self.nonpolar_space
 
     @property
     def lining_atoms_idx(self):
-        return self._data.lining_atoms_idx(self._idx,self.snapshot_idx)
+        """
+        Get the atom index of all the lining atoms. Each alpha atom has four lining atoms.
+
+
+        Returns
+        -------
+
+        indices : np.ndarray
+            size (4)
+
+        """
+        return self._data.lining_atoms_idx(self._idx, self.snapshot_idx)
 
     @property
     def is_contact(self) -> bool:
-        return bool(self._data.is_contact(self._idx,self.snapshot_idx))
+        """
+        Check if it's in contact with any binder atoms
+
+        Returns
+        -------
+
+        bool
+
+        """
+        return bool(self._data.is_contact(self._idx, self.snapshot_idx))
 
     @property
     def lining_atom_asa(self):
-        return float(self._data.lining_atoms_idx(self._idx,self.snapshot_idx))
+        """
+        Get total lining atom solvent accessible area
+
+        Returns
+        -------
+        ASA : float
+        """
+
+        return float(self._data.lining_atoms_idx(self._idx, self.snapshot_idx))
 
     @property
     def is_solvated(self):
+        """
+        If the lining atom can be solvated,
+        True if lining_atom_asa > 0
+
+        Returns
+        -------
+        bool
+
+        """
         return self.lining_atom_asa > 0
 
     @property
     def closest_atom_idx(self):
-        return self._data.get_closest_atom_idx(self._idx,self.snapshot_idx)
+        """
+
+        Returns
+        -------
+        index : np.array
+
+        """
+        return self._data.get_closest_atom_idx(self._idx, self.snapshot_idx)
 
     @property
     def closest_atom_dist(self):
-        return self._data.get_closest_atom_dist(self._idx,self.snapshot_idx)
+        """
+
+        Returns
+        -------
+        distance to closest atom : float
+        """
+        return self._data.get_closest_atom_dist(self._idx, self.snapshot_idx)
 
 
 # noinspection PyTypeChecker
@@ -364,7 +489,7 @@ class AS_Pocket:
         Returns
         -------
 
-        int
+        snapshot_idx : int
             The index of snapshot this pocket in located
 
         """
@@ -383,7 +508,6 @@ class AS_Pocket:
         """
         self._contact_pockets.add(other.index)
         other._contact_pockets.add(self.index)
-
 
     @property
     def index(self):
@@ -445,10 +569,8 @@ class AS_Pocket:
         else:
             return False
 
-
     def __ne__(self, other):
         return not self.__eq__(other)
-
 
     def __len__(self) -> int:
         """
@@ -456,7 +578,6 @@ class AS_Pocket:
 
         Returns
         -------
-
         int
         """
         return len(self._alpha_idx)
@@ -543,6 +664,18 @@ class AS_Pocket:
 
     @property
     def xyz(self) -> np.ndarray:
+        """
+        Get the coordinates for all alphas
+        Returns
+        -------
+
+        xyz : np.ndarray
+            shape (n, 3) for n alpha atoms
+
+        See Also
+        --------
+        centroid : get the centroid of all alpha atoms in the pocket.
+        """
         return self._data.xyz(self.alpha_idx)
 
     @property
@@ -576,14 +709,38 @@ class AS_Pocket:
 
     @property
     def color(self):
+        """
+        Get the color for visualization
+
+        Returns
+        -------
+
+        color_name : str
+        """
         return self.parent_structure.config.color_name(self._idx)
 
     @property
     def is_contact(self):
+        """
+
+        Returns
+        -------
+
+        bool
+        """
         return np.any(self.contacts)
 
     @property
     def occupancy(self):
+        """
+        Get the percentage of alpha atoms in contact with binder.
+
+        Returns
+        -------
+        occupancy : float
+            0 if there is no binder
+
+        """
         if self.is_contact:
             return float(self.get_space(contact_only=True, space_type='ALL') / self.get_space(contact_only=False,
                                                                                               space_type='ALL'))
@@ -647,6 +804,23 @@ class AS_Pocket:
 
     @property
     def betas(self):
+        # noinspection PyUnresolvedReferences
+        """
+        Gives iterator for beta atoms.
+
+        Examples
+        --------
+
+        >>> universe = AS_Universe()
+        >>> for pocket in universe.pockets(snapshot_idx=0):
+        >>>     for beta in pocket.betas:
+        >>>         print(beta.xyz)
+
+        Yields
+        ------
+        beta atom : AS_BetaAtom
+
+        """
         if len(self) > 1:
             zmat = linkage(self.xyz, method='average')
             beta_cluster_idx = fcluster(zmat, self.config.beta_clust_cutoff / 10, criterion='distance') - 1
@@ -660,6 +834,14 @@ class AS_Pocket:
 
     @property
     def centroid(self):
+        """
+
+        Returns
+        -------
+
+        centroid : np.ndarray
+            shape = (3,)
+        """
         return np.average(self.xyz, axis=0)
 
     @property
@@ -672,6 +854,16 @@ class AS_Pocket:
             return 'core'
 
     def union(self, other) -> set:
+        """
+
+        Parameters
+        ----------
+        other
+
+        Returns
+        -------
+
+        """
         return set(self.lining_atoms_idx).union(set(other.lining_atoms_idx))
 
     def intersection(self, other) -> set:
@@ -682,30 +874,92 @@ class AS_Pocket:
 
 
 class AS_BetaAtom:
-    def __init__(self, alpha_idx_in_pocket: list, pocket: AS_Pocket):
+    """
+    This is the container for Beta atom, which is simply a collection of alpha atoms.
+
+    It belongs to the AS_Pocket object.
+    """
+
+    def __init__(self, alpha_idx_in_pocket, pocket: AS_Pocket):
+        """
+        Parameters
+        ----------
+        alpha_idx_in_pocket : list
+        pocket : AS_Pocket
+        """
         self._pocket = pocket
         self._alpha_idx_in_pocket = alpha_idx_in_pocket
         self.alpha_idx = pocket.alpha_idx[alpha_idx_in_pocket]
 
+    def __repr__(self):
+        return "Beta atom with {} space".format(self.space)
+
     @property
     def xyz(self):
+        """
+        Gets a list of all alpha atom coordinates
+
+        Returns
+        -------
+
+        coordinates : np.ndarray
+            shape = (n,3) for n alpha atoms
+
+        """
+
         return self.pocket.xyz[self._alpha_idx_in_pocket]
 
     @property
     def centroid(self):
+        """
+        Gets the centroid of this beta atom
+
+
+        Returns
+        -------
+
+        centroid coordinate : np.ndarray
+            shape = (3,)
+        """
         return np.average(self.xyz, axis=0)
 
     @property
     def alphas(self):
+        """
+        Generate alpha atom objects
+
+        Yields
+        ------
+        child AlphaAtom : AS_AlphaAtom
+
+        """
         for alpha_idx in self.alpha_idx:
             yield AS_AlphaAtom(idx=alpha_idx, parent_structure=self.pocket.parent_structure, parent_pocket=self.pocket)
 
     @property
     def pocket(self):
+        """
+        Get the parent pocket
+
+        Returns
+        -------
+        parent_pocket : AS_Pocket
+
+        """
+
         return self._pocket
 
     @property
     def space(self):
+        """
+        Total space of all alphas
+
+        Returns
+        -------
+
+        total_space : float
+
+        """
         return np.sum([alpha.space for alpha in self.alphas])
 
 

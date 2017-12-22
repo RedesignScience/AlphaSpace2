@@ -165,14 +165,20 @@
 <span class="sd">This file contains the container classes for cluster based objects.</span>
 
 <span class="sd">AS_Data: A numpy.ndarray inheritance that stores and enumerates data</span>
+
 <span class="sd">AS_Pocket: A mask container for pocket information, gets data from AS_Data</span>
+
 <span class="sd">AS_AlphaAtom: A mast container for alpha atom, gets data from AS_Data</span>
+
 <span class="sd">AS_BetaATOM: same as alpha atom</span>
+
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">math</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">scipy.cluster.hierarchy</span> <span class="k">import</span> <span class="n">linkage</span><span class="p">,</span> <span class="n">fcluster</span>
+
+<span class="kn">import</span> <span class="nn">alphaspace</span>
 
 <span class="n">ASDATA_idx</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="n">ASDATA_snapshot_idx</span> <span class="o">=</span> <span class="mi">1</span>
@@ -233,7 +239,6 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">idx</span><span class="p">),</span> <span class="mi">0</span><span class="p">]</span></div>
 
-
 <div class="viewcode-block" id="AS_Snapshot.snapshot_idx"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Snapshot.snapshot_idx">[docs]</a>    <span class="k">def</span> <span class="nf">snapshot_idx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get the snapshot_index</span>
@@ -268,9 +273,9 @@
 <div class="viewcode-block" id="AS_Snapshot.lining_atoms_idx"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Snapshot.lining_atoms_idx">[docs]</a>    <span class="k">def</span> <span class="nf">lining_atoms_idx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">),</span> <span class="mi">5</span><span class="p">:</span><span class="mi">9</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="AS_Snapshot.is_active"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Snapshot.is_active">[docs]</a>    <span class="k">def</span> <span class="nf">is_active</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="AS_Snapshot.is_active"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Snapshot.is_active">[docs]</a>    <span class="k">def</span> <span class="nf">is_active</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">idx</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="p">[:,</span><span class="mi">11</span><span class="p">]</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="p">[:,</span> <span class="mi">11</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">idx</span><span class="p">),</span> <span class="mi">11</span><span class="p">]</span></div>
 
@@ -312,8 +317,9 @@
 <div class="viewcode-block" id="AS_Snapshot.lining_atom_asa"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Snapshot.lining_atom_asa">[docs]</a>    <span class="k">def</span> <span class="nf">lining_atom_asa</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">17</span><span class="p">]</span></div></div>
 
+
 <div class="viewcode-block" id="AS_Data"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Data">[docs]</a><span class="k">class</span> <span class="nc">AS_Data</span><span class="p">():</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_dict</span><span class="p">,</span> <span class="n">parent_structure</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_dict</span><span class="p">,</span> <span class="n">parent_structure</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">parent_structure</span> <span class="o">=</span> <span class="n">parent_structure</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data_dict</span> <span class="o">=</span> <span class="n">data_dict</span>
 
@@ -340,7 +346,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="AS_Data.xyz"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Data.xyz">[docs]</a>    <span class="k">def</span> <span class="nf">xyz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_idx</span><span class="p">,</span><span class="n">snapshot_idx</span><span class="p">):</span>
+<div class="viewcode-block" id="AS_Data.xyz"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Data.xyz">[docs]</a>    <span class="k">def</span> <span class="nf">xyz</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_idx</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get the coordinate of an entry</span>
 <span class="sd">        :param alpha_idx: int or numpy.array or None</span>
@@ -349,8 +355,7 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span><span class="o">.</span><span class="n">xyz</span><span class="p">(</span><span class="n">alpha_idx</span><span class="p">)</span></div>
 
-
-<div class="viewcode-block" id="AS_Data.get_polar_space"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Data.get_polar_space">[docs]</a>    <span class="k">def</span> <span class="nf">get_polar_space</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_idx</span><span class="p">,</span><span class="n">snapshot_idx</span><span class="p">):</span>
+<div class="viewcode-block" id="AS_Data.get_polar_space"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Data.get_polar_space">[docs]</a>    <span class="k">def</span> <span class="nf">get_polar_space</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_idx</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        get the polar space value of a given entry</span>
 <span class="sd">        :param idx:  int or numpy.array</span>
@@ -359,73 +364,87 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span><span class="o">.</span><span class="n">get_polar_space</span><span class="p">(</span><span class="n">alpha_idx</span><span class="p">)</span></div>
 
-
-
-<div class="viewcode-block" id="AS_Data.get_nonpolar_space"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Data.get_nonpolar_space">[docs]</a>    <span class="k">def</span> <span class="nf">get_nonpolar_space</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_idx</span><span class="p">,</span><span class="n">snapshot_idx</span><span class="p">):</span>
+<div class="viewcode-block" id="AS_Data.get_nonpolar_space"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Data.get_nonpolar_space">[docs]</a>    <span class="k">def</span> <span class="nf">get_nonpolar_space</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_idx</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span><span class="o">.</span><span class="n">get_nonpolar_space</span><span class="p">(</span><span class="n">alpha_idx</span><span class="p">)</span></div>
 
-
-<div class="viewcode-block" id="AS_Data.lining_atoms_idx"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Data.lining_atoms_idx">[docs]</a>    <span class="k">def</span> <span class="nf">lining_atoms_idx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_idx</span><span class="p">,</span><span class="n">snapshot_idx</span><span class="p">):</span>
+<div class="viewcode-block" id="AS_Data.lining_atoms_idx"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Data.lining_atoms_idx">[docs]</a>    <span class="k">def</span> <span class="nf">lining_atoms_idx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_idx</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span><span class="o">.</span><span class="n">lining_atoms_idx</span><span class="p">(</span><span class="n">alpha_idx</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="AS_Data.is_active"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Data.is_active">[docs]</a>    <span class="k">def</span> <span class="nf">is_active</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_idx</span><span class="p">,</span><span class="n">snapshot_idx</span><span class="p">):</span>
+<div class="viewcode-block" id="AS_Data.is_active"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Data.is_active">[docs]</a>    <span class="k">def</span> <span class="nf">is_active</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_idx</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span><span class="o">.</span><span class="n">is_active</span><span class="p">(</span><span class="n">alpha_idx</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="AS_Data.is_contact"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Data.is_contact">[docs]</a>    <span class="k">def</span> <span class="nf">is_contact</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_idx</span><span class="p">,</span><span class="n">snapshot_idx</span><span class="p">):</span>
+<div class="viewcode-block" id="AS_Data.is_contact"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Data.is_contact">[docs]</a>    <span class="k">def</span> <span class="nf">is_contact</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_idx</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span><span class="o">.</span><span class="n">xyz</span><span class="p">(</span><span class="n">alpha_idx</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="AS_Data.pocket"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Data.pocket">[docs]</a>    <span class="k">def</span> <span class="nf">pocket</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_idx</span><span class="p">,</span><span class="n">snapshot_idx</span><span class="p">):</span>
+<div class="viewcode-block" id="AS_Data.pocket"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Data.pocket">[docs]</a>    <span class="k">def</span> <span class="nf">pocket</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_idx</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span><span class="o">.</span><span class="n">pocket</span><span class="p">(</span><span class="n">alpha_idx</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="AS_Data.snapshot_alpha_idx"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Data.snapshot_alpha_idx">[docs]</a>    <span class="k">def</span> <span class="nf">snapshot_alpha_idx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span><span class="o">.</span><span class="n">snapshot_alpha_idx</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="AS_Data.radii"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Data.radii">[docs]</a>    <span class="k">def</span> <span class="nf">radii</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_idx</span><span class="p">,</span><span class="n">snapshot_idx</span><span class="p">):</span>
+<div class="viewcode-block" id="AS_Data.radii"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Data.radii">[docs]</a>    <span class="k">def</span> <span class="nf">radii</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_idx</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span><span class="o">.</span><span class="n">radii</span><span class="p">(</span><span class="n">alpha_idx</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="AS_Data.activate"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Data.activate">[docs]</a>    <span class="k">def</span> <span class="nf">activate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_idx</span><span class="p">,</span><span class="n">snapshot_idx</span><span class="p">):</span>
+<div class="viewcode-block" id="AS_Data.activate"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Data.activate">[docs]</a>    <span class="k">def</span> <span class="nf">activate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_idx</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="p">):</span>
         <span class="bp">self</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span><span class="o">.</span><span class="n">activate</span><span class="p">(</span><span class="n">alpha_idx</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="AS_Data.deactivate"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Data.deactivate">[docs]</a>    <span class="k">def</span> <span class="nf">deactivate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_idx</span><span class="p">,</span><span class="n">snapshot_idx</span><span class="p">):</span>
+<div class="viewcode-block" id="AS_Data.deactivate"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Data.deactivate">[docs]</a>    <span class="k">def</span> <span class="nf">deactivate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_idx</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="p">):</span>
         <span class="bp">self</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span><span class="o">.</span><span class="n">deactivate</span><span class="p">(</span><span class="n">alpha_idx</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="AS_Data.get_closest_atom_idx"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Data.get_closest_atom_idx">[docs]</a>    <span class="k">def</span> <span class="nf">get_closest_atom_idx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_idx</span><span class="p">,</span><span class="n">snapshot_idx</span><span class="p">):</span>
+<div class="viewcode-block" id="AS_Data.get_closest_atom_idx"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Data.get_closest_atom_idx">[docs]</a>    <span class="k">def</span> <span class="nf">get_closest_atom_idx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_idx</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span><span class="o">.</span><span class="n">get_closest_atom_idx</span><span class="p">(</span><span class="n">alpha_idx</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="AS_Data.get_closest_atom_dist"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Data.get_closest_atom_dist">[docs]</a>    <span class="k">def</span> <span class="nf">get_closest_atom_dist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_idx</span><span class="p">,</span><span class="n">snapshot_idx</span><span class="p">):</span>
+<div class="viewcode-block" id="AS_Data.get_closest_atom_dist"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Data.get_closest_atom_dist">[docs]</a>    <span class="k">def</span> <span class="nf">get_closest_atom_dist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_idx</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span><span class="o">.</span><span class="n">get_closest_atom_idx</span><span class="p">(</span><span class="n">alpha_idx</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="AS_Data.set_closest_atom"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Data.set_closest_atom">[docs]</a>    <span class="k">def</span> <span class="nf">set_closest_atom</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_idx</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="p">):</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">alpha_idx</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
         <span class="bp">self</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span><span class="o">.</span><span class="n">set_closest_atom</span><span class="p">(</span><span class="n">alpha_idx</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="AS_Data.lining_atom_asa"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Data.lining_atom_asa">[docs]</a>    <span class="k">def</span> <span class="nf">lining_atom_asa</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_idx</span><span class="p">,</span><span class="n">snapshot_idx</span><span class="p">):</span>
+<div class="viewcode-block" id="AS_Data.lining_atom_asa"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Data.lining_atom_asa">[docs]</a>    <span class="k">def</span> <span class="nf">lining_atom_asa</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_idx</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span><span class="o">.</span><span class="n">lining_atom_asa</span><span class="p">(</span><span class="n">alpha_idx</span><span class="p">)</span></div></div>
-
-
-
-
 
 
 <div class="viewcode-block" id="AS_AlphaAtom"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_AlphaAtom">[docs]</a><span class="k">class</span> <span class="nc">AS_AlphaAtom</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This is the alpha atom container, which is the constituents of the pocket object.</span>
+
 <span class="sd">    This object only contains reference of alpha atom id, and all info is stored in the array you can access by methods.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span><span class="n">snapshot_idx</span><span class="p">,</span> <span class="n">parent_structure</span><span class="p">,</span> <span class="n">parent_pocket</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="p">,</span> <span class="n">parent_structure</span><span class="p">,</span> <span class="n">parent_pocket</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        idx: int</span>
+<span class="sd">        snapshot_idx: int</span>
+<span class="sd">        parent_structure : AS_Struct</span>
+<span class="sd">        parent_pocket: AS_Pocket or None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_idx</span> <span class="o">=</span> <span class="n">idx</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_snapshot_idx</span> <span class="o">=</span> <span class="n">snapshot_idx</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">parent_structure</span> <span class="o">=</span> <span class="n">parent_structure</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">parent_pocket</span> <span class="o">=</span> <span class="n">parent_pocket</span>
 
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;AlphaAtom #</span><span class="si">{}</span><span class="s2"> in Snapshot </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_idx</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">snapshot_idx</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;AlphaAtom #</span><span class="si">{}</span><span class="s2"> in Snapshot </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_idx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">snapshot_idx</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__bool__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_active</span>
 
     <span class="k">def</span> <span class="nf">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Use subtraction to get the distance between two alpha atoms</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        other : AS_AlphaAtom</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        distance : float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xyz</span> <span class="o">-</span> <span class="n">other</span><span class="o">.</span><span class="n">xyz</span><span class="p">)</span>
 
     <span class="nd">@property</span>
@@ -434,54 +453,160 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">is_active</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">is_active</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">idx</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">snapshot_idx</span><span class="p">))</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        See if this alpha atom is activated, default is based on screening threshold.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">is_active</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">idx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">snapshot_idx</span><span class="p">))</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">idx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the index</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        index : int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_idx</span>
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">snapshot_idx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the parent snapshot index</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        snapshot_idx: float</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_snapshot_idx</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">xyz</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">xyz</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_idx</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">snapshot_idx</span><span class="p">)</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        xyz : np.ndarray</span>
+<span class="sd">            size 3</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">xyz</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_idx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">snapshot_idx</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">polar_space</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">get_polar_space</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_idx</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">snapshot_idx</span><span class="p">)</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">get_polar_space</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_idx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">snapshot_idx</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">nonpolar_space</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">get_nonpolar_space</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_idx</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">snapshot_idx</span><span class="p">)</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">get_nonpolar_space</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_idx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">snapshot_idx</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">space</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        space : float</span>
+
+
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">polar_space</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">nonpolar_space</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">lining_atoms_idx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">lining_atoms_idx</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_idx</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">snapshot_idx</span><span class="p">)</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the atom index of all the lining atoms. Each alpha atom has four lining atoms.</span>
+
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        indices : np.ndarray</span>
+<span class="sd">            size (4)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">lining_atoms_idx</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_idx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">snapshot_idx</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">is_contact</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">is_contact</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_idx</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">snapshot_idx</span><span class="p">))</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check if it&#39;s in contact with any binder atoms</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        bool</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">is_contact</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_idx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">snapshot_idx</span><span class="p">))</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">lining_atom_asa</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">lining_atoms_idx</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_idx</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">snapshot_idx</span><span class="p">))</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get total lining atom solvent accessible area</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        ASA : float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">lining_atoms_idx</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_idx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">snapshot_idx</span><span class="p">))</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">is_solvated</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        If the lining atom can be solvated,</span>
+<span class="sd">        True if lining_atom_asa &gt; 0</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">lining_atom_asa</span> <span class="o">&gt;</span> <span class="mi">0</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">closest_atom_idx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">get_closest_atom_idx</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_idx</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">snapshot_idx</span><span class="p">)</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        index : np.array</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">get_closest_atom_idx</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_idx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">snapshot_idx</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">closest_atom_dist</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">get_closest_atom_dist</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_idx</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">snapshot_idx</span><span class="p">)</span></div>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        distance to closest atom : float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">get_closest_atom_dist</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_idx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">snapshot_idx</span><span class="p">)</span></div>
 
 
 <span class="c1"># noinspection PyTypeChecker</span>
@@ -527,7 +652,7 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 
-<span class="sd">        int</span>
+<span class="sd">        snapshot_idx : int</span>
 <span class="sd">            The index of snapshot this pocket in located</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -546,7 +671,6 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_contact_pockets</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
         <span class="n">other</span><span class="o">.</span><span class="n">_contact_pockets</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index</span><span class="p">)</span></div>
-
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">index</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -608,10 +732,8 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
 
-
     <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
-
 
     <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -619,7 +741,6 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-
 <span class="sd">        int</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_alpha_idx</span><span class="p">)</span>
@@ -706,6 +827,18 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">xyz</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the coordinates for all alphas</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        xyz : np.ndarray</span>
+<span class="sd">            shape (n, 3) for n alpha atoms</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        centroid : get the centroid of all alpha atoms in the pocket.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">xyz</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha_idx</span><span class="p">)</span>
 
     <span class="nd">@property</span>
@@ -739,14 +872,38 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">color</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the color for visualization</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        color_name : str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_structure</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">color_name</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_idx</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">is_contact</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">contacts</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">occupancy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the percentage of alpha atoms in contact with binder.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        occupancy : float</span>
+<span class="sd">            0 if there is no binder</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_contact</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_space</span><span class="p">(</span><span class="n">contact_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">space_type</span><span class="o">=</span><span class="s1">&#39;ALL&#39;</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_space</span><span class="p">(</span><span class="n">contact_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                                                                                               <span class="n">space_type</span><span class="o">=</span><span class="s1">&#39;ALL&#39;</span><span class="p">))</span>
@@ -810,6 +967,23 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">betas</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># noinspection PyUnresolvedReferences</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gives iterator for beta atoms.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        &gt;&gt;&gt; universe = AS_Universe()</span>
+<span class="sd">        &gt;&gt;&gt; for pocket in universe.pockets(snapshot_idx=0):</span>
+<span class="sd">        &gt;&gt;&gt;     for beta in pocket.betas:</span>
+<span class="sd">        &gt;&gt;&gt;         print(beta.xyz)</span>
+
+<span class="sd">        Yields</span>
+<span class="sd">        ------</span>
+<span class="sd">        beta atom : AS_BetaAtom</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">zmat</span> <span class="o">=</span> <span class="n">linkage</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xyz</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;average&#39;</span><span class="p">)</span>
             <span class="n">beta_cluster_idx</span> <span class="o">=</span> <span class="n">fcluster</span><span class="p">(</span><span class="n">zmat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">beta_clust_cutoff</span> <span class="o">/</span> <span class="mi">10</span><span class="p">,</span> <span class="n">criterion</span><span class="o">=</span><span class="s1">&#39;distance&#39;</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
@@ -823,6 +997,14 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">centroid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        centroid : np.ndarray</span>
+<span class="sd">            shape = (3,)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xyz</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
     <span class="nd">@property</span>
@@ -835,6 +1017,16 @@
             <span class="k">return</span> <span class="s1">&#39;core&#39;</span>
 
 <div class="viewcode-block" id="AS_Pocket.union"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Pocket.union">[docs]</a>    <span class="k">def</span> <span class="nf">union</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">set</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        other</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lining_atoms_idx</span><span class="p">)</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">lining_atoms_idx</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="AS_Pocket.intersection"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Pocket.intersection">[docs]</a>    <span class="k">def</span> <span class="nf">intersection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">set</span><span class="p">:</span>
@@ -845,30 +1037,92 @@
 
 
 <div class="viewcode-block" id="AS_BetaAtom"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_BetaAtom">[docs]</a><span class="k">class</span> <span class="nc">AS_BetaAtom</span><span class="p">:</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_idx_in_pocket</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">pocket</span><span class="p">:</span> <span class="n">AS_Pocket</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is the container for Beta atom, which is simply a collection of alpha atoms.</span>
+
+<span class="sd">    It belongs to the AS_Pocket object.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_idx_in_pocket</span><span class="p">,</span> <span class="n">pocket</span><span class="p">:</span> <span class="n">AS_Pocket</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        alpha_idx_in_pocket : list</span>
+<span class="sd">        pocket : AS_Pocket</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_pocket</span> <span class="o">=</span> <span class="n">pocket</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_alpha_idx_in_pocket</span> <span class="o">=</span> <span class="n">alpha_idx_in_pocket</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">alpha_idx</span> <span class="o">=</span> <span class="n">pocket</span><span class="o">.</span><span class="n">alpha_idx</span><span class="p">[</span><span class="n">alpha_idx_in_pocket</span><span class="p">]</span>
 
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;Beta atom with </span><span class="si">{}</span><span class="s2"> space&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">space</span><span class="p">)</span>
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">xyz</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets a list of all alpha atom coordinates</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        coordinates : np.ndarray</span>
+<span class="sd">            shape = (n,3) for n alpha atoms</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pocket</span><span class="o">.</span><span class="n">xyz</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_alpha_idx_in_pocket</span><span class="p">]</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">centroid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets the centroid of this beta atom</span>
+
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        centroid coordinate : np.ndarray</span>
+<span class="sd">            shape = (3,)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xyz</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">alphas</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate alpha atom objects</span>
+
+<span class="sd">        Yields</span>
+<span class="sd">        ------</span>
+<span class="sd">        child AlphaAtom : AS_AlphaAtom</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">alpha_idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha_idx</span><span class="p">:</span>
             <span class="k">yield</span> <span class="n">AS_AlphaAtom</span><span class="p">(</span><span class="n">idx</span><span class="o">=</span><span class="n">alpha_idx</span><span class="p">,</span> <span class="n">parent_structure</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">pocket</span><span class="o">.</span><span class="n">parent_structure</span><span class="p">,</span> <span class="n">parent_pocket</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">pocket</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">pocket</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the parent pocket</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        parent_pocket : AS_Pocket</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pocket</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">space</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Total space of all alphas</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        total_space : float</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">alpha</span><span class="o">.</span><span class="n">space</span> <span class="k">for</span> <span class="n">alpha</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphas</span><span class="p">])</span></div>
 
 

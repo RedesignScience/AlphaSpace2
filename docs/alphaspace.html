@@ -741,16 +741,16 @@ None if it does not exist
 <div class="section" id="module-alphaspace.AS_Cluster">
 <span id="alphaspace-as-cluster-module"></span><h2>alphaspace.AS_Cluster module<a class="headerlink" href="#module-alphaspace.AS_Cluster" title="Permalink to this headline">¶</a></h2>
 <p>This file contains the container classes for cluster based objects.</p>
-<p>AS_Data: A numpy.ndarray inheritance that stores and enumerates data
-AS_Pocket: A mask container for pocket information, gets data from AS_Data
-AS_AlphaAtom: A mast container for alpha atom, gets data from AS_Data
-AS_BetaATOM: same as alpha atom</p>
+<p>AS_Data: A numpy.ndarray inheritance that stores and enumerates data</p>
+<p>AS_Pocket: A mask container for pocket information, gets data from AS_Data</p>
+<p>AS_AlphaAtom: A mast container for alpha atom, gets data from AS_Data</p>
+<p>AS_BetaATOM: same as alpha atom</p>
 <dl class="class">
 <dt id="alphaspace.AS_Cluster.AS_AlphaAtom">
 <em class="property">class </em><code class="descclassname">alphaspace.AS_Cluster.</code><code class="descname">AS_AlphaAtom</code><span class="sig-paren">(</span><em>idx</em>, <em>snapshot_idx</em>, <em>parent_structure</em>, <em>parent_pocket=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Cluster.html#AS_AlphaAtom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Cluster.AS_AlphaAtom" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
-<p>This is the alpha atom container, which is the constituents of the pocket object.
-This object only contains reference of alpha atom id, and all info is stored in the array you can access by methods.</p>
+<p>This is the alpha atom container, which is the constituents of the pocket object.</p>
+<p>This object only contains reference of alpha atom id, and all info is stored in the array you can access by methods.</p>
 <p class="rubric">Attributes</p>
 <table border="1" class="longtable docutils">
 <colgroup>
@@ -759,117 +759,287 @@ This object only contains reference of alpha atom id, and all info is stored in 
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td><a class="reference internal" href="#alphaspace.AS_Cluster.AS_AlphaAtom.closest_atom_dist" title="alphaspace.AS_Cluster.AS_AlphaAtom.closest_atom_dist"><code class="xref py py-obj docutils literal"><span class="pre">closest_atom_dist</span></code></a></td>
-<td></td>
+<td><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="#alphaspace.AS_Cluster.AS_AlphaAtom.closest_atom_idx" title="alphaspace.AS_Cluster.AS_AlphaAtom.closest_atom_idx"><code class="xref py py-obj docutils literal"><span class="pre">closest_atom_idx</span></code></a></td>
-<td></td>
+<td><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="#alphaspace.AS_Cluster.AS_AlphaAtom.idx" title="alphaspace.AS_Cluster.AS_AlphaAtom.idx"><code class="xref py py-obj docutils literal"><span class="pre">idx</span></code></a></td>
-<td></td>
+<td>Get the index</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="#alphaspace.AS_Cluster.AS_AlphaAtom.is_active" title="alphaspace.AS_Cluster.AS_AlphaAtom.is_active"><code class="xref py py-obj docutils literal"><span class="pre">is_active</span></code></a></td>
-<td></td>
+<td>See if this alpha atom is activated, default is based on screening threshold.</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="#alphaspace.AS_Cluster.AS_AlphaAtom.is_contact" title="alphaspace.AS_Cluster.AS_AlphaAtom.is_contact"><code class="xref py py-obj docutils literal"><span class="pre">is_contact</span></code></a></td>
-<td></td>
+<td>Check if it’s in contact with any binder atoms</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="#alphaspace.AS_Cluster.AS_AlphaAtom.is_solvated" title="alphaspace.AS_Cluster.AS_AlphaAtom.is_solvated"><code class="xref py py-obj docutils literal"><span class="pre">is_solvated</span></code></a></td>
-<td></td>
+<td>If the lining atom can be solvated,</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="#alphaspace.AS_Cluster.AS_AlphaAtom.lining_atom_asa" title="alphaspace.AS_Cluster.AS_AlphaAtom.lining_atom_asa"><code class="xref py py-obj docutils literal"><span class="pre">lining_atom_asa</span></code></a></td>
-<td></td>
+<td>Get total lining atom solvent accessible area</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="#alphaspace.AS_Cluster.AS_AlphaAtom.lining_atoms_idx" title="alphaspace.AS_Cluster.AS_AlphaAtom.lining_atoms_idx"><code class="xref py py-obj docutils literal"><span class="pre">lining_atoms_idx</span></code></a></td>
-<td></td>
+<td>Get the atom index of all the lining atoms.</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="#alphaspace.AS_Cluster.AS_AlphaAtom.nonpolar_space" title="alphaspace.AS_Cluster.AS_AlphaAtom.nonpolar_space"><code class="xref py py-obj docutils literal"><span class="pre">nonpolar_space</span></code></a></td>
-<td></td>
+<td><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="#alphaspace.AS_Cluster.AS_AlphaAtom.polar_space" title="alphaspace.AS_Cluster.AS_AlphaAtom.polar_space"><code class="xref py py-obj docutils literal"><span class="pre">polar_space</span></code></a></td>
-<td></td>
+<td><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="#alphaspace.AS_Cluster.AS_AlphaAtom.snapshot_idx" title="alphaspace.AS_Cluster.AS_AlphaAtom.snapshot_idx"><code class="xref py py-obj docutils literal"><span class="pre">snapshot_idx</span></code></a></td>
-<td></td>
+<td>Get the parent snapshot index</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="#alphaspace.AS_Cluster.AS_AlphaAtom.space" title="alphaspace.AS_Cluster.AS_AlphaAtom.space"><code class="xref py py-obj docutils literal"><span class="pre">space</span></code></a></td>
-<td></td>
+<td><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="#alphaspace.AS_Cluster.AS_AlphaAtom.xyz" title="alphaspace.AS_Cluster.AS_AlphaAtom.xyz"><code class="xref py py-obj docutils literal"><span class="pre">xyz</span></code></a></td>
-<td></td>
+<td><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</td>
 </tr>
 </tbody>
 </table>
 <dl class="attribute">
 <dt id="alphaspace.AS_Cluster.AS_AlphaAtom.closest_atom_dist">
 <code class="descname">closest_atom_dist</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_AlphaAtom.closest_atom_dist" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><strong>distance to closest atom</strong> : float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="alphaspace.AS_Cluster.AS_AlphaAtom.closest_atom_idx">
 <code class="descname">closest_atom_idx</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_AlphaAtom.closest_atom_idx" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><strong>index</strong> : np.array</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="alphaspace.AS_Cluster.AS_AlphaAtom.idx">
 <code class="descname">idx</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_AlphaAtom.idx" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Get the index</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><strong>index</strong> : int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="alphaspace.AS_Cluster.AS_AlphaAtom.is_active">
 <code class="descname">is_active</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_AlphaAtom.is_active" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>See if this alpha atom is activated, default is based on screening threshold.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="alphaspace.AS_Cluster.AS_AlphaAtom.is_contact">
 <code class="descname">is_contact</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_AlphaAtom.is_contact" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Check if it’s in contact with any binder atoms</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="alphaspace.AS_Cluster.AS_AlphaAtom.is_solvated">
 <code class="descname">is_solvated</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_AlphaAtom.is_solvated" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>If the lining atom can be solvated,
+True if lining_atom_asa &gt; 0</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="alphaspace.AS_Cluster.AS_AlphaAtom.lining_atom_asa">
 <code class="descname">lining_atom_asa</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_AlphaAtom.lining_atom_asa" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Get total lining atom solvent accessible area</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><strong>ASA</strong> : float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="alphaspace.AS_Cluster.AS_AlphaAtom.lining_atoms_idx">
 <code class="descname">lining_atoms_idx</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_AlphaAtom.lining_atoms_idx" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Get the atom index of all the lining atoms. Each alpha atom has four lining atoms.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>indices</strong> : np.ndarray</p>
+<blockquote class="last">
+<div><p>size (4)</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="alphaspace.AS_Cluster.AS_AlphaAtom.nonpolar_space">
 <code class="descname">nonpolar_space</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_AlphaAtom.nonpolar_space" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="alphaspace.AS_Cluster.AS_AlphaAtom.polar_space">
 <code class="descname">polar_space</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_AlphaAtom.polar_space" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="alphaspace.AS_Cluster.AS_AlphaAtom.snapshot_idx">
 <code class="descname">snapshot_idx</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_AlphaAtom.snapshot_idx" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Get the parent snapshot index</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">snapshot_idx: float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="alphaspace.AS_Cluster.AS_AlphaAtom.space">
 <code class="descname">space</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_AlphaAtom.space" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><strong>space</strong> : float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="alphaspace.AS_Cluster.AS_AlphaAtom.xyz">
 <code class="descname">xyz</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_AlphaAtom.xyz" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>xyz</strong> : np.ndarray</p>
+<blockquote class="last">
+<div><p>size 3</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="alphaspace.AS_Cluster.AS_BetaAtom">
-<em class="property">class </em><code class="descclassname">alphaspace.AS_Cluster.</code><code class="descname">AS_BetaAtom</code><span class="sig-paren">(</span><em>alpha_idx_in_pocket: list</em>, <em>pocket: alphaspace.AS_Cluster.AS_Pocket</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Cluster.html#AS_BetaAtom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Cluster.AS_BetaAtom" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">alphaspace.AS_Cluster.</code><code class="descname">AS_BetaAtom</code><span class="sig-paren">(</span><em>alpha_idx_in_pocket</em>, <em>pocket: alphaspace.AS_Cluster.AS_Pocket</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Cluster.html#AS_BetaAtom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Cluster.AS_BetaAtom" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>This is the container for Beta atom, which is simply a collection of alpha atoms.</p>
+<p>It belongs to the AS_Pocket object.</p>
 <p class="rubric">Attributes</p>
 <table border="1" class="longtable docutils">
 <colgroup>
@@ -878,46 +1048,99 @@ This object only contains reference of alpha atom id, and all info is stored in 
 </colgroup>
 <tbody valign="top">
 <tr class="row-odd"><td><a class="reference internal" href="#alphaspace.AS_Cluster.AS_BetaAtom.alphas" title="alphaspace.AS_Cluster.AS_BetaAtom.alphas"><code class="xref py py-obj docutils literal"><span class="pre">alphas</span></code></a></td>
-<td></td>
+<td>Generate alpha atom objects</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="#alphaspace.AS_Cluster.AS_BetaAtom.centroid" title="alphaspace.AS_Cluster.AS_BetaAtom.centroid"><code class="xref py py-obj docutils literal"><span class="pre">centroid</span></code></a></td>
-<td></td>
+<td>Gets the centroid of this beta atom</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="#alphaspace.AS_Cluster.AS_BetaAtom.pocket" title="alphaspace.AS_Cluster.AS_BetaAtom.pocket"><code class="xref py py-obj docutils literal"><span class="pre">pocket</span></code></a></td>
-<td></td>
+<td>Get the parent pocket</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="#alphaspace.AS_Cluster.AS_BetaAtom.space" title="alphaspace.AS_Cluster.AS_BetaAtom.space"><code class="xref py py-obj docutils literal"><span class="pre">space</span></code></a></td>
-<td></td>
+<td>Total space of all alphas</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="#alphaspace.AS_Cluster.AS_BetaAtom.xyz" title="alphaspace.AS_Cluster.AS_BetaAtom.xyz"><code class="xref py py-obj docutils literal"><span class="pre">xyz</span></code></a></td>
-<td></td>
+<td>Gets a list of all alpha atom coordinates</td>
 </tr>
 </tbody>
 </table>
 <dl class="attribute">
 <dt id="alphaspace.AS_Cluster.AS_BetaAtom.alphas">
 <code class="descname">alphas</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_BetaAtom.alphas" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Generate alpha atom objects</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Yields:</th><td class="field-body"><strong>child AlphaAtom</strong> : AS_AlphaAtom</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="alphaspace.AS_Cluster.AS_BetaAtom.centroid">
 <code class="descname">centroid</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_BetaAtom.centroid" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Gets the centroid of this beta atom</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>centroid coordinate</strong> : np.ndarray</p>
+<blockquote class="last">
+<div><p>shape = (3,)</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="alphaspace.AS_Cluster.AS_BetaAtom.pocket">
 <code class="descname">pocket</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_BetaAtom.pocket" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Get the parent pocket</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><strong>parent_pocket</strong> : AS_Pocket</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="alphaspace.AS_Cluster.AS_BetaAtom.space">
 <code class="descname">space</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_BetaAtom.space" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Total space of all alphas</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><strong>total_space</strong> : float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="alphaspace.AS_Cluster.AS_BetaAtom.xyz">
 <code class="descname">xyz</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_BetaAtom.xyz" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Gets a list of all alpha atom coordinates</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>coordinates</strong> : np.ndarray</p>
+<blockquote class="last">
+<div><p>shape = (n,3) for n alpha atoms</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </dd></dl>
 
@@ -1280,13 +1503,21 @@ you can use the build in methods to access the data such as contact, occupancy, 
 <td>Generator of all alpha atoms in the pocket</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="#alphaspace.AS_Cluster.AS_Pocket.betas" title="alphaspace.AS_Cluster.AS_Pocket.betas"><code class="xref py py-obj docutils literal"><span class="pre">betas</span></code></a></td>
-<td></td>
+<td>Gives iterator for beta atoms.</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="#alphaspace.AS_Cluster.AS_Pocket.centroid" title="alphaspace.AS_Cluster.AS_Pocket.centroid"><code class="xref py py-obj docutils literal"><span class="pre">centroid</span></code></a></td>
-<td></td>
+<td><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="#alphaspace.AS_Cluster.AS_Pocket.color" title="alphaspace.AS_Cluster.AS_Pocket.color"><code class="xref py py-obj docutils literal"><span class="pre">color</span></code></a></td>
-<td></td>
+<td>Get the color for visualization</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="#alphaspace.AS_Cluster.AS_Pocket.config" title="alphaspace.AS_Cluster.AS_Pocket.config"><code class="xref py py-obj docutils literal"><span class="pre">config</span></code></a></td>
 <td>Get the configuration container</td>
@@ -1304,7 +1535,15 @@ you can use the build in methods to access the data such as contact, occupancy, 
 <td>Toggle for if pocket is active</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="#alphaspace.AS_Cluster.AS_Pocket.is_contact" title="alphaspace.AS_Cluster.AS_Pocket.is_contact"><code class="xref py py-obj docutils literal"><span class="pre">is_contact</span></code></a></td>
-<td></td>
+<td><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="#alphaspace.AS_Cluster.AS_Pocket.lining_atom_asa" title="alphaspace.AS_Cluster.AS_Pocket.lining_atom_asa"><code class="xref py py-obj docutils literal"><span class="pre">lining_atom_asa</span></code></a></td>
 <td></td>
@@ -1331,7 +1570,7 @@ you can use the build in methods to access the data such as contact, occupancy, 
 <td></td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="#alphaspace.AS_Cluster.AS_Pocket.occupancy" title="alphaspace.AS_Cluster.AS_Pocket.occupancy"><code class="xref py py-obj docutils literal"><span class="pre">occupancy</span></code></a></td>
-<td></td>
+<td>Get the percentage of alpha atoms in contact with binder.</td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="#alphaspace.AS_Cluster.AS_Pocket.polar_space" title="alphaspace.AS_Cluster.AS_Pocket.polar_space"><code class="xref py py-obj docutils literal"><span class="pre">polar_space</span></code></a></td>
 <td></td>
@@ -1357,7 +1596,7 @@ you can use the build in methods to access the data such as contact, occupancy, 
 <td>Traceback to the parent universe</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="#alphaspace.AS_Cluster.AS_Pocket.xyz" title="alphaspace.AS_Cluster.AS_Pocket.xyz"><code class="xref py py-obj docutils literal"><span class="pre">xyz</span></code></a></td>
-<td></td>
+<td>Get the coordinates for all alphas</td>
 </tr>
 </tbody>
 </table>
@@ -1408,7 +1647,15 @@ you can use the build in methods to access the data such as contact, occupancy, 
 <td>Mark two pockets as contact and link them together.</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="#alphaspace.AS_Cluster.AS_Pocket.union" title="alphaspace.AS_Cluster.AS_Pocket.union"><code class="xref py py-obj docutils literal"><span class="pre">union</span></code></a>((other)&nbsp;-&gt;&nbsp;set)</td>
-<td></td>
+<td><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</td>
 </tr>
 </tbody>
 </table>
@@ -1449,17 +1696,54 @@ you can use the build in methods to access the data such as contact, occupancy, 
 <dl class="attribute">
 <dt id="alphaspace.AS_Cluster.AS_Pocket.betas">
 <code class="descname">betas</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_Pocket.betas" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Gives iterator for beta atoms.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Yields:</th><td class="field-body"><strong>beta atom</strong> : AS_BetaAtom</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">universe</span> <span class="o">=</span> <span class="n">AS_Universe</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">pocket</span> <span class="ow">in</span> <span class="n">universe</span><span class="o">.</span><span class="n">pockets</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="k">for</span> <span class="n">beta</span> <span class="ow">in</span> <span class="n">pocket</span><span class="o">.</span><span class="n">betas</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="nb">print</span><span class="p">(</span><span class="n">beta</span><span class="o">.</span><span class="n">xyz</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="alphaspace.AS_Cluster.AS_Pocket.centroid">
 <code class="descname">centroid</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_Pocket.centroid" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>centroid</strong> : np.ndarray</p>
+<blockquote class="last">
+<div><p>shape = (3,)</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="alphaspace.AS_Cluster.AS_Pocket.color">
 <code class="descname">color</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_Pocket.color" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Get the color for visualization</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><strong>color_name</strong> : str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="alphaspace.AS_Cluster.AS_Pocket.config">
@@ -1576,7 +1860,15 @@ false requires all alphas to be active.</p>
 <dl class="attribute">
 <dt id="alphaspace.AS_Cluster.AS_Pocket.is_contact">
 <code class="descname">is_contact</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_Pocket.is_contact" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">bool</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="alphaspace.AS_Cluster.AS_Pocket.jaccard_similarity">
@@ -1626,7 +1918,20 @@ false requires all alphas to be active.</p>
 <dl class="attribute">
 <dt id="alphaspace.AS_Cluster.AS_Pocket.occupancy">
 <code class="descname">occupancy</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_Pocket.occupancy" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Get the percentage of alpha atoms in contact with binder.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>occupancy</strong> : float</p>
+<blockquote class="last">
+<div><p>0 if there is no binder</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="alphaspace.AS_Cluster.AS_Pocket.polar_space">
@@ -1673,7 +1978,7 @@ If the reordered_index hasn’t been set, original index is returned.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">int</p>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>snapshot_idx</strong> : int</p>
 <blockquote class="last">
 <div><p>The index of snapshot this pocket in located</p>
 </div></blockquote>
@@ -1691,7 +1996,15 @@ If the reordered_index hasn’t been set, original index is returned.</p>
 <dl class="method">
 <dt id="alphaspace.AS_Cluster.AS_Pocket.union">
 <code class="descname">union</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span> &#x2192; set<a class="reference internal" href="_modules/alphaspace/AS_Cluster.html#AS_Pocket.union"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Cluster.AS_Pocket.union" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>other</strong></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="alphaspace.AS_Cluster.AS_Pocket.universe">
@@ -1714,7 +2027,21 @@ If the reordered_index hasn’t been set, original index is returned.</p>
 <dl class="attribute">
 <dt id="alphaspace.AS_Cluster.AS_Pocket.xyz">
 <code class="descname">xyz</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_Pocket.xyz" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Get the coordinates for all alphas
+Returns
+——-</p>
+<dl class="docutils">
+<dt>xyz <span class="classifier-delimiter">:</span> <span class="classifier">np.ndarray</span></dt>
+<dd>shape (n, 3) for n alpha atoms</dd>
+</dl>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt><a class="reference internal" href="#alphaspace.AS_Cluster.AS_Pocket.centroid" title="alphaspace.AS_Cluster.AS_Pocket.centroid"><code class="xref py py-obj docutils literal"><span class="pre">centroid</span></code></a></dt>
+<dd>get the centroid of all alpha atoms in the pocket.</dd>
+</dl>
+</div>
+</dd></dl>
 
 </dd></dl>
 
@@ -2222,6 +2549,72 @@ changing the attributes or loading from a new config.ini file.</p>
 <h1>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="module-alphaspace.AS_Funct">
 <span id="alphaspace-as-funct-module"></span><h2>alphaspace.AS_Funct module<a class="headerlink" href="#module-alphaspace.AS_Funct" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="alphaspace.AS_Funct.Consumer">
+<em class="property">class </em><code class="descclassname">alphaspace.AS_Funct.</code><code class="descname">Consumer</code><span class="sig-paren">(</span><em>task_queue</em>, <em>result_queue</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Funct.html#Consumer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Funct.Consumer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">multiprocessing.context.Process</span></code></p>
+<p>Consumer for multiprocessing</p>
+<p class="rubric">Attributes</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">authkey</span></code></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">daemon</span></code></td>
+<td>Return whether process is a daemon</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">exitcode</span></code></td>
+<td>Return exit code of process or <cite>None</cite> if it has yet to stop</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">ident</span></code></td>
+<td>Return identifier (PID) of process or <cite>None</cite> if it has yet to start</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">name</span></code></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">pid</span></code></td>
+<td>Return identifier (PID) of process or <cite>None</cite> if it has yet to start</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">sentinel</span></code></td>
+<td>Return a file descriptor (Unix) or handle (Windows) suitable for waiting for process termination.</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Methods</p>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">is_alive</span></code>()</td>
+<td>Return whether process is alive</td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">join</span></code>([timeout])</td>
+<td>Wait until child process terminates</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="#alphaspace.AS_Funct.Consumer.run" title="alphaspace.AS_Funct.Consumer.run"><code class="xref py py-obj docutils literal"><span class="pre">run</span></code></a>()</td>
+<td></td>
+</tr>
+<tr class="row-even"><td><code class="xref py py-obj docutils literal"><span class="pre">start</span></code>()</td>
+<td>Start child process</td>
+</tr>
+<tr class="row-odd"><td><code class="xref py py-obj docutils literal"><span class="pre">terminate</span></code>()</td>
+<td>Terminate process; sends SIGTERM signal or uses TerminateProcess()</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="alphaspace.AS_Funct.Consumer.run">
+<code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Funct.html#Consumer.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Funct.Consumer.run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 <dl class="class">
 <dt id="alphaspace.AS_Funct.Task">
 <em class="property">class </em><code class="descclassname">alphaspace.AS_Funct.</code><code class="descname">Task</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Funct.html#Task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Funct.Task" title="Permalink to this definition">¶</a></dt>

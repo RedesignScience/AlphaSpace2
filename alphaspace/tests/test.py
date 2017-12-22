@@ -34,7 +34,7 @@ def custom_test(receptor_path, ligand_path):
 def bcl2_test():
     """Loading 10 snapshots of bcl2 simulation from test/bcl2 folder."""
     universe = AS_Universe()
-    for _ in range(1):
+    for _ in range(10):
         for test_protein_path, test_ligand_path in zip(testProteins_bcl2,testLigand_bcl2):
             # print(test_protein_path,test_ligand_path)
             ligand = mdtraj.load(test_ligand_path)
@@ -43,10 +43,10 @@ def bcl2_test():
             universe.set_binder(ligand, append=True)
 
     """Run alphaspace with 4 cpu cores"""
-    universe.run_alphaspace_mp(8)
-
-    for pocket in universe.pockets():
-        print(pocket)
+    universe.run_alphaspace_mp(4)
+    #
+    # for pocket in universe.pockets():
+    #     print(pocket)
 
     # for atom in universe.binder.atoms:
     #     atom.linked_alpha = []
