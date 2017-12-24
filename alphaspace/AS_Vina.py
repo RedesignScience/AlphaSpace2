@@ -3,51 +3,86 @@ AS_Vina contains function and classes for scoring probes using vina scoring func
 =====================================================================================
 
 
-
 """
 
 import numpy as np
 from scipy import spatial
 
+POLAR_ATOM_TYPE = np.array(['OA', 'OS', 'N', 'NS', 'NA', 'S', 'SA'])
 
-# Import hp-type and load dictionary
-with open('hp_types_dict.dat', 'r') as f:
-    templines = f.readlines()
+ALI_ATOM = np.array(['C', 'A'])
 
-types_dict = {}
-for t in templines[1:]:
-    temp = t.split(',')
-    if temp[0] in types_dict.keys():
-        types_dict[temp[0]][temp[1]] = [temp[2].strip(), temp[3].strip()]
-    else:
-        types_dict[temp[0]] = {}
-        types_dict[temp[0]][temp[1]] = [temp[2].strip(), temp[3].strip()]
+HP_DICT = dict(
+    ALA={"N": ["P", "NNP"], "CA": ["NNP", "NNP"], "CB": ["NP", "NP"], "C": ["NNP", "NNP"], "O": ["NPP", "P"]},
+    ARG={"N": ["P", "NNP"], "CA": ["NNP", "NNP"], "CB": ["NP", "NP"], "CG": ["NP", "NP"], "CD": ["NNP", "NNP"],
+         "NE": ["P", "NNP"], "CZ": ["NNP", "NNP"], "NH1": ["P", "NNP"], "NH2": ["P", "NNP"], "C": ["NNP", "NNP"],
+         "O": ["NPP", "P"]},
+    ASN={"N": ["P", "NNP"], "CA": ["NNP", "NNP"], "CB": ["NP", "NP"], "CG": ["NNP", "NNP"], "OD1": ["NNP", "P"],
+         "ND2": ["P", "NNP"], "C": ["NNP", "NNP"], "O": ["NPP", "P"]},
+    ASP={"N": ["P", "NNP"], "CA": ["NNP", "NNP"], "CB": ["NP", "NP"], "CG": ["NNP", "NNP"], "OD1": ["NNP", "P"],
+         "OD2": ["NNP", "P"], "C": ["NNP", "NNP"], "O": ["NPP", "P"]},
+    CYS={"N": ["P", "NNP"], "CA": ["NNP", "NNP"], "CB": ["NNP", "NNP"], "SG": ["NNP", "P"], "C": ["NNP", "NNP"],
+         "O": ["NPP", "P"]},
+    GLN={"N": ["P", "NNP"], "CA": ["NNP", "NNP"], "CB": ["NP", "NP"], "CG": ["NP", "NP"], "CD": ["NNP", "NNP"],
+         "OE1": ["NNP", "P"], "NE2": ["P", "NNP"], "C": ["NNP", "NNP"], "O": ["NPP", "P"]},
+    GLU={"N": ["P", "NNP"], "CA": ["NNP", "NNP"], "CB": ["NP", "NP"], "CG": ["NP", "NP"], "CD": ["NNP", "NNP"],
+         "OE1": ["NNP", "P"], "OE2": ["NNP", "P"], "C": ["NNP", "NNP"], "O": ["NPP", "P"]},
+    GLY={"N": ["P", "NNP"], "CA": ["NNP", "NNP"], "C": ["NNP", "NNP"], "O": ["NPP", "P"]},
+    HIS={"N": ["P", "NNP"], "CA": ["NNP", "NNP"], "CB": ["NP", "NP"], "CG": ["NNP", "NNP"], "ND1": ["P", "P"],
+         "CD2": ["NNP", "NNP"], "CE1": ["NNP", "NNP"], "NE2": ["P", "P"], "C": ["NNP", "NNP"], "O": ["NPP", "P"]},
+    HIE={"N": ["P", "NNP"], "CA": ["NNP", "NNP"], "CB": ["NP", "NP"], "CG": ["NNP", "NNP"], "ND1": ["P", "P"],
+         "CD2": ["NNP", "NNP"], "CE1": ["NNP", "NNP"], "NE2": ["P", "P"], "C": ["NNP", "NNP"], "O": ["NPP", "P"]},
+    HID={"N": ["P", "NNP"], "CA": ["NNP", "NNP"], "CB": ["NP", "NP"], "CG": ["NNP", "NNP"], "ND1": ["P", "P"],
+         "CD2": ["NNP", "NNP"], "CE1": ["NNP", "NNP"], "NE2": ["P", "P"], "C": ["NNP", "NNP"], "O": ["NPP", "P"]},
+    HIP={"N": ["P", "NNP"], "CA": ["NNP", "NNP"], "CB": ["NP", "NP"], "CG": ["NNP", "NNP"], "ND1": ["P", "P"],
+         "CD2": ["NNP", "NNP"], "CE1": ["NNP", "NNP"], "NE2": ["P", "P"], "C": ["NNP", "NNP"], "O": ["NPP", "P"]},
+    ILE={"N": ["P", "NNP"], "CA": ["NNP", "NNP"], "CB": ["NP", "NP"], "CG1": ["NP", "NP"], "CG2": ["NP", "NP"],
+         "CD1": ["NP", "NP"], "C": ["NNP", "NNP"], "O": ["NPP", "P"]},
+    LEU={"N": ["P", "NNP"], "CA": ["NNP", "NNP"], "CB": ["NP", "NP"], "CG": ["NP", "NP"], "CD1": ["NP", "NP"],
+         "CD2": ["NP", "NP"], "C": ["NNP", "NNP"], "O": ["NPP", "P"]},
+    LYS={"N": ["P", "NNP"], "CA": ["NNP", "NNP"], "CB": ["NP", "NP"], "CG": ["NP", "NP"], "CD": ["NP", "NP"],
+         "CE": ["NNP", "NNP"], "NZ": ["P", "NNP"], "C": ["NNP", "NNP"], "O": ["NPP", "P"]},
+    MET={"N": ["P", "NNP"], "CA": ["NNP", "NNP"], "CB": ["NP", "NP"], "CG": ["NNP", "NNP"], "SD": ["NNP", "P"],
+         "CE": ["NNP", "NNP"], "C": ["NNP", "NNP"], "O": ["NPP", "P"]},
+    PHE={"N": ["P", "NNP"], "CA": ["NNP", "NNP"], "CB": ["NP", "NP"], "CG": ["NP", "NP"], "CD1": ["NP", "NP"],
+         "CD2": ["NP", "NP"], "CE1": ["NP", "NP"], "CE2": ["NP", "NP"], "CZ": ["NP", "NP"], "C": ["NNP", "NNP"],
+         "O": ["NPP", "P"]},
+    PRO={"N": ["NNP", "NNP"], "CA": ["NNP", "NNP"], "CB": ["NP", "NP"], "CG": ["NP", "NP"], "CD": ["NNP", "NNP"],
+         "C": ["NNP", "NNP"], "O": ["NPP", "P"]},
+    SER={"N": ["P", "NNP"], "CA": ["NNP", "NNP"], "CB": ["NNP", "NNP"], "OG": ["P", "P"], "C": ["NNP", "NNP"],
+         "O": ["NPP", "P"]},
+    THR={"N": ["P", "NNP"], "CA": ["NNP", "NNP"], "CB": ["NNP", "NNP"], "OG1": ["P", "P"], "CG2": ["NNP", "NNP"],
+         "C": ["NNP", "NNP"], "O": ["NPP", "P"]},
+    TRP={"N": ["P", "NNP"], "CA": ["NNP", "NNP"], "CB": ["NP", "NP"], "CG": ["NP", "NP"], "CD1": ["NNP", "NNP"],
+         "CD2": ["NP", "NP"], "NE1": ["P", "NNP"], "CE2": ["NNP", "NNP"], "CE3": ["NP", "NP"], "CZ2": ["NP", "NP"],
+         "CZ3": ["NP", "NP"], "CH2": ["NP", "NP"], "C": ["NNP", "NNP"], "O": ["NPP", "P"]},
+    TYR={"N": ["P", "NNP"], "CA": ["NNP", "NNP"], "CB": ["NP", "NP"], "CG": ["NP", "NP"], "CD1": ["NP", "NP"],
+         "CD2": ["NP", "NP"], "CE1": ["NP", "NP"], "CE2": ["NP", "NP"], "CZ": ["NNP", "NNP"], "OH": ["P", "P"],
+         "C": ["NNP", "NNP"], "O": ["NPP", "P"]},
+    VAL={"N": ["P", "NNP"], "CA": ["NNP", "NNP"], "CB": ["NP", "NP"], "CG1": ["NP", "NP"], "CG2": ["NP", "NP"],
+         "CZ": ["NP", "NP"], "C": ["NNP", "NNP"], "O": ["NPP", "P"]})
 
-# polar_atoms=np.array(['OA','N','O','S','NS'])
-polar_atoms = np.array(['OA', 'OS', 'N', 'NS', 'NA', 'S', 'SA'])
+ADV_DICT = {'H': [1.0, False], 'HD': [1.0, True], 'HS': [1.0, True], 'C': [2.0, False], 'A': [2.0, False],
+            'N': [1.75, False], 'NA': [1.75, True], 'NS': [1.75, True], 'OA': [1.6, True], 'OS': [1.6, True],
+            'F': [1.545, False], 'Mg': [0.65, False], 'MG': [0.65, False], 'P': [2.1, False], 'SA': [2.0, True],
+            'S': [2.0, False], 'Cl': [2.045, False], 'CL': [2.045, False], 'Ca': [0.99, False], 'CA': [0.99, False],
+            'Mn': [0.65, False], 'MN': [0.65, False], 'Fe': [0.65, False], 'FE': [0.65, False], 'Zn': [0.74, False],
+            'ZN': [0.74, False], 'Br': [2.165, False], 'BR': [2.165, False], 'I': [2.36, False]}
 
-# Import autodock_types_dict
-autodock_types_dict = {}
-with open('autodock_atom_type_info.dat', 'r') as f:
-    templines = f.readlines()
-for t in templines[1:]:
-    temp = t.split(',')
-    autodock_types_dict[temp[0].strip()] = [float(temp[1]) / 2.0, True if int(temp[7]) else False]
+ADV_PARM = {"gauss_1": -0.035579,
+            "gauss_2": -0.005156,
+            "repulsion": 0.840245,
+            "hydrophobic": -0.035069,
+            "Hydrogen": -0.587439}
 
-# Import vina parameters
-with open('vina_params.dat', 'r') as f:
-    templines = f.readlines()
-vina_weights_dict = {}
-for t in templines[1:]:
-    temp = t.split(',')
-    vina_weights_dict[temp[2].split()[0]] = float(temp[1])
+PROBE_TYPE = ['C', 'Br', 'F', 'Cl', 'I', 'OA', 'SA', 'N', 'P']
 
 
-def NP_interp(r):
+def _NP_interp(r):
     """
     #step function for nonpolar interactions.
     :param r: radii
-    :type r: fload
+    :type r: float
     :return: stepped
     :rtype: float
     """
@@ -61,7 +96,7 @@ def NP_interp(r):
     return x
 
 
-def P_interp(r):  ##step for polar
+def _P_interp(r):  ##step for polar
     if r < -0.7:
         x = 1.0
     elif r >= 0:
@@ -71,17 +106,24 @@ def P_interp(r):  ##step for polar
     return x
 
 
-def calc_score(g1, g2, rep, hydrophobe, hbond):
+def _calc_score(g1, g2, rep, hydrophobe, hbond, vina_weights_dict):
     """
-    Sum different components of vina score
 
-    :param g1: gaussian 1
-    :param g2: gaussian 2
-    :param rep: repulsion
-    :param hydrophobe: hydrophobic
-    :param hbond: hydrogen bond
-    :return: summed score
-    :rtype: float
+    Sum the score component from Vina scoring function.
+
+
+    Parameters
+    ----------
+    g1
+    g2
+    rep
+    hydrophobe
+    hbond
+    vina_weights_dict
+
+    Returns
+    -------
+
     """
     return g1 * vina_weights_dict['gauss_1'] \
            + g2 * vina_weights_dict['gauss_2'] \
@@ -90,7 +132,7 @@ def calc_score(g1, g2, rep, hydrophobe, hbond):
            + hbond * vina_weights_dict['Hydrogen']
 
 
-def assign_hp(prot_coord, prot_types, hp_type):
+def _assign_hp(prot_coord, prot_types, hp_type):
     """
     This assigns hydrophobicity type for UNK atoms
 
@@ -103,8 +145,8 @@ def assign_hp(prot_coord, prot_types, hp_type):
     tree = spatial.KDTree(prot_coord)
     for ix in np.where(hp_type == 'UNK')[0]:
         indx = np.array(tree.query_ball_point(prot_coord[ix], 2.0))
-        if prot_types[ix] not in polar_atoms:
-            if np.any(np.in1d(prot_types[indx[indx != ix]], polar_atoms)):
+        if prot_types[ix] not in POLAR_ATOM_TYPE:
+            if np.any(np.in1d(prot_types[indx[indx != ix]], POLAR_ATOM_TYPE)):
                 hp_type[ix] = 'NNP'
             else:
                 hp_type[ix] = 'NP'
@@ -113,13 +155,18 @@ def assign_hp(prot_coord, prot_types, hp_type):
     return hp_type
 
 
-def assign_acc(prot_coord, prot_types, hp_type):
+def _assign_acc(prot_coord, prot_types, hp_type):
     """
 
-    :param prot_coord:
-    :param prot_types:
-    :param hp_type:
-    :return:
+    Parameters
+    ----------
+    prot_coord
+    prot_types
+    hp_type
+
+    Returns
+    -------
+
     """
     tree = spatial.KDTree(prot_coord)
     for ix in np.where(hp_type == 'UNK')[0]:
@@ -131,7 +178,7 @@ def assign_acc(prot_coord, prot_types, hp_type):
     return hp_type
 
 
-def assign_don(prot_coord, prot_types, hp_type):
+def _assign_don(prot_coord, prot_types, hp_type):
     tree = spatial.KDTree(prot_coord)
     for ix in np.where(hp_type == 'UNK')[0]:
         indx = np.array(tree.query_ball_point(prot_coord[ix], 2.0))
@@ -145,10 +192,20 @@ def assign_don(prot_coord, prot_types, hp_type):
     return hp_type
 
 
-ali_atoms = np.array(['C', 'A'])
+def pre_process_pdbqt(pdbqt_file, types_dict):
+    """
+
+    Parameters
+    ----------
+    pdbqt_file : str
+        path to pdbqt file
+    types_dict : dict
 
 
-def pre_process_pdbqt(pdbqt_file):
+    Returns
+    -------
+
+    """
     ali_atoms = np.array(['C', 'A'])
     with open(pdbqt_file, 'r') as f:
         templines = f.readlines()
@@ -167,7 +224,7 @@ def pre_process_pdbqt(pdbqt_file):
                         hp_type.append(types_dict[t[17:20].strip()][t[12:16].strip()][0])
                         don_type.append('XXX')
                         acc_type.append('XXX')
-                    if t[76:].strip() in polar_atoms:
+                    if t[76:].strip() in POLAR_ATOM_TYPE:
                         don_type.append(types_dict[t[17:20].strip()][t[12:16].strip()][0])
                         acc_type.append(types_dict[t[17:20].strip()][t[12:16].strip()][1])
                         hp_type.append('XXX')
@@ -185,23 +242,46 @@ def pre_process_pdbqt(pdbqt_file):
     acc_type = np.array(acc_type)
     don_type = np.array(don_type)
     if np.any(hp_type == 'UNK'):
-        assign_hp(prot_coord, prot_types, hp_type)
-        assign_don(prot_coord, prot_types, don_type)
-        assign_acc(prot_coord, prot_types, acc_type)
+        _assign_hp(prot_coord, prot_types, hp_type)
+        _assign_don(prot_coord, prot_types, don_type)
+        _assign_acc(prot_coord, prot_types, acc_type)
     return prot_coord, prot_types, hp_type, acc_type, don_type
 
 
-def prep_temp_dict(type_list):
-    temp_prb_dict = {}
-    for i in type_list:
-        temp_prb_dict[i] = []
-    return temp_prb_dict
-
-
 def get_probe_score(prot_coord, prot_types, hp_type, don_type, acc_type, probe_coords):
-    dist = spatial.distance.cdist(probe_coords, prot_coord)
+    """
 
-    temp_prb_dict = prep_temp_dict(['C', 'Br', 'F', 'Cl', 'I', 'OA', 'SA', 'N', 'P'])
+    Example
+    -------
+
+    get_probe_score(*pre_process_pdbqt(),probe_coords)
+
+
+    Parameters
+    ----------
+    prot_coord : np.ndarray
+        shape = (n,3)
+    prot_types : np.ndarray
+        shape = (n,3)
+    hp_type : np.ndarray
+        shape = (n,3)
+    don_type : np.ndarray
+        shape = (n,3)
+    acc_type : np.ndarray
+        shape = (n,3)
+    probe_coords : np.ndarray
+        shape = (n,3)
+
+    Returns
+    -------
+    prb_dict : dict
+        probe score dictionary.
+
+
+
+    """
+    dist = spatial.distance.cdist(probe_coords, prot_coord)
+    prb_dict = {i: [] for i in PROBE_TYPE}
 
     for px in range(len(probe_coords)):
         dist_bool = dist[px] <= 8.0
@@ -211,21 +291,35 @@ def get_probe_score(prot_coord, prot_types, hp_type, don_type, acc_type, probe_c
         NP_type = (hp_type[dist_bool] == 'NP')
         Pdon_type = (don_type[dist_bool] == 'P')
         Pacc_type = (acc_type[dist_bool] == 'P')
-        dist_radii = np.array([autodock_types_dict[ty][0] for ty in temp_type])
+        dist_radii = np.array([ADV_DICT[ty][0] for ty in temp_type])
 
         for prb in ['C', 'Br', 'F', 'Cl', 'I', 'OA', 'SA', 'N', 'P']:
-            probe_dist = autodock_types_dict[prb][0]
+            probe_dist = ADV_DICT[prb][0]
             proc_dist = temp_dist - dist_radii - probe_dist
             g1 = np.sum(np.exp(-(proc_dist / 0.5) ** 2))
             g2 = np.sum(np.exp(-((proc_dist - 3.0) / 2.0) ** 2))
             rep = np.sum([dd ** 2 if dd < 0.0 else 0.0 for dd in proc_dist])
             if prb in ['C', 'Br', 'Cl', 'F', 'I']:
-                h1 = np.sum([NP_interp(dd) for dd in proc_dist[NP_type]])
+                h1 = np.sum([_NP_interp(dd) for dd in proc_dist[NP_type]])
                 h2 = 0.0
             elif prb in ['OA', 'SA']:
                 h1 = 0.0
-                h2 = np.sum([P_interp(dd) for dd in proc_dist[Pdon_type]])
+                h2 = np.sum([_P_interp(dd) for dd in proc_dist[Pdon_type]])
             elif prb in ['N', 'P']:
                 h1 = 0.0
-                h2 = np.sum([P_interp(dd) for dd in proc_dist[Pacc_type]])
-            temp_prb_dict[prb].append([calc_score(g1, g2, rep, h1, h2), g1, g2, rep, h1, h2])
+                h2 = np.sum([_P_interp(dd) for dd in proc_dist[Pacc_type]])
+            prb_dict[prb].append([_calc_score(g1, g2, rep, h1, h2, vina_weights_dict=ADV_PARM), g1, g2, rep, h1, h2])
+    return prb_dict
+
+
+if __name__ == '__main__':
+    import sys
+    import numpy as np
+
+    probe_coords = np.random.rand(10, 3)
+
+    prot_coord, prot_types, hp_type, acc_type, don_type = pre_process_pdbqt(sys.argv[1], HP_DICT)
+
+    prb_dict = get_probe_score(prot_coord, prot_types, hp_type, acc_type, don_type, probe_coords=probe_coords)
+
+    print(prb_dict)
