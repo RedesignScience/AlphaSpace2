@@ -54,4 +54,11 @@ alphaspace\.AS\_IO module
     :undoc-members:
     :show-inheritance:
 
+alphaspace\.AS\_Vina module
+----------------------------
+
+.. automodule:: alphaspace.AS_Vina
+    :members:
+    :undoc-members:
+    :show-inheritance:
 

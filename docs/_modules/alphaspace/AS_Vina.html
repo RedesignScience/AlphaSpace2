@@ -1,0 +1,557 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>alphaspace.AS_Vina &mdash; AlphaSpace 2.0b documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../genindex.html"/>
+        <link rel="search" title="Search" href="../../search.html"/>
+    <link rel="top" title="AlphaSpace 2.0b documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> AlphaSpace
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../intro.html#what-is-this-alphaspace">What is this AlphaSpace?</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../intro.html#getting-started">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Selection.html">How to select entities in AlphaSpace</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">API Guide</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">AlphaSpace</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>alphaspace.AS_Vina</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for alphaspace.AS_Vina</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">AS_Vina contains function and classes for scoring probes using vina scoring function.</span>
+
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">spatial</span>
+
+<span class="n">POLAR_ATOM_TYPE</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="s1">&#39;OA&#39;</span><span class="p">,</span> <span class="s1">&#39;OS&#39;</span><span class="p">,</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;NS&#39;</span><span class="p">,</span> <span class="s1">&#39;NA&#39;</span><span class="p">,</span> <span class="s1">&#39;S&#39;</span><span class="p">,</span> <span class="s1">&#39;SA&#39;</span><span class="p">])</span>
+
+<span class="n">ALI_ATOM</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">])</span>
+
+<span class="n">HP_DICT</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+    <span class="n">ALA</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;N&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CA&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CB&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;O&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NPP&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">]},</span>
+    <span class="n">ARG</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;N&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CA&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CB&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;CG&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;CD&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span>
+         <span class="s2">&quot;NE&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CZ&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;NH1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;NH2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span>
+         <span class="s2">&quot;O&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NPP&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">]},</span>
+    <span class="n">ASN</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;N&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CA&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CB&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;CG&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;OD1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">],</span>
+         <span class="s2">&quot;ND2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;O&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NPP&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">]},</span>
+    <span class="n">ASP</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;N&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CA&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CB&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;CG&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;OD1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">],</span>
+         <span class="s2">&quot;OD2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">],</span> <span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;O&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NPP&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">]},</span>
+    <span class="n">CYS</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;N&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CA&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CB&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;SG&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">],</span> <span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span>
+         <span class="s2">&quot;O&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NPP&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">]},</span>
+    <span class="n">GLN</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;N&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CA&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CB&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;CG&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;CD&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span>
+         <span class="s2">&quot;OE1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">],</span> <span class="s2">&quot;NE2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;O&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NPP&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">]},</span>
+    <span class="n">GLU</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;N&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CA&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CB&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;CG&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;CD&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span>
+         <span class="s2">&quot;OE1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">],</span> <span class="s2">&quot;OE2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">],</span> <span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;O&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NPP&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">]},</span>
+    <span class="n">GLY</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;N&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CA&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;O&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NPP&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">]},</span>
+    <span class="n">HIS</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;N&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CA&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CB&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;CG&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;ND1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">],</span>
+         <span class="s2">&quot;CD2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CE1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;NE2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">],</span> <span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;O&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NPP&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">]},</span>
+    <span class="n">HIE</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;N&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CA&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CB&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;CG&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;ND1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">],</span>
+         <span class="s2">&quot;CD2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CE1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;NE2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">],</span> <span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;O&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NPP&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">]},</span>
+    <span class="n">HID</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;N&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CA&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CB&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;CG&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;ND1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">],</span>
+         <span class="s2">&quot;CD2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CE1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;NE2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">],</span> <span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;O&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NPP&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">]},</span>
+    <span class="n">HIP</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;N&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CA&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CB&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;CG&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;ND1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">],</span>
+         <span class="s2">&quot;CD2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CE1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;NE2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">],</span> <span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;O&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NPP&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">]},</span>
+    <span class="n">ILE</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;N&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CA&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CB&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;CG1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;CG2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span>
+         <span class="s2">&quot;CD1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;O&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NPP&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">]},</span>
+    <span class="n">LEU</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;N&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CA&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CB&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;CG&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;CD1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span>
+         <span class="s2">&quot;CD2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;O&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NPP&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">]},</span>
+    <span class="n">LYS</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;N&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CA&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CB&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;CG&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;CD&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span>
+         <span class="s2">&quot;CE&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;NZ&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;O&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NPP&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">]},</span>
+    <span class="n">MET</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;N&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CA&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CB&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;CG&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;SD&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">],</span>
+         <span class="s2">&quot;CE&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;O&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NPP&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">]},</span>
+    <span class="n">PHE</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;N&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CA&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CB&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;CG&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;CD1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span>
+         <span class="s2">&quot;CD2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;CE1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;CE2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;CZ&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span>
+         <span class="s2">&quot;O&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NPP&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">]},</span>
+    <span class="n">PRO</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;N&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CA&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CB&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;CG&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;CD&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span>
+         <span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;O&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NPP&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">]},</span>
+    <span class="n">SER</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;N&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CA&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CB&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;OG&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">],</span> <span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span>
+         <span class="s2">&quot;O&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NPP&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">]},</span>
+    <span class="n">THR</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;N&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CA&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CB&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;OG1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">],</span> <span class="s2">&quot;CG2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span>
+         <span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;O&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NPP&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">]},</span>
+    <span class="n">TRP</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;N&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CA&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CB&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;CG&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;CD1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span>
+         <span class="s2">&quot;CD2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;NE1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CE2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CE3&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;CZ2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span>
+         <span class="s2">&quot;CZ3&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;CH2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;O&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NPP&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">]},</span>
+    <span class="n">TYR</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;N&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CA&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CB&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;CG&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;CD1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span>
+         <span class="s2">&quot;CD2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;CE1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;CE2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;CZ&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;OH&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">],</span>
+         <span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;O&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NPP&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">]},</span>
+    <span class="n">VAL</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;N&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;P&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CA&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;CB&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;CG1&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;CG2&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span>
+         <span class="s2">&quot;CZ&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NP&quot;</span><span class="p">,</span> <span class="s2">&quot;NP&quot;</span><span class="p">],</span> <span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NNP&quot;</span><span class="p">,</span> <span class="s2">&quot;NNP&quot;</span><span class="p">],</span> <span class="s2">&quot;O&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;NPP&quot;</span><span class="p">,</span> <span class="s2">&quot;P&quot;</span><span class="p">]})</span>
+
+<span class="n">ADV_DICT</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;H&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span> <span class="s1">&#39;HD&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="kc">True</span><span class="p">],</span> <span class="s1">&#39;HS&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="kc">True</span><span class="p">],</span> <span class="s1">&#39;C&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">2.0</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span> <span class="s1">&#39;A&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">2.0</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span>
+            <span class="s1">&#39;N&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.75</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span> <span class="s1">&#39;NA&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.75</span><span class="p">,</span> <span class="kc">True</span><span class="p">],</span> <span class="s1">&#39;NS&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.75</span><span class="p">,</span> <span class="kc">True</span><span class="p">],</span> <span class="s1">&#39;OA&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.6</span><span class="p">,</span> <span class="kc">True</span><span class="p">],</span> <span class="s1">&#39;OS&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.6</span><span class="p">,</span> <span class="kc">True</span><span class="p">],</span>
+            <span class="s1">&#39;F&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">1.545</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span> <span class="s1">&#39;Mg&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.65</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span> <span class="s1">&#39;MG&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.65</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span> <span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">2.1</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span> <span class="s1">&#39;SA&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">2.0</span><span class="p">,</span> <span class="kc">True</span><span class="p">],</span>
+            <span class="s1">&#39;S&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">2.0</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span> <span class="s1">&#39;Cl&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">2.045</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span> <span class="s1">&#39;CL&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">2.045</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span> <span class="s1">&#39;Ca&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.99</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span> <span class="s1">&#39;CA&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.99</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span>
+            <span class="s1">&#39;Mn&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.65</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span> <span class="s1">&#39;MN&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.65</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span> <span class="s1">&#39;Fe&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.65</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span> <span class="s1">&#39;FE&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.65</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span> <span class="s1">&#39;Zn&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.74</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span>
+            <span class="s1">&#39;ZN&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.74</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span> <span class="s1">&#39;Br&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">2.165</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span> <span class="s1">&#39;BR&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">2.165</span><span class="p">,</span> <span class="kc">False</span><span class="p">],</span> <span class="s1">&#39;I&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">2.36</span><span class="p">,</span> <span class="kc">False</span><span class="p">]}</span>
+
+<span class="n">ADV_PARM</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;gauss_1&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.035579</span><span class="p">,</span>
+            <span class="s2">&quot;gauss_2&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.005156</span><span class="p">,</span>
+            <span class="s2">&quot;repulsion&quot;</span><span class="p">:</span> <span class="mf">0.840245</span><span class="p">,</span>
+            <span class="s2">&quot;hydrophobic&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.035069</span><span class="p">,</span>
+            <span class="s2">&quot;Hydrogen&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.587439</span><span class="p">}</span>
+
+<span class="n">PROBE_TYPE</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;Br&#39;</span><span class="p">,</span> <span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="s1">&#39;Cl&#39;</span><span class="p">,</span> <span class="s1">&#39;I&#39;</span><span class="p">,</span> <span class="s1">&#39;OA&#39;</span><span class="p">,</span> <span class="s1">&#39;SA&#39;</span><span class="p">,</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">_NP_interp</span><span class="p">(</span><span class="n">r</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">r</span> <span class="o">&lt;</span> <span class="mf">0.5</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="k">elif</span> <span class="n">r</span> <span class="o">&gt;</span> <span class="mf">1.5</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="mf">1.5</span> <span class="o">-</span> <span class="n">r</span>
+    <span class="c1">#        x=np.interp(r, [0.i5,1.5], [1,0])</span>
+    <span class="k">return</span> <span class="n">x</span>
+
+
+<span class="k">def</span> <span class="nf">_P_interp</span><span class="p">(</span><span class="n">r</span><span class="p">):</span>  <span class="c1">##step for polar</span>
+    <span class="k">if</span> <span class="n">r</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mf">0.7</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="k">elif</span> <span class="n">r</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="o">-</span><span class="n">r</span> <span class="o">/</span> <span class="mf">0.7</span>
+    <span class="k">return</span> <span class="n">x</span>
+
+
+<span class="k">def</span> <span class="nf">_calc_score</span><span class="p">(</span><span class="n">g1</span><span class="p">,</span> <span class="n">g2</span><span class="p">,</span> <span class="n">rep</span><span class="p">,</span> <span class="n">hydrophobe</span><span class="p">,</span> <span class="n">hbond</span><span class="p">,</span> <span class="n">vina_weights_dict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    Sum the score component from Vina scoring function.</span>
+
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    g1</span>
+<span class="sd">    g2</span>
+<span class="sd">    rep</span>
+<span class="sd">    hydrophobe</span>
+<span class="sd">    hbond</span>
+<span class="sd">    vina_weights_dict</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">g1</span> <span class="o">*</span> <span class="n">vina_weights_dict</span><span class="p">[</span><span class="s1">&#39;gauss_1&#39;</span><span class="p">]</span> \
+           <span class="o">+</span> <span class="n">g2</span> <span class="o">*</span> <span class="n">vina_weights_dict</span><span class="p">[</span><span class="s1">&#39;gauss_2&#39;</span><span class="p">]</span> \
+           <span class="o">+</span> <span class="n">rep</span> <span class="o">*</span> <span class="n">vina_weights_dict</span><span class="p">[</span><span class="s1">&#39;repulsion&#39;</span><span class="p">]</span> \
+           <span class="o">+</span> <span class="n">hydrophobe</span> <span class="o">*</span> <span class="n">vina_weights_dict</span><span class="p">[</span><span class="s1">&#39;hydrophobic&#39;</span><span class="p">]</span> \
+           <span class="o">+</span> <span class="n">hbond</span> <span class="o">*</span> <span class="n">vina_weights_dict</span><span class="p">[</span><span class="s1">&#39;Hydrogen&#39;</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">_assign_hp</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">,</span> <span class="n">prot_types</span><span class="p">,</span> <span class="n">hp_type</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">tree</span> <span class="o">=</span> <span class="n">spatial</span><span class="o">.</span><span class="n">KDTree</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">ix</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">hp_type</span> <span class="o">==</span> <span class="s1">&#39;UNK&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="n">indx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">query_ball_point</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">[</span><span class="n">ix</span><span class="p">],</span> <span class="mf">2.0</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">prot_types</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">POLAR_ATOM_TYPE</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">in1d</span><span class="p">(</span><span class="n">prot_types</span><span class="p">[</span><span class="n">indx</span><span class="p">[</span><span class="n">indx</span> <span class="o">!=</span> <span class="n">ix</span><span class="p">]],</span> <span class="n">POLAR_ATOM_TYPE</span><span class="p">)):</span>
+                <span class="n">hp_type</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;NNP&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">hp_type</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;NP&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">hp_type</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;XXX&#39;</span>
+    <span class="k">return</span> <span class="n">hp_type</span>
+
+
+<span class="k">def</span> <span class="nf">_assign_acc</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">,</span> <span class="n">prot_types</span><span class="p">,</span> <span class="n">hp_type</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    prot_coord</span>
+<span class="sd">    prot_types</span>
+<span class="sd">    hp_type</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tree</span> <span class="o">=</span> <span class="n">spatial</span><span class="o">.</span><span class="n">KDTree</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">ix</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">hp_type</span> <span class="o">==</span> <span class="s1">&#39;UNK&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="n">indx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">query_ball_point</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">[</span><span class="n">ix</span><span class="p">],</span> <span class="mf">2.0</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">prot_types</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;OA&#39;</span><span class="p">,</span> <span class="s1">&#39;OS&#39;</span><span class="p">,</span> <span class="s1">&#39;SA&#39;</span><span class="p">,</span> <span class="s1">&#39;S&#39;</span><span class="p">]:</span>
+            <span class="n">hp_type</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;P&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">hp_type</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;XXX&#39;</span>
+    <span class="k">return</span> <span class="n">hp_type</span>
+
+
+<span class="k">def</span> <span class="nf">_assign_don</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">,</span> <span class="n">prot_types</span><span class="p">,</span> <span class="n">hp_type</span><span class="p">):</span>
+    <span class="n">tree</span> <span class="o">=</span> <span class="n">spatial</span><span class="o">.</span><span class="n">KDTree</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">ix</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">hp_type</span> <span class="o">==</span> <span class="s1">&#39;UNK&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="n">indx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">query_ball_point</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">[</span><span class="n">ix</span><span class="p">],</span> <span class="mf">2.0</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">prot_types</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;NS&#39;</span><span class="p">,</span> <span class="s1">&#39;NA&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">indx</span><span class="p">[</span><span class="n">indx</span> <span class="o">!=</span> <span class="n">ix</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">hp_type</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;NPP&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">hp_type</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;P&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">hp_type</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;XXX&#39;</span>
+    <span class="k">return</span> <span class="n">hp_type</span>
+
+
+<div class="viewcode-block" id="pre_process_pdbqt"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Vina.pre_process_pdbqt">[docs]</a><span class="k">def</span> <span class="nf">pre_process_pdbqt</span><span class="p">(</span><span class="n">pdbqt_file</span><span class="p">,</span> <span class="n">types_dict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    pdbqt_file : str</span>
+<span class="sd">        path to pdbqt file</span>
+<span class="sd">    types_dict : dict</span>
+
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ali_atoms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">])</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">pdbqt_file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">templines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+    <span class="n">hp_type</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">don_type</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">acc_type</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">prot_coord</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">prot_types</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">templines</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;ATOM  &#39;</span><span class="p">,</span> <span class="s1">&#39;HETATM&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">t</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">:]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="s1">&#39;HD&#39;</span><span class="p">,</span> <span class="s1">&#39;HS&#39;</span><span class="p">]:</span>
+            <span class="n">prot_coord</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">30</span><span class="p">:</span><span class="mi">38</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()),</span> <span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">38</span><span class="p">:</span><span class="mi">46</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()),</span> <span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">46</span><span class="p">:</span><span class="mi">54</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">())])</span>
+            <span class="n">prot_types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">76</span><span class="p">:]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+            <span class="k">if</span> <span class="n">t</span><span class="p">[</span><span class="mi">17</span><span class="p">:</span><span class="mi">20</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">in</span> <span class="n">types_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">t</span><span class="p">[</span><span class="mi">12</span><span class="p">:</span><span class="mi">16</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">in</span> <span class="n">types_dict</span><span class="p">[</span><span class="n">t</span><span class="p">[</span><span class="mi">17</span><span class="p">:</span><span class="mi">20</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">t</span><span class="p">[</span><span class="mi">76</span><span class="p">:]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">in</span> <span class="n">ali_atoms</span><span class="p">:</span>
+                        <span class="n">hp_type</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">types_dict</span><span class="p">[</span><span class="n">t</span><span class="p">[</span><span class="mi">17</span><span class="p">:</span><span class="mi">20</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()][</span><span class="n">t</span><span class="p">[</span><span class="mi">12</span><span class="p">:</span><span class="mi">16</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()][</span><span class="mi">0</span><span class="p">])</span>
+                        <span class="n">don_type</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;XXX&#39;</span><span class="p">)</span>
+                        <span class="n">acc_type</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;XXX&#39;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">t</span><span class="p">[</span><span class="mi">76</span><span class="p">:]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">in</span> <span class="n">POLAR_ATOM_TYPE</span><span class="p">:</span>
+                        <span class="n">don_type</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">types_dict</span><span class="p">[</span><span class="n">t</span><span class="p">[</span><span class="mi">17</span><span class="p">:</span><span class="mi">20</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()][</span><span class="n">t</span><span class="p">[</span><span class="mi">12</span><span class="p">:</span><span class="mi">16</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()][</span><span class="mi">0</span><span class="p">])</span>
+                        <span class="n">acc_type</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">types_dict</span><span class="p">[</span><span class="n">t</span><span class="p">[</span><span class="mi">17</span><span class="p">:</span><span class="mi">20</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()][</span><span class="n">t</span><span class="p">[</span><span class="mi">12</span><span class="p">:</span><span class="mi">16</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()][</span><span class="mi">1</span><span class="p">])</span>
+                        <span class="n">hp_type</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;XXX&#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">hp_type</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;UNK&#39;</span><span class="p">)</span>
+                    <span class="n">don_type</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;UNK&#39;</span><span class="p">)</span>
+                    <span class="n">acc_type</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;UNK&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">hp_type</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;UNK&#39;</span><span class="p">)</span>
+                <span class="n">don_type</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;UNK&#39;</span><span class="p">)</span>
+                <span class="n">acc_type</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;UNK&#39;</span><span class="p">)</span>
+    <span class="n">prot_coord</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">)</span>
+    <span class="n">prot_types</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">prot_types</span><span class="p">)</span>
+    <span class="n">hp_type</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">hp_type</span><span class="p">)</span>
+    <span class="n">acc_type</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">acc_type</span><span class="p">)</span>
+    <span class="n">don_type</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">don_type</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">hp_type</span> <span class="o">==</span> <span class="s1">&#39;UNK&#39;</span><span class="p">):</span>
+        <span class="n">_assign_hp</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">,</span> <span class="n">prot_types</span><span class="p">,</span> <span class="n">hp_type</span><span class="p">)</span>
+        <span class="n">_assign_don</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">,</span> <span class="n">prot_types</span><span class="p">,</span> <span class="n">don_type</span><span class="p">)</span>
+        <span class="n">_assign_acc</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">,</span> <span class="n">prot_types</span><span class="p">,</span> <span class="n">acc_type</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">prot_coord</span><span class="p">,</span> <span class="n">prot_types</span><span class="p">,</span> <span class="n">hp_type</span><span class="p">,</span> <span class="n">acc_type</span><span class="p">,</span> <span class="n">don_type</span></div>
+
+
+<div class="viewcode-block" id="get_probe_score"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Vina.get_probe_score">[docs]</a><span class="k">def</span> <span class="nf">get_probe_score</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">,</span> <span class="n">prot_types</span><span class="p">,</span> <span class="n">hp_type</span><span class="p">,</span> <span class="n">don_type</span><span class="p">,</span> <span class="n">acc_type</span><span class="p">,</span> <span class="n">probe_coords</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+
+<span class="sd">    Use beta atom as probe points and estimate the ligandibility</span>
+
+<span class="sd">    &gt;&gt;&gt; import alphaspace</span>
+<span class="sd">    &gt;&gt;&gt; universe = alphaspace.AS_Universe(receptor = &#39;path to receptor file&#39;,binder = &#39;pathto binder file&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; universe.run_alphaspace()</span>
+<span class="sd">    &gt;&gt;&gt; beta_coords = []</span>
+<span class="sd">    &gt;&gt;&gt; for pocket in universe.pockets(snapshot_idx = 0):</span>
+<span class="sd">    &gt;&gt;&gt; 	for beta in pocket.betas:</span>
+<span class="sd">    &gt;&gt;&gt; 		beta_coords.append(beta.centroid) # This will use the centroid of all alpha atom in the beta atom</span>
+<span class="sd">    &gt;&gt;&gt; protein_coords = universe.receptor.xyz[0]</span>
+<span class="sd">    &gt;&gt;&gt; prot_coord, prot_types, hp_type, acc_type, don_type = pre_process_pdbqt(&#39;path to pdbqt file&#39;, alphaspace.HP_DICT)</span>
+<span class="sd">    &gt;&gt;&gt; prb_dict = get_probe_score(prot_coord, prot_types, hp_type, acc_type, don_type, probe_coords=probe_coords)</span>
+
+<span class="sd">    Use the given protein atom type to calculate probe score at given location.</span>
+
+<span class="sd">    get_probe_score(*pre_process_pdbqt(),probe_coords)</span>
+
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    prot_coord : np.ndarray</span>
+<span class="sd">        shape = (n,3)</span>
+<span class="sd">    prot_types : np.ndarray</span>
+<span class="sd">        shape = (n)</span>
+<span class="sd">    hp_type : np.ndarray</span>
+<span class="sd">        shape = (n)</span>
+<span class="sd">    don_type : np.ndarray</span>
+<span class="sd">        shape = (n)</span>
+<span class="sd">    acc_type : np.ndarray</span>
+<span class="sd">        shape = (n)</span>
+<span class="sd">    probe_coords : np.ndarray</span>
+<span class="sd">        shape = (n,3)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    prb_dict : dict</span>
+<span class="sd">        probe score dictionary.</span>
+
+
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dist</span> <span class="o">=</span> <span class="n">spatial</span><span class="o">.</span><span class="n">distance</span><span class="o">.</span><span class="n">cdist</span><span class="p">(</span><span class="n">probe_coords</span><span class="p">,</span> <span class="n">prot_coord</span><span class="p">)</span>
+    <span class="n">prb_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">PROBE_TYPE</span><span class="p">}</span>
+
+    <span class="k">for</span> <span class="n">px</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">probe_coords</span><span class="p">)):</span>
+        <span class="n">dist_bool</span> <span class="o">=</span> <span class="n">dist</span><span class="p">[</span><span class="n">px</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mf">8.0</span>
+        <span class="n">temp_dist</span> <span class="o">=</span> <span class="n">dist</span><span class="p">[</span><span class="n">px</span><span class="p">][</span><span class="n">dist_bool</span><span class="p">]</span>
+
+        <span class="n">temp_type</span> <span class="o">=</span> <span class="n">prot_types</span><span class="p">[</span><span class="n">dist_bool</span><span class="p">]</span>
+        <span class="n">NP_type</span> <span class="o">=</span> <span class="p">(</span><span class="n">hp_type</span><span class="p">[</span><span class="n">dist_bool</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;NP&#39;</span><span class="p">)</span>
+        <span class="n">Pdon_type</span> <span class="o">=</span> <span class="p">(</span><span class="n">don_type</span><span class="p">[</span><span class="n">dist_bool</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;P&#39;</span><span class="p">)</span>
+        <span class="n">Pacc_type</span> <span class="o">=</span> <span class="p">(</span><span class="n">acc_type</span><span class="p">[</span><span class="n">dist_bool</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;P&#39;</span><span class="p">)</span>
+        <span class="n">dist_radii</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">ADV_DICT</span><span class="p">[</span><span class="n">ty</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">ty</span> <span class="ow">in</span> <span class="n">temp_type</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">prb</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;Br&#39;</span><span class="p">,</span> <span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="s1">&#39;Cl&#39;</span><span class="p">,</span> <span class="s1">&#39;I&#39;</span><span class="p">,</span> <span class="s1">&#39;OA&#39;</span><span class="p">,</span> <span class="s1">&#39;SA&#39;</span><span class="p">,</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">]:</span>
+            <span class="n">probe_dist</span> <span class="o">=</span> <span class="n">ADV_DICT</span><span class="p">[</span><span class="n">prb</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">proc_dist</span> <span class="o">=</span> <span class="n">temp_dist</span> <span class="o">-</span> <span class="n">dist_radii</span> <span class="o">-</span> <span class="n">probe_dist</span>
+            <span class="n">g1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">proc_dist</span> <span class="o">/</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span>
+            <span class="n">g2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">((</span><span class="n">proc_dist</span> <span class="o">-</span> <span class="mf">3.0</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span>
+            <span class="n">rep</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">dd</span> <span class="o">**</span> <span class="mi">2</span> <span class="k">if</span> <span class="n">dd</span> <span class="o">&lt;</span> <span class="mf">0.0</span> <span class="k">else</span> <span class="mf">0.0</span> <span class="k">for</span> <span class="n">dd</span> <span class="ow">in</span> <span class="n">proc_dist</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">prb</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;Br&#39;</span><span class="p">,</span> <span class="s1">&#39;Cl&#39;</span><span class="p">,</span> <span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="s1">&#39;I&#39;</span><span class="p">]:</span>
+                <span class="n">h1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">_NP_interp</span><span class="p">(</span><span class="n">dd</span><span class="p">)</span> <span class="k">for</span> <span class="n">dd</span> <span class="ow">in</span> <span class="n">proc_dist</span><span class="p">[</span><span class="n">NP_type</span><span class="p">]])</span>
+                <span class="n">h2</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="k">elif</span> <span class="n">prb</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;OA&#39;</span><span class="p">,</span> <span class="s1">&#39;SA&#39;</span><span class="p">]:</span>
+                <span class="n">h1</span> <span class="o">=</span> <span class="mf">0.0</span>
+                <span class="n">h2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">_P_interp</span><span class="p">(</span><span class="n">dd</span><span class="p">)</span> <span class="k">for</span> <span class="n">dd</span> <span class="ow">in</span> <span class="n">proc_dist</span><span class="p">[</span><span class="n">Pdon_type</span><span class="p">]])</span>
+            <span class="k">elif</span> <span class="n">prb</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">]:</span>
+                <span class="n">h1</span> <span class="o">=</span> <span class="mf">0.0</span>
+                <span class="n">h2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">_P_interp</span><span class="p">(</span><span class="n">dd</span><span class="p">)</span> <span class="k">for</span> <span class="n">dd</span> <span class="ow">in</span> <span class="n">proc_dist</span><span class="p">[</span><span class="n">Pacc_type</span><span class="p">]])</span>
+            <span class="n">prb_dict</span><span class="p">[</span><span class="n">prb</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">_calc_score</span><span class="p">(</span><span class="n">g1</span><span class="p">,</span> <span class="n">g2</span><span class="p">,</span> <span class="n">rep</span><span class="p">,</span> <span class="n">h1</span><span class="p">,</span> <span class="n">h2</span><span class="p">,</span> <span class="n">vina_weights_dict</span><span class="o">=</span><span class="n">ADV_PARM</span><span class="p">),</span> <span class="n">g1</span><span class="p">,</span> <span class="n">g2</span><span class="p">,</span> <span class="n">rep</span><span class="p">,</span> <span class="n">h1</span><span class="p">,</span> <span class="n">h2</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">prb_dict</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">sys</span>
+    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+    <span class="n">probe_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+    <span class="n">prot_coord</span><span class="p">,</span> <span class="n">prot_types</span><span class="p">,</span> <span class="n">hp_type</span><span class="p">,</span> <span class="n">acc_type</span><span class="p">,</span> <span class="n">don_type</span> <span class="o">=</span> <span class="n">pre_process_pdbqt</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">HP_DICT</span><span class="p">)</span>
+
+    <span class="n">prb_dict</span> <span class="o">=</span> <span class="n">get_probe_score</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">,</span> <span class="n">prot_types</span><span class="p">,</span> <span class="n">hp_type</span><span class="p">,</span> <span class="n">acc_type</span><span class="p">,</span> <span class="n">don_type</span><span class="p">,</span> <span class="n">probe_coords</span><span class="o">=</span><span class="n">probe_coords</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">prb_dict</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2017, Haotian Li.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'2.0b',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

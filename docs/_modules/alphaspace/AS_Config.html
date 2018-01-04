@@ -223,11 +223,17 @@
                   <span class="mi">10</span><span class="p">:</span> <span class="s2">&quot;aqua&quot;</span><span class="p">,</span>
                   <span class="mi">11</span><span class="p">:</span> <span class="s2">&quot;rosybrown&quot;</span><span class="p">,</span>
                   <span class="mi">12</span><span class="p">:</span> <span class="s2">&quot;coral&quot;</span><span class="p">}</span>
-    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">config_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="bp">cls</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span>
-        <span class="bp">cls</span><span class="o">.</span><span class="n">config_path</span> <span class="o">=</span> <span class="n">config_path</span> <span class="k">if</span> <span class="n">config_path</span> <span class="k">else</span> <span class="n">_DEFAULT_CONFIG_FILE_PATH</span>
-        <span class="bp">cls</span><span class="o">.</span><span class="n">load_config</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">config_path</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">cls</span>
+    <span class="c1"># def __new__(cls, config_path=None):</span>
+    <span class="c1">#     cls.config = configparser.ConfigParser()</span>
+    <span class="c1">#     cls.config_path = config_path if config_path else _DEFAULT_CONFIG_FILE_PATH</span>
+    <span class="c1">#     cls.load_config(cls, cls.config_path)</span>
+    <span class="c1">#     return cls</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">config_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config_path</span> <span class="o">=</span> <span class="n">config_path</span> <span class="k">if</span> <span class="n">config_path</span> <span class="k">else</span> <span class="n">_DEFAULT_CONFIG_FILE_PATH</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">load_config</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config_path</span><span class="p">)</span>
+
 
 <div class="viewcode-block" id="AS_Config.color"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Config.AS_Config.color">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">color</span><span class="p">(</span><span class="n">idx</span><span class="p">):</span>
