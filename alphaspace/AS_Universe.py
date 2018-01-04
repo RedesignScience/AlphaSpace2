@@ -157,7 +157,7 @@ class AS_Universe(object):
         :return: object, AS_D_Pocket
         """
         if not self._d_pockets:
-            self._d_pockets = list(self.receptor._gen_d_pockets())
+            self._d_pockets = list(self._gen_d_pockets())
         for p in self._d_pockets:
             yield p
 

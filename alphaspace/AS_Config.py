@@ -60,11 +60,17 @@ class AS_Config(object):
                   10: "aqua",
                   11: "rosybrown",
                   12: "coral"}
-    def __new__(cls, config_path=None):
-        cls.config = configparser.ConfigParser()
-        cls.config_path = config_path if config_path else _DEFAULT_CONFIG_FILE_PATH
-        cls.load_config(cls, cls.config_path)
-        return cls
+    # def __new__(cls, config_path=None):
+    #     cls.config = configparser.ConfigParser()
+    #     cls.config_path = config_path if config_path else _DEFAULT_CONFIG_FILE_PATH
+    #     cls.load_config(cls, cls.config_path)
+    #     return cls
+
+    def __init__(self,config_path=None):
+        self.config = configparser.ConfigParser()
+        self.config_path = config_path if config_path else _DEFAULT_CONFIG_FILE_PATH
+        self.load_config(self.config_path)
+
 
     @staticmethod
     def color(idx):

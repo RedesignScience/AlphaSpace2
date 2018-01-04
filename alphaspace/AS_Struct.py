@@ -7,8 +7,6 @@ AS_Universe:
             : pockets and other virtual elements
 """
 
-
-
 from collections import defaultdict
 
 import numpy as np
@@ -44,7 +42,7 @@ class AS_Structure:
 
     def __repr__(self):
         return "{} Structure with {} frames, {} residues, {} atoms".format(
-                ['Receptor','Binder','Misc.'][self.structure_type],self.n_frames,self.n_residues,self.n_atoms)
+            ['Receptor', 'Binder', 'Misc.'][self.structure_type], self.n_frames, self.n_residues, self.n_atoms)
 
     def __len__(self):
         """
@@ -67,55 +65,55 @@ class AS_Structure:
         raw_alpha_xyz = Voronoi(self.traj.xyz[snapshot_idx]).vertices
 
         # Calculate alpha sphere radii
-        raw_alpha_sphere_radii = np.linalg.norm(raw_alpha_lining_xyz - raw_alpha_xyz,axis=1)
+        raw_alpha_sphere_radii = np.linalg.norm(raw_alpha_lining_xyz - raw_alpha_xyz, axis=1)
 
         # Filter the data based on radii cutoff
         filtered_alpha_idx = np.where(np.logical_and(config.min_r / 10.0 <= raw_alpha_sphere_radii,
                                                      raw_alpha_sphere_radii <= config.max_r / 10.0))[0]
 
-        filtered_alpha_radii = np.take(raw_alpha_sphere_radii,filtered_alpha_idx)
+        filtered_alpha_radii = np.take(raw_alpha_sphere_radii, filtered_alpha_idx)
 
-        alpha_lining = np.take(raw_alpha_lining_idx,filtered_alpha_idx,axis=0)
+        alpha_lining = np.take(raw_alpha_lining_idx, filtered_alpha_idx, axis=0)
 
-        filtered_alpha_xyz = np.take(raw_alpha_xyz,filtered_alpha_idx,axis=0)
+        filtered_alpha_xyz = np.take(raw_alpha_xyz, filtered_alpha_idx, axis=0)
 
         # cluster the remaining vertices to assign index of belonging pockets
-        zmat = linkage(filtered_alpha_xyz,method='average')
+        zmat = linkage(filtered_alpha_xyz, method='average')
 
-        alpha_pocket_index = fcluster(zmat,self.config.clust_dist / 10,
+        alpha_pocket_index = fcluster(zmat, self.config.clust_dist / 10,
                                       criterion='distance') - 1  # because cluster index start from 1
 
         # Load trajectories
         filtered_lining_xyz = np.take(self.traj.xyz[snapshot_idx], alpha_lining, axis=0)
         # calculate the polarity of alpha atoms
         _total_space = np.array(
-                [getTetrahedronVolume(i) for i in
-                 filtered_lining_xyz]) * 1000  # here the 1000 is to convert nm^3 to A^3
+            [getTetrahedronVolume(i) for i in
+             filtered_lining_xyz]) * 1000  # here the 1000 is to convert nm^3 to A^3
 
         atom_sasa = getSASA(self.trajectory[snapshot_idx])
         atom_covered_sasa = getSASA(self.traj[snapshot_idx], filtered_alpha_xyz)
-        pocket_sasa = np.take(atom_sasa - atom_covered_sasa,alpha_lining)
+        pocket_sasa = np.take(atom_sasa - atom_covered_sasa, alpha_lining)
 
         is_polar = np.array(
-                [(str(atom.element) in ['nitrogen','oxygen','sulfur']) for atom in self.topology._atoms])
-        polar_ratio = np.average(np.take(is_polar,alpha_lining),axis=1,weights=pocket_sasa)
+            [(str(atom.element) in ['nitrogen', 'oxygen', 'sulfur']) for atom in self.topology._atoms])
+        polar_ratio = np.average(np.take(is_polar, alpha_lining), axis=1, weights=pocket_sasa)
 
         _polar_space = _total_space * polar_ratio
 
         _nonpolar_space = _total_space - _polar_space
 
-        data = np.concatenate((np.zeros((len(alpha_pocket_index),1)),
-                               np.full((len(alpha_pocket_index),1),snapshot_idx),
+        data = np.concatenate((np.zeros((len(alpha_pocket_index), 1)),
+                               np.full((len(alpha_pocket_index), 1), snapshot_idx),
                                filtered_alpha_xyz,
                                alpha_lining,
-                               np.expand_dims(_polar_space,axis=1),
+                               np.expand_dims(_polar_space, axis=1),
                                np.expand_dims(_nonpolar_space, axis=1),
-                               np.ones((len(alpha_pocket_index),1)),
-                               np.zeros((len(alpha_pocket_index),1)),
+                               np.ones((len(alpha_pocket_index), 1)),
+                               np.zeros((len(alpha_pocket_index), 1)),
                                np.expand_dims(alpha_pocket_index, axis=1),
                                np.expand_dims(filtered_alpha_radii, axis=1),
                                np.ones((len(alpha_pocket_index), 1)) * (-1),
-                               ),axis=-1)
+                               ), axis=-1)
 
         """
         0       idx
@@ -211,17 +209,15 @@ class AS_Structure:
         # for atom in self.top._atoms:
         #     yield atom
 
-
     @property
     def is_polar(self):
         """
         Returns an array of if the atom in the topology is a polar atom.
         :return: np.ndarray N of n atoms in the structure
         """
-        return np.array([(str(atom.element) in ['nitrogen','oxygen','sulfur']) for atom in self.topology._atoms])
+        return np.array([(str(atom.element) in ['nitrogen', 'oxygen', 'sulfur']) for atom in self.topology._atoms])
 
-
-    def residue(self,idx):
+    def residue(self, idx):
         """
         Gives a residue with idx
         :param idx: int
@@ -229,7 +225,7 @@ class AS_Structure:
         """
         return self.topology.residue(idx)
 
-    def atom(self,idx):
+    def atom(self, idx):
         """
         Gives an atom with idx
         :param idx: int
@@ -237,8 +233,7 @@ class AS_Structure:
         """
         return self.topology.atom(idx)
 
-
-    def n_alphas(self,snapshot_idx = 0,active_only = False):
+    def n_alphas(self, snapshot_idx=0, active_only=False):
         """
         return the number of alpha atoms in a particular snapshot
         :param snapshot_idx: int
@@ -260,30 +255,35 @@ class AS_Structure:
     #     data[:, 0] = np.arange(0, len(data), dtype=int)
     #     self._data = AS_Data(data, self)
 
-
     def _gen_pockets(self):
 
         self._pockets_alpha_idx = {}
 
         for i in range(self.n_frames):
-            pocket_snapshot_dict = self._data[i][:, [0,13]]
+            pocket_snapshot_dict = self._data[i][:, [0, 13]]
 
             reversed_dict = defaultdict(list)
-            for idx,p_idx in pocket_snapshot_dict:
+            for idx, p_idx in pocket_snapshot_dict:
                 reversed_dict[p_idx].append(idx)
             self._pockets_alpha_idx[i] = reversed_dict
 
-
-    def pockets(self,snapshot_idx=0):
+    def pockets(self, snapshot_idx=0):
         """
         Generate an iterator of the pockets in the given snapshot
-        :param snapshot_idx: int
-        :return: iter, alphaspace.AS_Pocket
+        Parameters
+        ----------
+        snapshot_idx : int
+
+
+        Returns
+        -------
+        iterable : alphaspace.AS_Pocket
+
         """
         if len(self._pockets_alpha_idx) == 0:
             self._gen_pockets()
         for pocket_idx, pocket_content in self._pockets_alpha_idx[snapshot_idx].items():
-            yield AS_Pocket(pocket_content,snapshot_idx,pocket_idx,self)
+            yield AS_Pocket(pocket_content, snapshot_idx, pocket_idx, self)
 
     def pocket(self, pocket_idx, snapshot_idx=0):
         """
@@ -303,9 +303,7 @@ class AS_Structure:
         else:
             return None
 
-
-
-    def calculate_contact(self,snapshot_idx=None):
+    def calculate_contact(self, snapshot_idx=None):
         """
         Calculate the contact index of the alpha cluster against the designated binder.
         The contact distance cutoff can be set in config
@@ -317,7 +315,7 @@ class AS_Structure:
             snapshot_cluster_coord_matrix = self._data[snapshot_idx].xyz()
             binder_coords = self.universe.binder.trajectory.xyz[snapshot_idx]
             contact_alpha = getIfContact(snapshot_cluster_coord_matrix, binder_coords, self.config.hit_dist)[0]
-            self._data[snapshot_idx][contact_alpha,12] = 1
+            self._data[snapshot_idx][contact_alpha, 12] = 1
 
         else:
             for i in range(self.n_snapshots):

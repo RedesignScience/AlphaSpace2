@@ -1,6 +1,5 @@
 """
 AS_Vina contains function and classes for scoring probes using vina scoring function.
-=====================================================================================
 
 
 """
@@ -80,11 +79,6 @@ PROBE_TYPE = ['C', 'Br', 'F', 'Cl', 'I', 'OA', 'SA', 'N', 'P']
 
 def _NP_interp(r):
     """
-    #step function for nonpolar interactions.
-    :param r: radii
-    :type r: float
-    :return: stepped
-    :rtype: float
     """
     if r < 0.5:
         x = 1.0
@@ -134,12 +128,6 @@ def _calc_score(g1, g2, rep, hydrophobe, hbond, vina_weights_dict):
 
 def _assign_hp(prot_coord, prot_types, hp_type):
     """
-    This assigns hydrophobicity type for UNK atoms
-
-    :param prot_coord: protein coordinate shape =  N*3
-    :param prot_types: protein atom types shape = N
-    :param hp_type: type_to be modified.
-    :return: hp_type
     """
 
     tree = spatial.KDTree(prot_coord)
@@ -251,8 +239,23 @@ def pre_process_pdbqt(pdbqt_file, types_dict):
 def get_probe_score(prot_coord, prot_types, hp_type, don_type, acc_type, probe_coords):
     """
 
-    Example
-    -------
+    Examples
+    --------
+
+    Use beta atom as probe points and estimate the ligandibility
+
+    >>> import alphaspace
+    >>> universe = alphaspace.AS_Universe(receptor = 'path to receptor file',binder = 'pathto binder file')
+    >>> universe.run_alphaspace()
+    >>> beta_coords = []
+    >>> for pocket in universe.pockets(snapshot_idx = 0):
+    >>> 	for beta in pocket.betas:
+    >>> 		beta_coords.append(beta.centroid) # This will use the centroid of all alpha atom in the beta atom
+    >>> protein_coords = universe.receptor.xyz[0]
+    >>> prot_coord, prot_types, hp_type, acc_type, don_type = pre_process_pdbqt('path to pdbqt file', alphaspace.HP_DICT)
+    >>> prb_dict = get_probe_score(prot_coord, prot_types, hp_type, acc_type, don_type, probe_coords=probe_coords)
+
+    Use the given protein atom type to calculate probe score at given location.
 
     get_probe_score(*pre_process_pdbqt(),probe_coords)
 
@@ -262,13 +265,13 @@ def get_probe_score(prot_coord, prot_types, hp_type, don_type, acc_type, probe_c
     prot_coord : np.ndarray
         shape = (n,3)
     prot_types : np.ndarray
-        shape = (n,3)
+        shape = (n)
     hp_type : np.ndarray
-        shape = (n,3)
+        shape = (n)
     don_type : np.ndarray
-        shape = (n,3)
+        shape = (n)
     acc_type : np.ndarray
-        shape = (n,3)
+        shape = (n)
     probe_coords : np.ndarray
         shape = (n,3)
 

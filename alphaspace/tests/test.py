@@ -8,9 +8,9 @@ from itertools import combinations, chain
 from alphaspace.AS_Funct import combination_intersection_count, combination_union_count
 
 
-testProteins_bcl2 = ['alphaspace/tests/bcl2/prot/{}.pdb'.format(i) for i in range(1, 1 + 10)]
+testProteins_bcl2 = ['bcl2/prot/{}.pdb'.format(i) for i in range(1, 1 + 10)]
 
-testLigand_bcl2 = ['alphaspace/tests/bcl2/lig/{}.pdb'.format(i) for i in range(1, 1 + 10)]
+testLigand_bcl2 = ['bcl2/lig/{}.pdb'.format(i) for i in range(1, 1 + 10)]
 
 
 
@@ -45,8 +45,9 @@ def bcl2_test():
     """Run alphaspace with 4 cpu cores"""
     universe.run_alphaspace_mp(4)
     #
-    # for pocket in universe.pockets():
-    #     print(pocket)
+    for pocket in universe.pockets():
+        for beta in pocket.betas:
+            print(beta.centroid)
 
     # for atom in universe.binder.atoms:
     #     atom.linked_alpha = []
@@ -58,6 +59,8 @@ def bcl2_test():
     # for atom in universe.binder.atoms:
     #     if (len(atom.linked_alpha)) > 0:
     #         print(len(atom.linked_alpha))
+
+
 
 
 def generate_communities():

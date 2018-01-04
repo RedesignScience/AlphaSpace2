@@ -455,8 +455,7 @@ class AS_Pocket:
 
     Initialize pocket object by calling .pockets or .pocket method in AS_Universe.
 
-    Example:
-
+    Examples
     --------
 
     If you want to see pockets from snapshot # 3
@@ -818,6 +817,7 @@ class AS_Pocket:
 
         Yields
         ------
+
         beta atom : AS_BetaAtom
 
         """

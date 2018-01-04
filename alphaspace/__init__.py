@@ -8,7 +8,7 @@ except:
 from .AS_Config import _DEFAULT_CONFIG_FILE_PATH, AS_Config
 from .AS_Universe import AS_Universe
 
-from .AS_Vina import get_probe_score
+from .AS_Vina import *
 
 from .AS_Funct import *
 
