@@ -81,7 +81,7 @@ def generate_communities():
 
     universe._gen_communities()
 
-    for community in universe.communities[0]:
+    for community in universe.communities(0):
         print('community')
         print(len(community))
         print(len([p for p in community if p.core_aux_minor == 'core']))
@@ -130,5 +130,5 @@ def generate_dtm_communities():
 
 
 if __name__ == '__main__':
-    # generate_dtm_communities()
-    bcl2_test()
+    generate_dtm_communities()
+    # bcl2_test()

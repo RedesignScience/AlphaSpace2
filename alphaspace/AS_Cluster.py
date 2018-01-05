@@ -17,26 +17,6 @@ from scipy.cluster.hierarchy import linkage, fcluster
 
 import alphaspace
 
-ASDATA_idx = 0
-ASDATA_snapshot_idx = 1
-ASDATA_x = 2
-ASDATA_y = 3
-ASDATA_z = 4
-ASDATA_lining_atom_idx_1 = 5
-ASDATA_lining_atom_idx_2 = 6
-ASDATA_lining_atom_idx_3 = 7
-ASDATA_lining_atom_idx_4 = 8
-ASDATA_polar_space = 9
-ASDATA_nonpolar_space = 10
-ASDATA_is_active = 11
-ASDATA_is_contact = 12
-ASDATA_pocket_idx = 13
-ASDATA_radii = 14
-ASDATA_closest_binder_atom_idx = 15
-ASDATA_closest_binder_atom_distance = 16
-ASDATA_total_lining_atom_asa = 17
-
-
 class AS_Snapshot(np.ndarray):
     """
     Container object inherited from numpy array object, you can access information directly here.

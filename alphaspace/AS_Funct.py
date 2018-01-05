@@ -121,6 +121,7 @@ def getCosAngleBetween(v1, v2):
 
 def combination_intersection_count(indices_list: list, total_index: int) -> np.ndarray:
     """
+
     Given a list of indices list, such as [ [1,2,3], [4,5,6] , [2,3,4]]
     This function calculates the intersection count between each pair in the list
     if indices_list is a N list of M indices, the return array D is a N * N ndarray, where Dij is the intersection count
@@ -130,23 +131,23 @@ def combination_intersection_count(indices_list: list, total_index: int) -> np.n
     :param indices_list: list [[indices].]
     :param total_index: int, upper limits of the indices
     :return: np.ndarray N * N where (i,j) means count of i and j element wise intersection
+
+
+    Parameters
+    ----------
+    indices_list : list [[indices].]
+    total_index : total_index: int, upper limits of the indices
+
+    Returns
+    -------
+    intersection binary matrix : np.ndarray
+         N * N where (i,j) means count of i and j element wise intersection
+
     """
     item_binary_vectors = np.empty((len(indices_list), total_index))
     item_binary_vectors.fill(0)
     for pocket_idx, lining_atoms_idx in enumerate(indices_list):
         item_binary_vectors[pocket_idx].put(lining_atoms_idx, 1)
-
-    # Shame!!!!!!!!!
-    # abab = np.tile(item_binary_vectors,
-    #                [item_binary_vectors.shape[0], 1]
-    #                )
-    # aabb = np.tile(item_binary_vectors,
-    #                item_binary_vectors.shape[0]
-    #                ).reshape(
-    #     (item_binary_vectors.shape[0] ** 2, item_binary_vectors.shape[1])
-    # )
-    # overlap_matrix = (abab * aabb).sum(axis=1).reshape(
-    #     (item_binary_vectors.shape[0], item_binary_vectors.shape[0]))
 
     overlap_matrix = np.empty((item_binary_vectors.shape[0], item_binary_vectors.shape[0]))
     overlap_matrix.fill(0)
@@ -477,3 +478,36 @@ def extractResidue(traj, residue_numbers=None, residue_names=None, clip=True):
         traj.atom_slice(kept_atom_idx, inplace=True)
     return extracted_traj
 
+def cluster_by_overlap(vectors, total_index , overlap_cutoff,):
+    """
+    Cluster a list of binary vectors based on lining atom overlap
+
+    Parameters
+    ----------
+    vectors
+    total_index
+    overlap_cutoff
+
+    Returns
+    -------
+
+    """
+    from scipy.spatial.distance import squareform
+
+    # calculate jaccard_diff_matrix
+    intersection_matrix = combination_intersection_count(vectors, total_index)
+
+    union_matrix = combination_union_count(vectors, total_index)
+
+    jaccard_diff_matrix = 1 - intersection_matrix / union_matrix
+
+    cluster_index = list(fcluster(Z=linkage(squareform(jaccard_diff_matrix), method='average'),
+                                 t=overlap_cutoff,
+                                 criterion='distance') - 1)
+
+    cluster_list = {i: [] for i in range(max(cluster_index) + 1)}
+
+    for cluster_i, item_idx in enumerate(cluster_index):
+        cluster_list[item_idx].append(cluster_i)
+
+    return cluster_list

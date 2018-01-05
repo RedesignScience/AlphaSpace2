@@ -49,7 +49,7 @@ import mdtraj
 
 from .AS_Cluster import AS_D_Pocket
 from .AS_Config import AS_Config
-from .AS_Funct import _tessellation_mp,getCosAngleBetween, combination_intersection_count, combination_union_count
+from .AS_Funct import _tessellation_mp, getCosAngleBetween, combination_intersection_count, combination_union_count
 from .AS_Struct import AS_Structure
 
 
@@ -90,10 +90,8 @@ class AS_Universe(object):
     def __repr__(self):
         rec_res = self.receptor.n_residues if self.receptor else 0
         rec_atm = self.receptor.n_atoms if self.receptor else 0
-        bind_res = self.receptor.n_residues if self.binder else 0
-        bind_atm = self.receptor.n_atoms if self.binder else 0
-
-
+        bind_res = self.binder.n_residues if self.binder else 0
+        bind_atm = self.binder.n_atoms if self.binder else 0
 
         return "Receptor of {} residues {} atoms | Binder of {} residues {} atoms".format(rec_res,
                                                                                           rec_atm,
@@ -112,7 +110,6 @@ class AS_Universe(object):
     @property
     def frame_indices(self):
         return self.frames
-
 
     @property
     def n_frames(self):
@@ -282,11 +279,8 @@ class AS_Universe(object):
     def run_alphaspace(self):
         self.run_alphaspace_mp(cpu=1)
 
-    def run_alphaspace_mp(self,cpu = None):
-        _tessellation_mp(self,cpu=cpu)
-
-
-
+    def run_alphaspace_mp(self, cpu=None):
+        _tessellation_mp(self, cpu=cpu)
 
     def _get_face_atoms(self):
 
@@ -311,7 +305,7 @@ class AS_Universe(object):
 
     def _gen_communities_legacy(self):
         import networkx
-        self.communities = {}
+        self._communities = {}
         for snapshot_idx in range(self.n_frames):
             pocket_graph = networkx.Graph()
             pocket_graph.add_nodes_from(self.pockets(snapshot_idx, active_only=False))
@@ -345,13 +339,13 @@ class AS_Universe(object):
             for community in core_aux_communities:
                 linked_minor = set(chain.from_iterable([pocket_graph.neighbors(p) for p in community]))
                 communities.append(linked_minor.union(community))
-            self.communities[snapshot_idx] = communities
+            self._communities[snapshot_idx] = communities
 
     def _gen_communities(self):
 
         # Todo convert to function and use multi core
         import networkx
-        self.communities = {}
+        self._communities = {}
         self._pocket_network = {}
         for snapshot_idx in self.snapshots_indices:
             pocket_graph = networkx.Graph()
@@ -377,8 +371,21 @@ class AS_Universe(object):
             for community in core_aux_communities:
                 linked_minor = set(chain.from_iterable([pocket_graph.neighbors(p) for p in community]))
                 communities.append(linked_minor.union(community))
-            self.communities[snapshot_idx] = communities
+            self._communities[snapshot_idx] = communities
             self._pocket_network[snapshot_idx] = pocket_graph
+
+    def communities(self, snapshot_idx=0):
+        """
+        Get communities from a snapshot
+        Parameters
+        ----------
+        snapshot_idx
+
+        Returns
+        -------
+        communities : list
+        """
+        return self._communities[snapshot_idx]
 
     @property
     def snapshots_indices(self):
@@ -408,44 +415,41 @@ class AS_Universe(object):
                     if len(pocket.alpha_idx) <= self.config.min_num_alph:
                         pocket.deactivate()
 
-
-
     def _gen_d_pockets(self):
         """
-        todo
-        Generate d-pocket dictionary of list of indices
-        :return: dict of d_pockets
+        Generate d pockets
+
+        Returns
+        -------
+
+        d_pocket: dict
+            a dict of d pockets, each is a list of child pocket indices
+
         """
+
+        from alphaspace.AS_Funct import cluster_by_overlap
+        # check if alphaspace is run
+
         if self.data is None:
             raise Exception('No Data available ')
 
+        # list all pockets
         pockets_all = []
         for snapshot_idx in self.snapshots_indices:
             pockets_all.extend(self.pockets(snapshot_idx))
 
+        # extract lining atom into list
         lining_atom_indices = [pocket.lining_atoms_idx for pocket in pockets_all]
 
-        # calculate jaccard_diff_matrix
+        d_pocket_p_idx = cluster_by_overlap(lining_atom_indices, self.receptor.n_atoms,
+                                            self.config.dpocket_cluster_cutoff)
 
-        intersection_matrix = combination_intersection_count(lining_atom_indices, self.receptor.n_atoms)
-
-        union_matrix = combination_union_count(lining_atom_indices, self.receptor.n_atoms)
-
-        jaccard_diff_matrix = 1 - intersection_matrix / union_matrix
-
-        pocket_d_idx = list(fcluster(Z=linkage(squareform(jaccard_diff_matrix), method='average'),
-                                     t=self.config.dpocket_cluster_cutoff,
-                                     criterion='distance') - 1)
-
-        d_pockets = {i: [] for i in range(max(pocket_d_idx) + 1)}
-
-        for pocket_idx, dp_idx in zip(pockets_all, pocket_d_idx):
-            d_pockets[dp_idx].append(pocket_idx)
-
-        d_pockets = dict(list(enumerate(sorted(d_pockets.values(), reverse=True, key=len))))
+        d_pockets = dict(list(enumerate(sorted(d_pocket_p_idx.values(), reverse=True, key=len))))
+        # fill pocket list
+        for key,idx in d_pockets.items():
+            d_pockets[key] = [pockets_all[i] for i in idx]
 
         self._d_pockets = d_pockets
-
         return d_pockets
 
     def _gen_d_communities(self):
@@ -528,6 +532,7 @@ class AS_Universe(object):
         for pocket in self.pockets(snapshot_idx):
             self._view.add_surface(selection=list(pocket.lining_atoms_idx), opacity=1.0, color=pocket.color,
                                    surfaceType='sas')
+
 
 if __name__ == '__main__':
     import mdtraj
