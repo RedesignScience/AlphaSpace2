@@ -9,6 +9,7 @@ from itertools import combinations_with_replacement
 from alphaspace.AS_Cluster import AS_Data, AS_Snapshot
 
 import multiprocessing as mp
+from numba import jit
 
 
 class Consumer(mp.Process):
@@ -161,75 +162,6 @@ def combination_intersection_count(indices_list: list, total_index: int) -> np.n
 
     return overlap_matrix
 
-
-def combination_intersection_count_mp(indices_list: list, total_index: int, cpu=None) -> np.ndarray:
-    """
-
-    Given a list of indices list, such as [ [1,2,3], [4,5,6] , [2,3,4]]
-    This function calculates the intersection count between each pair in the list
-    if indices_list is a N list of M indices, the return array D is a N * N ndarray, where Dij is the intersection count
-    between i and j.
-
-    Note this D matrix is symmetrical. The total_index is maximum of all indices in the indices list.
-
-    This is a multiprocessing oversion of combination_intersection_count()
-
-    Parameters
-    ----------
-    indices_list : list [[indices].]
-    total_index : int, upper limits of the indices
-    cpu : int, number of cpu to use
-
-    Returns
-    -------
-    intersection binary matrix : np.ndarray
-         N * N where (i,j) means count of i and j element wise intersection
-        """
-    # Establish communication queues
-    tasks = mp.JoinableQueue()
-    results = mp.Queue()
-
-    # Start consumers
-    num_consumers = cpu if cpu is not None else mp.cpu_count() * 2
-    consumers = [Consumer(tasks, results) for _ in range(num_consumers)]
-
-    for w in consumers:
-        w.start()
-
-    """"""
-    item_binary_vectors = np.empty((len(indices_list), total_index))
-    item_binary_vectors.fill(0)
-    for pocket_idx, lining_atoms_idx in enumerate(indices_list):
-        item_binary_vectors[pocket_idx].put(lining_atoms_idx, 1)
-
-    overlap_matrix = np.empty((item_binary_vectors.shape[0], item_binary_vectors.shape[0]))
-    overlap_matrix.fill(0)
-
-    """"""
-
-    # Enqueue jobs
-    num_jobs = 0
-    for i, j in  combinations_with_replacement(range(len(indices_list)), 2):
-        tasks.put(Task(np.dot, info=(i, j),
-                       a=item_binary_vectors[i], b=item_binary_vectors[j]
-                       ))
-        num_jobs += 1
-
-
-    # Add a poison pill for each consumer
-    for i in range(num_consumers):
-        tasks.put(None)
-
-    # Wait for all of the tasks to finish
-    tasks.join()
-
-    while num_jobs:
-        overlap, info = results.get()
-        overlap_matrix[info[0]][info[1]] = overlap_matrix[info[1]][info[0]] = overlap
-        num_jobs -= 1
-    return overlap_matrix
-
-
 def combination_union_count(indices_list, total_index: int) -> np.ndarray:
     """
     Given a list of indices list, such as [ [1,2,3], [4,5,6] , [2,3,4]]
@@ -269,64 +201,25 @@ def combination_union_count(indices_list, total_index: int) -> np.ndarray:
 
     return intersection_matrix
 
+@jit
+def combination_union_count_jit(indices_list: list, total_index: int):
 
-def combination_union_count_mp(indices_list, total_index: int, cpu=None) -> np.ndarray:
-    """
-    Given a list of indices list, such as [ [1,2,3], [4,5,6] , [2,3,4]]
-    This function calculates the union count between each pair in the list
-    if indices_list is a N list of M indices, the return array D is a N * N ndarray, where Dij is the union count
-    between i and j.
-    Note this D matrix is symmetrical.
-    The total_index is maximum of all indices in the indices list.
-    :param indices_list: list [[indices].]
-    :param total_index: int, upper limits of the indices
-    :return: np.ndarray N * N where (i,j) means count of i and j element wise union
-    """
 
-    tasks = mp.JoinableQueue()
-    results = mp.Queue()
+    item_binary_vectors = [[0 for i in range(total_index)] for i in range(len(indices_list))]
 
-    # Start consumers
-    num_consumers = cpu if cpu is not None else mp.cpu_count() * 2
-    consumers = [Consumer(tasks, results) for _ in range(num_consumers)]
-
-    for w in consumers:
-        w.start()
-
-    """"""
-    item_binary_vectors = np.empty((len(indices_list), total_index))
-    item_binary_vectors.fill(0)
     for pocket_idx, lining_atoms_idx in enumerate(indices_list):
-        item_binary_vectors[pocket_idx].put(lining_atoms_idx, 1)
+        item_binary_vectors[pocket_idx][lining_atoms_idx] = 1
 
-    intersection_matrix = np.empty((item_binary_vectors.shape[0], item_binary_vectors.shape[0]))
-    intersection_matrix.fill(0)
+    intersection_matrix = [[0 for i in range(len(item_binary_vectors))] for i in range(len(item_binary_vectors))]
 
-    """"""
-
-    # Enqueue jobs
-    num_jobs = 0
     for i, j in combinations_with_replacement(range(len(indices_list)), 2):
-        tasks.put(Task(count_intersect, info=(i, j),
-                       a=item_binary_vectors[i], b=item_binary_vectors[j]
-                       ))
-        num_jobs += 1
-
-    # Add a poison pill for each consumer
-    for i in range(num_consumers):
-        tasks.put(None)
-
-    # Wait for all of the tasks to finish
-    tasks.join()
-
-    # Start printing results
-
-    while num_jobs:
-        intersection, info = results.get()
-        intersection_matrix[info[0]][info[1]] = intersection_matrix[info[1]][info[0]] = intersection
-        num_jobs -= 1
-
+        intersection = 0
+        for k1,k2 in zip(item_binary_vectors[i],item_binary_vectors[j]):
+            if k1 or k2:
+                intersection += 1
+        intersection_matrix[i][j] = intersection_matrix[j][i] = intersection
     return intersection_matrix
+
 
 
 def count_intersect(a, b):
@@ -633,7 +526,18 @@ def cluster_by_overlap(vectors, total_index, overlap_cutoff, ):
     # calculate jaccard_diff_matrix
     intersection_matrix = combination_intersection_count(vectors, total_index)
 
+
+    from timeit import default_timer
+
+    start = default_timer()
     union_matrix = combination_union_count(vectors, total_index)
+    end = default_timer()
+    print(end-start)
+
+    start = default_timer()
+    union_matrix = combination_union_count_jit(vectors, total_index)
+    end = default_timer()
+    print(end-start)
 
     jaccard_diff_matrix = 1 - intersection_matrix / union_matrix
 

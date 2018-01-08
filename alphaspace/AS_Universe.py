@@ -49,7 +49,7 @@ import mdtraj
 
 from .AS_Cluster import AS_D_Pocket
 from .AS_Config import AS_Config
-from .AS_Funct import _tessellation_mp, getCosAngleBetween, combination_intersection_count_mp,combination_intersection_count, combination_union_count
+from .AS_Funct import _tessellation_mp, getCosAngleBetween,combination_intersection_count, combination_union_count
 from .AS_Struct import AS_Structure
 
 
