@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Python Module Index &mdash; AlphaSpace 2.0b documentation</title>
+  <title>Two methods for analyzing the communities on protein surface in DTM &mdash; AlphaSpace 2.0b documentation</title>
   
 
   
@@ -36,9 +36,8 @@
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
     <link rel="top" title="AlphaSpace 2.0b documentation" href="index.html"/>
- 
-
-
+        <link rel="next" title="API Guide" href="modules.html"/>
+        <link rel="prev" title="How to select entities in AlphaSpace" href="Selection.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -92,13 +91,17 @@
             
             
               <p class="caption"><span class="caption-text">Contents:</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro.html#what-is-this-alphaspace">What is this AlphaSpace?</a></li>
 <li class="toctree-l1"><a class="reference internal" href="intro.html#getting-started">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Selection.html">How to select entities in AlphaSpace</a></li>
-<li class="toctree-l1"><a class="reference internal" href="DTM.html">Two methods for analyzing the communities on protein surface in DTM</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Two methods for analyzing the communities on protein surface in DTM</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#retrospective-method">Retrospective method</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#perspective-method">Perspective method</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="modules.html">API Guide</a></li>
 </ul>
 
@@ -144,12 +147,14 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Python Module Index</li>
+      <li>Two methods for analyzing the communities on protein surface in DTM</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
+            <a href="_sources/DTM.rst.txt" rel="nofollow"> View page source</a>
+          
         
       </li>
     
@@ -161,59 +166,44 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-
-   <h1>Python Module Index</h1>
-
-   <div class="modindex-jumpbox">
-   <a href="#cap-a"><strong>a</strong></a>
-   </div>
-
-   <table class="indextable modindextable">
-     <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
-     <tr class="cap" id="cap-a"><td></td><td>
-       <strong>a</strong></td><td></td></tr>
-     <tr>
-       <td><img src="_static/minus.png" class="toggler"
-              id="toggle-1" style="display: none" alt="-" /></td>
-       <td>
-       <code class="xref">alphaspace</code></td><td>
-       <em></em></td></tr>
-     <tr class="cg-1">
-       <td></td>
-       <td>&#160;&#160;&#160;
-       <a href="alphaspace.html#module-alphaspace.AS_Cluster"><code class="xref">alphaspace.AS_Cluster</code></a></td><td>
-       <em></em></td></tr>
-     <tr class="cg-1">
-       <td></td>
-       <td>&#160;&#160;&#160;
-       <a href="alphaspace.html#module-alphaspace.AS_Config"><code class="xref">alphaspace.AS_Config</code></a></td><td>
-       <em></em></td></tr>
-     <tr class="cg-1">
-       <td></td>
-       <td>&#160;&#160;&#160;
-       <a href="alphaspace.html#module-alphaspace.AS_Funct"><code class="xref">alphaspace.AS_Funct</code></a></td><td>
-       <em></em></td></tr>
-     <tr class="cg-1">
-       <td></td>
-       <td>&#160;&#160;&#160;
-       <a href="alphaspace.html#module-alphaspace.AS_IO"><code class="xref">alphaspace.AS_IO</code></a></td><td>
-       <em></em></td></tr>
-     <tr class="cg-1">
-       <td></td>
-       <td>&#160;&#160;&#160;
-       <a href="alphaspace.html#module-alphaspace.AS_Struct"><code class="xref">alphaspace.AS_Struct</code></a></td><td>
-       <em></em></td></tr>
-     <tr class="cg-1">
-       <td></td>
-       <td>&#160;&#160;&#160;
-       <a href="alphaspace.html#module-alphaspace.AS_Universe"><code class="xref">alphaspace.AS_Universe</code></a></td><td>
-       <em></em></td></tr>
-     <tr class="cg-1">
-       <td></td>
-       <td>&#160;&#160;&#160;
-       <a href="alphaspace.html#module-alphaspace.AS_Vina"><code class="xref">alphaspace.AS_Vina</code></a></td><td>
-       <em></em></td></tr>
-   </table>
+  <div class="section" id="two-methods-for-analyzing-the-communities-on-protein-surface-in-dtm">
+<h1>Two methods for analyzing the communities on protein surface in DTM<a class="headerlink" href="#two-methods-for-analyzing-the-communities-on-protein-surface-in-dtm" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="retrospective-method">
+<h2>Retrospective method<a class="headerlink" href="#retrospective-method" title="Permalink to this headline">¶</a></h2>
+<p>When the approximate binding surface is known, it can be used to speed up the retrospective analysis.</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>Identify the community overlapping with the binder in the binder complex.</li>
+<li>Run AlphaSpace on all snapshots and generate community based on each snapshot. And select the community by its</li>
+</ol>
+</div></blockquote>
+<p>contact to the known binder, which was superimposed to each snapshot.</p>
+<blockquote>
+<div><ol class="arabic simple" start="3">
+<li>This gives the community of interests and designate it as the D-community, subsequent D-pocket analysis are done</li>
+</ol>
+</div></blockquote>
+<p>only on the member of these communities.</p>
+<p>This method, though simplistic, requires the information of the binding region, which is not always available. But for cases such as optimization of lead compound it provides an intuitive way represent the area of interests on the surface.</p>
+</div>
+<div class="section" id="perspective-method">
+<h2>Perspective method<a class="headerlink" href="#perspective-method" title="Permalink to this headline">¶</a></h2>
+<p>When the binding region is unknown and we would like to find the most targetable region on the protein surface.</p>
+<ol class="arabic simple">
+<li>Simulation are carried out for apo protein to sample surface conformations.</li>
+<li>AlphaSpace are run on all snapshots and pockets are identified.</li>
+<li>All pockets are clustered based on lining atom Jaccard index, and each cluster is defined as D-pocket in DTM.</li>
+</ol>
+<p>4.      The D-pockets are evaluated based on their per pocket space distribution, and based on a cutoff set either by
+percentage of all D-pockets or hard cutoff, some are marked as Core-D-pocket.</p>
+<p>5.      The list of Core-D-pocket gives a larger set of pockets in several snapshots, which will not all satisfy the
+space requirements to be identified as Core-Pocket by itself, but are marked as Core-pocket anyway. This step is carried out to alleviate the fluctuations caused by a hard cutoff, so outlier pockets sharing similar trait would remain.</p>
+<p>6.      From the set of identified Core-pocket, going back to their parent snapshot, we can identify the
+connected auxiliary pockets by common lining atom count. This step expands around the Core-D-pocket and include the adjacent smaller pockets into the community. These pockets are marked Aux-pocket.</p>
+<p>7.      Going back to the D-pocket list and examine the Non-Core-D-pockets. If a certain percentage of
+pockets in a given Non-Core-D-pockets are marked Aux-pocket, that is they are connected to the Core-pockets in the corresponding snapshot, this D-pocket is marked as Aux-D-pocket. Unlike the previous method, here the Aux-D-pockets are defined so the communities they form with the Core-D-pockets would be more stable.</p>
+</div>
+</div>
 
 
            </div>
@@ -222,6 +212,15 @@
            </div>
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="modules.html" class="btn btn-neutral float-right" title="API Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Selection.html" class="btn btn-neutral" title="How to select entities in AlphaSpace" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

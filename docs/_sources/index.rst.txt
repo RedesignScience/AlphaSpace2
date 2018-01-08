@@ -16,6 +16,7 @@ This is an introduction to AlphaSpace, you will find examples of how to run Alph
    intro
    examples
    Selection
+   DTM
    modules
 
 

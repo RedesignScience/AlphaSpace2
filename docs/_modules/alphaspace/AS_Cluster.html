@@ -96,6 +96,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../intro.html#getting-started">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../examples.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Selection.html">How to select entities in AlphaSpace</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../DTM.html">Two methods for analyzing the communities on protein surface in DTM</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../modules.html">API Guide</a></li>
 </ul>
 
@@ -179,26 +180,6 @@
 <span class="kn">from</span> <span class="nn">scipy.cluster.hierarchy</span> <span class="k">import</span> <span class="n">linkage</span><span class="p">,</span> <span class="n">fcluster</span>
 
 <span class="kn">import</span> <span class="nn">alphaspace</span>
-
-<span class="n">ASDATA_idx</span> <span class="o">=</span> <span class="mi">0</span>
-<span class="n">ASDATA_snapshot_idx</span> <span class="o">=</span> <span class="mi">1</span>
-<span class="n">ASDATA_x</span> <span class="o">=</span> <span class="mi">2</span>
-<span class="n">ASDATA_y</span> <span class="o">=</span> <span class="mi">3</span>
-<span class="n">ASDATA_z</span> <span class="o">=</span> <span class="mi">4</span>
-<span class="n">ASDATA_lining_atom_idx_1</span> <span class="o">=</span> <span class="mi">5</span>
-<span class="n">ASDATA_lining_atom_idx_2</span> <span class="o">=</span> <span class="mi">6</span>
-<span class="n">ASDATA_lining_atom_idx_3</span> <span class="o">=</span> <span class="mi">7</span>
-<span class="n">ASDATA_lining_atom_idx_4</span> <span class="o">=</span> <span class="mi">8</span>
-<span class="n">ASDATA_polar_space</span> <span class="o">=</span> <span class="mi">9</span>
-<span class="n">ASDATA_nonpolar_space</span> <span class="o">=</span> <span class="mi">10</span>
-<span class="n">ASDATA_is_active</span> <span class="o">=</span> <span class="mi">11</span>
-<span class="n">ASDATA_is_contact</span> <span class="o">=</span> <span class="mi">12</span>
-<span class="n">ASDATA_pocket_idx</span> <span class="o">=</span> <span class="mi">13</span>
-<span class="n">ASDATA_radii</span> <span class="o">=</span> <span class="mi">14</span>
-<span class="n">ASDATA_closest_binder_atom_idx</span> <span class="o">=</span> <span class="mi">15</span>
-<span class="n">ASDATA_closest_binder_atom_distance</span> <span class="o">=</span> <span class="mi">16</span>
-<span class="n">ASDATA_total_lining_atom_asa</span> <span class="o">=</span> <span class="mi">17</span>
-
 
 <div class="viewcode-block" id="AS_Snapshot"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Snapshot">[docs]</a><span class="k">class</span> <span class="nc">AS_Snapshot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>

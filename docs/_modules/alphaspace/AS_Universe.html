@@ -96,6 +96,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../intro.html#getting-started">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../examples.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Selection.html">How to select entities in AlphaSpace</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../DTM.html">Two methods for analyzing the communities on protein surface in DTM</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../modules.html">API Guide</a></li>
 </ul>
 
@@ -212,7 +213,7 @@
 
 <span class="kn">from</span> <span class="nn">.AS_Cluster</span> <span class="k">import</span> <span class="n">AS_D_Pocket</span>
 <span class="kn">from</span> <span class="nn">.AS_Config</span> <span class="k">import</span> <span class="n">AS_Config</span>
-<span class="kn">from</span> <span class="nn">.AS_Funct</span> <span class="k">import</span> <span class="n">_tessellation_mp</span><span class="p">,</span><span class="n">getCosAngleBetween</span><span class="p">,</span> <span class="n">combination_intersection_count</span><span class="p">,</span> <span class="n">combination_union_count</span>
+<span class="kn">from</span> <span class="nn">.AS_Funct</span> <span class="k">import</span> <span class="n">_tessellation_mp</span><span class="p">,</span> <span class="n">getCosAngleBetween</span><span class="p">,</span> <span class="n">combination_intersection_count</span><span class="p">,</span> <span class="n">combination_union_count</span>
 <span class="kn">from</span> <span class="nn">.AS_Struct</span> <span class="k">import</span> <span class="n">AS_Structure</span>
 
 
@@ -253,10 +254,8 @@
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">rec_res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">n_residues</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span> <span class="k">else</span> <span class="mi">0</span>
         <span class="n">rec_atm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">n_atoms</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span> <span class="k">else</span> <span class="mi">0</span>
-        <span class="n">bind_res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">n_residues</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">binder</span> <span class="k">else</span> <span class="mi">0</span>
-        <span class="n">bind_atm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">n_atoms</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">binder</span> <span class="k">else</span> <span class="mi">0</span>
-
-
+        <span class="n">bind_res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">binder</span><span class="o">.</span><span class="n">n_residues</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">binder</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="n">bind_atm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">binder</span><span class="o">.</span><span class="n">n_atoms</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">binder</span> <span class="k">else</span> <span class="mi">0</span>
 
         <span class="k">return</span> <span class="s2">&quot;Receptor of </span><span class="si">{}</span><span class="s2"> residues </span><span class="si">{}</span><span class="s2"> atoms | Binder of </span><span class="si">{}</span><span class="s2"> residues </span><span class="si">{}</span><span class="s2"> atoms&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">rec_res</span><span class="p">,</span>
                                                                                           <span class="n">rec_atm</span><span class="p">,</span>
@@ -275,7 +274,6 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">frame_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">frames</span>
-
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">n_frames</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -320,9 +318,9 @@
 <span class="sd">        :return: object, AS_D_Pocket</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d_pockets</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_d_pockets</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_gen_d_pockets</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_gen_d_pockets</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d_pockets</span><span class="p">:</span>
-            <span class="k">yield</span> <span class="n">p</span>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d_pockets</span><span class="p">[</span><span class="n">p</span><span class="p">]</span>
 
 <div class="viewcode-block" id="AS_Universe.d_pocket"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe.d_pocket">[docs]</a>    <span class="k">def</span> <span class="nf">d_pocket</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AS_D_Pocket</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -340,7 +338,7 @@
     <span class="c1">#     else:</span>
     <span class="c1">#         return False</span>
 
-<div class="viewcode-block" id="AS_Universe.pockets"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe.pockets">[docs]</a>    <span class="k">def</span> <span class="nf">pockets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">active_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<div class="viewcode-block" id="AS_Universe.pockets"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe.pockets">[docs]</a>    <span class="k">def</span> <span class="nf">pockets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">active_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">snapshot_idx</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pocket_list</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_pocket_list</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pocket_list</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="p">,</span> <span class="n">active_only</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pocket_list</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span></div>
@@ -445,11 +443,8 @@
 <div class="viewcode-block" id="AS_Universe.run_alphaspace"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe.run_alphaspace">[docs]</a>    <span class="k">def</span> <span class="nf">run_alphaspace</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">run_alphaspace_mp</span><span class="p">(</span><span class="n">cpu</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="AS_Universe.run_alphaspace_mp"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe.run_alphaspace_mp">[docs]</a>    <span class="k">def</span> <span class="nf">run_alphaspace_mp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">cpu</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="n">_tessellation_mp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">cpu</span><span class="o">=</span><span class="n">cpu</span><span class="p">)</span></div>
-
-
-
+<div class="viewcode-block" id="AS_Universe.run_alphaspace_mp"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe.run_alphaspace_mp">[docs]</a>    <span class="k">def</span> <span class="nf">run_alphaspace_mp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cpu</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">_tessellation_mp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cpu</span><span class="o">=</span><span class="n">cpu</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_get_face_atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 
@@ -474,7 +469,7 @@
 
     <span class="k">def</span> <span class="nf">_gen_communities_legacy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="kn">import</span> <span class="nn">networkx</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">communities</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_communities</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">snapshot_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_frames</span><span class="p">):</span>
             <span class="n">pocket_graph</span> <span class="o">=</span> <span class="n">networkx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
             <span class="n">pocket_graph</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pockets</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="p">,</span> <span class="n">active_only</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
@@ -508,13 +503,13 @@
             <span class="k">for</span> <span class="n">community</span> <span class="ow">in</span> <span class="n">core_aux_communities</span><span class="p">:</span>
                 <span class="n">linked_minor</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">([</span><span class="n">pocket_graph</span><span class="o">.</span><span class="n">neighbors</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">community</span><span class="p">]))</span>
                 <span class="n">communities</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">linked_minor</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">community</span><span class="p">))</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">communities</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">communities</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_communities</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">communities</span>
 
     <span class="k">def</span> <span class="nf">_gen_communities</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 
         <span class="c1"># Todo convert to function and use multi core</span>
         <span class="kn">import</span> <span class="nn">networkx</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">communities</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_communities</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_pocket_network</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">snapshot_idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">snapshots_indices</span><span class="p">:</span>
             <span class="n">pocket_graph</span> <span class="o">=</span> <span class="n">networkx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
@@ -540,8 +535,21 @@
             <span class="k">for</span> <span class="n">community</span> <span class="ow">in</span> <span class="n">core_aux_communities</span><span class="p">:</span>
                 <span class="n">linked_minor</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">([</span><span class="n">pocket_graph</span><span class="o">.</span><span class="n">neighbors</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">community</span><span class="p">]))</span>
                 <span class="n">communities</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">linked_minor</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">community</span><span class="p">))</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">communities</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">communities</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_communities</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">communities</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_pocket_network</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">pocket_graph</span>
+
+<div class="viewcode-block" id="AS_Universe.communities"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe.communities">[docs]</a>    <span class="k">def</span> <span class="nf">communities</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get communities from a snapshot</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        snapshot_idx</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        communities : list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_communities</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">snapshots_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -571,44 +579,41 @@
                     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pocket</span><span class="o">.</span><span class="n">alpha_idx</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">min_num_alph</span><span class="p">:</span>
                         <span class="n">pocket</span><span class="o">.</span><span class="n">deactivate</span><span class="p">()</span></div>
 
-
-
     <span class="k">def</span> <span class="nf">_gen_d_pockets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        todo</span>
-<span class="sd">        Generate d-pocket dictionary of list of indices</span>
-<span class="sd">        :return: dict of d_pockets</span>
+<span class="sd">        Generate d pockets</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        d_pocket: dict</span>
+<span class="sd">            a dict of d pockets, each is a list of child pocket indices</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="kn">from</span> <span class="nn">alphaspace.AS_Funct</span> <span class="k">import</span> <span class="n">cluster_by_overlap</span>
+        <span class="c1"># check if alphaspace is run</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;No Data available &#39;</span><span class="p">)</span>
 
+        <span class="c1"># list all pockets</span>
         <span class="n">pockets_all</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">snapshot_idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">snapshots_indices</span><span class="p">:</span>
             <span class="n">pockets_all</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pockets</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="p">))</span>
 
+        <span class="c1"># extract lining atom into list</span>
         <span class="n">lining_atom_indices</span> <span class="o">=</span> <span class="p">[</span><span class="n">pocket</span><span class="o">.</span><span class="n">lining_atoms_idx</span> <span class="k">for</span> <span class="n">pocket</span> <span class="ow">in</span> <span class="n">pockets_all</span><span class="p">]</span>
 
-        <span class="c1"># calculate jaccard_diff_matrix</span>
+        <span class="n">d_pocket_p_idx</span> <span class="o">=</span> <span class="n">cluster_by_overlap</span><span class="p">(</span><span class="n">lining_atom_indices</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">n_atoms</span><span class="p">,</span>
+                                            <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dpocket_cluster_cutoff</span><span class="p">)</span>
 
-        <span class="n">intersection_matrix</span> <span class="o">=</span> <span class="n">combination_intersection_count</span><span class="p">(</span><span class="n">lining_atom_indices</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">n_atoms</span><span class="p">)</span>
-
-        <span class="n">union_matrix</span> <span class="o">=</span> <span class="n">combination_union_count</span><span class="p">(</span><span class="n">lining_atom_indices</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">n_atoms</span><span class="p">)</span>
-
-        <span class="n">jaccard_diff_matrix</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">intersection_matrix</span> <span class="o">/</span> <span class="n">union_matrix</span>
-
-        <span class="n">pocket_d_idx</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">fcluster</span><span class="p">(</span><span class="n">Z</span><span class="o">=</span><span class="n">linkage</span><span class="p">(</span><span class="n">squareform</span><span class="p">(</span><span class="n">jaccard_diff_matrix</span><span class="p">),</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;average&#39;</span><span class="p">),</span>
-                                     <span class="n">t</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dpocket_cluster_cutoff</span><span class="p">,</span>
-                                     <span class="n">criterion</span><span class="o">=</span><span class="s1">&#39;distance&#39;</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-
-        <span class="n">d_pockets</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">pocket_d_idx</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)}</span>
-
-        <span class="k">for</span> <span class="n">pocket_idx</span><span class="p">,</span> <span class="n">dp_idx</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">pockets_all</span><span class="p">,</span> <span class="n">pocket_d_idx</span><span class="p">):</span>
-            <span class="n">d_pockets</span><span class="p">[</span><span class="n">dp_idx</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pocket_idx</span><span class="p">)</span>
-
-        <span class="n">d_pockets</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">d_pockets</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="nb">len</span><span class="p">))))</span>
+        <span class="n">d_pockets</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">d_pocket_p_idx</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="nb">len</span><span class="p">))))</span>
+        <span class="c1"># fill pocket list</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span><span class="n">idx</span> <span class="ow">in</span> <span class="n">d_pockets</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">d_pockets</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">pockets_all</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">idx</span><span class="p">]</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_d_pockets</span> <span class="o">=</span> <span class="n">d_pockets</span>
-
         <span class="k">return</span> <span class="n">d_pockets</span>
 
     <span class="k">def</span> <span class="nf">_gen_d_communities</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -691,6 +696,7 @@
         <span class="k">for</span> <span class="n">pocket</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pockets</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_view</span><span class="o">.</span><span class="n">add_surface</span><span class="p">(</span><span class="n">selection</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">pocket</span><span class="o">.</span><span class="n">lining_atoms_idx</span><span class="p">),</span> <span class="n">opacity</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">pocket</span><span class="o">.</span><span class="n">color</span><span class="p">,</span>
                                    <span class="n">surfaceType</span><span class="o">=</span><span class="s1">&#39;sas&#39;</span><span class="p">)</span></div></div>
+
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">mdtraj</span>

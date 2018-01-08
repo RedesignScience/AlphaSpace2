@@ -97,6 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="intro.html#getting-started">Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Selection.html">How to select entities in AlphaSpace</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DTM.html">Two methods for analyzing the communities on protein surface in DTM</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Guide</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Classes</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#module-alphaspace.AS_Universe">alphaspace.AS_Universe module</a><ul>
@@ -226,6 +227,23 @@ You can set the receptor and binder after you have initialized the universe.</p>
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="alphaspace.AS_Universe.AS_Universe.communities">
+<code class="descname">communities</code><span class="sig-paren">(</span><em>snapshot_idx=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Universe.html#AS_Universe.communities"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Universe.AS_Universe.communities" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get communities from a snapshot
+Parameters
+———-
+snapshot_idx</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><strong>communities</strong> : list</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="alphaspace.AS_Universe.AS_Universe.d_pocket">
 <code class="descname">d_pocket</code><span class="sig-paren">(</span><em>i</em><span class="sig-paren">)</span> &#x2192; alphaspace.AS_Cluster.AS_D_Pocket<a class="reference internal" href="_modules/alphaspace/AS_Universe.html#AS_Universe.d_pocket"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Universe.AS_Universe.d_pocket" title="Permalink to this definition">¶</a></dt>
 <dd><p>todo
@@ -309,7 +327,7 @@ This process automatically removes water and other solvents
 
 <dl class="method">
 <dt id="alphaspace.AS_Universe.AS_Universe.pockets">
-<code class="descname">pockets</code><span class="sig-paren">(</span><em>snapshot_idx: int = 0</em>, <em>active_only: bool = True</em><span class="sig-paren">)</span> &#x2192; list<a class="reference internal" href="_modules/alphaspace/AS_Universe.html#AS_Universe.pockets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Universe.AS_Universe.pockets" title="Permalink to this definition">¶</a></dt>
+<code class="descname">pockets</code><span class="sig-paren">(</span><em>snapshot_idx: int = 0</em>, <em>active_only: bool = False</em><span class="sig-paren">)</span> &#x2192; list<a class="reference internal" href="_modules/alphaspace/AS_Universe.html#AS_Universe.pockets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Universe.AS_Universe.pockets" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -1645,6 +1663,23 @@ changing the attributes or loading from a new config.ini file.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="alphaspace.AS_Funct.cluster_by_overlap">
+<code class="descclassname">alphaspace.AS_Funct.</code><code class="descname">cluster_by_overlap</code><span class="sig-paren">(</span><em>vectors</em>, <em>total_index</em>, <em>overlap_cutoff</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Funct.html#cluster_by_overlap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Funct.cluster_by_overlap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cluster a list of binary vectors based on lining atom overlap</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>vectors</strong></p>
+<p><strong>total_index</strong></p>
+<p class="last"><strong>overlap_cutoff</strong></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="alphaspace.AS_Funct.combination_intersection_count">
 <code class="descclassname">alphaspace.AS_Funct.</code><code class="descname">combination_intersection_count</code><span class="sig-paren">(</span><em>indices_list: list</em>, <em>total_index: int</em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="_modules/alphaspace/AS_Funct.html#combination_intersection_count"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Funct.combination_intersection_count" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a list of indices list, such as [ [1,2,3], [4,5,6] , [2,3,4]]
@@ -1656,6 +1691,22 @@ The total_index is maximum of all indices in the indices list.
 :param indices_list: list [[indices].]
 :param total_index: int, upper limits of the indices
 :return: np.ndarray N * N where (i,j) means count of i and j element wise intersection</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>indices_list</strong> : list [[indices].]</p>
+<p><strong>total_index</strong> : total_index: int, upper limits of the indices</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>intersection binary matrix</strong> : np.ndarray</p>
+<blockquote class="last">
+<div><p>N * N where (i,j) means count of i and j element wise intersection</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">

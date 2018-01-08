@@ -2,6 +2,6 @@ API Guide
 =========
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 5
 
    alphaspace

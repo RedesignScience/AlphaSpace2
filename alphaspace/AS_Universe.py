@@ -154,9 +154,9 @@ class AS_Universe(object):
         :return: object, AS_D_Pocket
         """
         if not self._d_pockets:
-            self._d_pockets = list(self._gen_d_pockets())
+            self._gen_d_pockets()
         for p in self._d_pockets:
-            yield p
+            yield self._d_pockets[p]
 
     def d_pocket(self, i) -> AS_D_Pocket:
         """
@@ -174,7 +174,7 @@ class AS_Universe(object):
     #     else:
     #         return False
 
-    def pockets(self, snapshot_idx: int = 0, active_only: bool = True) -> list:
+    def pockets(self, snapshot_idx: int = 0, active_only: bool = False) -> list:
         if snapshot_idx not in self._pocket_list:
             self._pocket_list[snapshot_idx] = self.pocket_list(snapshot_idx, active_only)
         return self._pocket_list[snapshot_idx]
