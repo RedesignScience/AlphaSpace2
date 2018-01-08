@@ -49,7 +49,7 @@ import mdtraj
 
 from .AS_Cluster import AS_D_Pocket
 from .AS_Config import AS_Config
-from .AS_Funct import _tessellation_mp, getCosAngleBetween, combination_intersection_count, combination_union_count
+from .AS_Funct import _tessellation_mp, getCosAngleBetween, combination_intersection_count_mp,combination_intersection_count, combination_union_count
 from .AS_Struct import AS_Structure
 
 
@@ -66,7 +66,7 @@ class AS_Universe(object):
         :param config: object,AS_config
         """
 
-        self.config = config if config else AS_Config()
+        self.config = config if config is not None else AS_Config()
 
         self.set_receptor(receptor)
         self.set_binder(binder)

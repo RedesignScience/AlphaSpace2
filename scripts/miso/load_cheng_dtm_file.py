@@ -54,6 +54,8 @@ def write_d_pockets(as_file):
     with open(as_file,'rb') as handle:
         universe = pickle.load(handle)
 
+    universe.config = AS_Config()
+
 
     print("fluctuation  space   space_std  occupancy occurrence   total_snapshot")
     for d_pocket in universe.d_pockets:

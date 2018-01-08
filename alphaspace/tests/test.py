@@ -8,11 +8,9 @@ from itertools import combinations, chain
 from alphaspace.AS_Funct import combination_intersection_count, combination_union_count
 
 
-testProteins_bcl2 = ['bcl2/prot/{}.pdb'.format(i) for i in range(1, 1 + 10)]
+testProteins_bcl2 = ['/Users/haotian/Dropbox/pycharm_project/AlphaSpace/alphaspace/tests/bcl2/prot/{}.pdb'.format(i) for i in range(1, 1 + 10)]
 
-testLigand_bcl2 = ['bcl2/lig/{}.pdb'.format(i) for i in range(1, 1 + 10)]
-
-
+testLigand_bcl2 = ['/Users/haotian/Dropbox/pycharm_project/AlphaSpace/alphaspace/tests/bcl2/lig/{}.pdb'.format(i) for i in range(1, 1 + 10)]
 
 def custom_test(receptor_path, ligand_path):
     universe = AS_Universe(receptor=mdtraj.load(receptor_path), binder=mdtraj.load(ligand_path))
@@ -34,7 +32,7 @@ def custom_test(receptor_path, ligand_path):
 def bcl2_test():
     """Loading 10 snapshots of bcl2 simulation from test/bcl2 folder."""
     universe = AS_Universe()
-    for _ in range(10):
+    for _ in range(1):
         for test_protein_path, test_ligand_path in zip(testProteins_bcl2,testLigand_bcl2):
             # print(test_protein_path,test_ligand_path)
             ligand = mdtraj.load(test_ligand_path)
@@ -45,9 +43,11 @@ def bcl2_test():
     """Run alphaspace with 4 cpu cores"""
     universe.run_alphaspace_mp(4)
     #
-    for pocket in universe.pockets():
-        for beta in pocket.betas:
-            print(beta.centroid)
+    # for pocket in universe.pockets():
+    #     for beta in pocket.betas:
+    #         print(beta.centroid)
+
+    universe._gen_d_pockets()
 
     # for atom in universe.binder.atoms:
     #     atom.linked_alpha = []
@@ -130,5 +130,5 @@ def generate_dtm_communities():
 
 
 if __name__ == '__main__':
-    generate_dtm_communities()
-    # bcl2_test()
+    # generate_dtm_communities()
+    bcl2_test()

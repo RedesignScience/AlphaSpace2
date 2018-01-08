@@ -6,7 +6,7 @@ from scipy.spatial import Voronoi, Delaunay
 from scipy.spatial.distance import cdist
 from itertools import combinations_with_replacement
 
-from alphaspace.AS_Cluster import AS_Data,AS_Snapshot
+from alphaspace.AS_Cluster import AS_Data, AS_Snapshot
 
 import multiprocessing as mp
 
@@ -37,12 +37,16 @@ class Consumer(mp.Process):
 
 class Task(object):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, info=None, **kwargs):
         self.kwargs = kwargs
         self.function = args[0]
+        self.info = info
 
     def __call__(self, ):
-        return self.function(**self.kwargs)
+        if self.info is None:
+            return self.function(**self.kwargs)
+        else:
+            return self.function(**self.kwargs), self.info
 
 
 def getTetrahedronVolume(coord_list: list):
@@ -158,6 +162,74 @@ def combination_intersection_count(indices_list: list, total_index: int) -> np.n
     return overlap_matrix
 
 
+def combination_intersection_count_mp(indices_list: list, total_index: int, cpu=None) -> np.ndarray:
+    """
+
+    Given a list of indices list, such as [ [1,2,3], [4,5,6] , [2,3,4]]
+    This function calculates the intersection count between each pair in the list
+    if indices_list is a N list of M indices, the return array D is a N * N ndarray, where Dij is the intersection count
+    between i and j.
+
+    Note this D matrix is symmetrical. The total_index is maximum of all indices in the indices list.
+
+    This is a multiprocessing oversion of combination_intersection_count()
+
+    Parameters
+    ----------
+    indices_list : list [[indices].]
+    total_index : int, upper limits of the indices
+    cpu : int, number of cpu to use
+
+    Returns
+    -------
+    intersection binary matrix : np.ndarray
+         N * N where (i,j) means count of i and j element wise intersection
+        """
+    # Establish communication queues
+    tasks = mp.JoinableQueue()
+    results = mp.Queue()
+
+    # Start consumers
+    num_consumers = cpu if cpu is not None else mp.cpu_count() * 2
+    consumers = [Consumer(tasks, results) for _ in range(num_consumers)]
+
+    for w in consumers:
+        w.start()
+
+    """"""
+    item_binary_vectors = np.empty((len(indices_list), total_index))
+    item_binary_vectors.fill(0)
+    for pocket_idx, lining_atoms_idx in enumerate(indices_list):
+        item_binary_vectors[pocket_idx].put(lining_atoms_idx, 1)
+
+    overlap_matrix = np.empty((item_binary_vectors.shape[0], item_binary_vectors.shape[0]))
+    overlap_matrix.fill(0)
+
+    """"""
+
+    # Enqueue jobs
+    num_jobs = 0
+    for i, j in  combinations_with_replacement(range(len(indices_list)), 2):
+        tasks.put(Task(np.dot, info=(i, j),
+                       a=item_binary_vectors[i], b=item_binary_vectors[j]
+                       ))
+        num_jobs += 1
+
+
+    # Add a poison pill for each consumer
+    for i in range(num_consumers):
+        tasks.put(None)
+
+    # Wait for all of the tasks to finish
+    tasks.join()
+
+    while num_jobs:
+        overlap, info = results.get()
+        overlap_matrix[info[0]][info[1]] = overlap_matrix[info[1]][info[0]] = overlap
+        num_jobs -= 1
+    return overlap_matrix
+
+
 def combination_union_count(indices_list, total_index: int) -> np.ndarray:
     """
     Given a list of indices list, such as [ [1,2,3], [4,5,6] , [2,3,4]]
@@ -196,6 +268,69 @@ def combination_union_count(indices_list, total_index: int) -> np.ndarray:
         intersection_matrix[i][j] = intersection_matrix[j][i] = intersection
 
     return intersection_matrix
+
+
+def combination_union_count_mp(indices_list, total_index: int, cpu=None) -> np.ndarray:
+    """
+    Given a list of indices list, such as [ [1,2,3], [4,5,6] , [2,3,4]]
+    This function calculates the union count between each pair in the list
+    if indices_list is a N list of M indices, the return array D is a N * N ndarray, where Dij is the union count
+    between i and j.
+    Note this D matrix is symmetrical.
+    The total_index is maximum of all indices in the indices list.
+    :param indices_list: list [[indices].]
+    :param total_index: int, upper limits of the indices
+    :return: np.ndarray N * N where (i,j) means count of i and j element wise union
+    """
+
+    tasks = mp.JoinableQueue()
+    results = mp.Queue()
+
+    # Start consumers
+    num_consumers = cpu if cpu is not None else mp.cpu_count() * 2
+    consumers = [Consumer(tasks, results) for _ in range(num_consumers)]
+
+    for w in consumers:
+        w.start()
+
+    """"""
+    item_binary_vectors = np.empty((len(indices_list), total_index))
+    item_binary_vectors.fill(0)
+    for pocket_idx, lining_atoms_idx in enumerate(indices_list):
+        item_binary_vectors[pocket_idx].put(lining_atoms_idx, 1)
+
+    intersection_matrix = np.empty((item_binary_vectors.shape[0], item_binary_vectors.shape[0]))
+    intersection_matrix.fill(0)
+
+    """"""
+
+    # Enqueue jobs
+    num_jobs = 0
+    for i, j in combinations_with_replacement(range(len(indices_list)), 2):
+        tasks.put(Task(count_intersect, info=(i, j),
+                       a=item_binary_vectors[i], b=item_binary_vectors[j]
+                       ))
+        num_jobs += 1
+
+    # Add a poison pill for each consumer
+    for i in range(num_consumers):
+        tasks.put(None)
+
+    # Wait for all of the tasks to finish
+    tasks.join()
+
+    # Start printing results
+
+    while num_jobs:
+        intersection, info = results.get()
+        intersection_matrix[info[0]][info[1]] = intersection_matrix[info[1]][info[0]] = intersection
+        num_jobs -= 1
+
+    return intersection_matrix
+
+
+def count_intersect(a, b):
+    return np.count_nonzero(a + b)
 
 
 def getSASA(protein_snapshot, cover_atom_coords=None):
@@ -361,7 +496,7 @@ def _tessellation(**kwargs):
     is_active = is_contact if config.screen_by_lig_cntct else np.zeros_like(alpha_pocket_index)
 
     data = np.concatenate((np.array([range(alpha_pocket_index.shape[0])]).transpose(),  # 0         idx
-                           np.full((alpha_pocket_index.shape[0], 1), snapshot_idx,dtype=int),  # 1         snapshot_idx
+                           np.full((alpha_pocket_index.shape[0], 1), snapshot_idx, dtype=int),  # 1         snapshot_idx
                            filtered_alpha_xyz,  # 2 3 4     x y z
                            alpha_lining,  # 5 6 7 8   lining_atom_idx_1 - 4
                            np.expand_dims(_polar_space, axis=1),  # 9         polar_space 0
@@ -478,7 +613,8 @@ def extractResidue(traj, residue_numbers=None, residue_names=None, clip=True):
         traj.atom_slice(kept_atom_idx, inplace=True)
     return extracted_traj
 
-def cluster_by_overlap(vectors, total_index , overlap_cutoff,):
+
+def cluster_by_overlap(vectors, total_index, overlap_cutoff, ):
     """
     Cluster a list of binary vectors based on lining atom overlap
 
@@ -501,9 +637,11 @@ def cluster_by_overlap(vectors, total_index , overlap_cutoff,):
 
     jaccard_diff_matrix = 1 - intersection_matrix / union_matrix
 
+
+
     cluster_index = list(fcluster(Z=linkage(squareform(jaccard_diff_matrix), method='average'),
-                                 t=overlap_cutoff,
-                                 criterion='distance') - 1)
+                                  t=overlap_cutoff,
+                                  criterion='distance') - 1)
 
     cluster_list = {i: [] for i in range(max(cluster_index) + 1)}
 
