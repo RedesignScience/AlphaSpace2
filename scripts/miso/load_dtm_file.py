@@ -51,6 +51,8 @@ def run_alphaspace(files):
 
 
 def write_d_pockets(as_file):
+
+
     with open(as_file,'rb') as handle:
         universe = pickle.load(handle)
 
