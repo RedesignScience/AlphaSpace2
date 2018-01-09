@@ -251,9 +251,9 @@ def get_probe_score(prot_coord, prot_types, hp_type, don_type, acc_type, probe_c
     >>> for pocket in universe.pockets(snapshot_idx = 0):
     >>> 	for beta in pocket.betas:
     >>> 		beta_coords.append(beta.centroid) # This will use the centroid of all alpha atom in the beta atom
-    >>> protein_coords = universe.receptor.xyz[0]
-    >>> prot_coord, prot_types, hp_type, acc_type, don_type = pre_process_pdbqt('path to pdbqt file', alphaspace.HP_DICT)
-    >>> prb_dict = get_probe_score(prot_coord, prot_types, hp_type, acc_type, don_type, probe_coords=probe_coords)
+    >>> protein_coords = universe.receptor.traj.xyz[0]
+    >>> prot_coord, prot_types, hp_type, acc_type, don_type = alphaspace.pre_process_pdbqt('path to pdbqt file', alphaspace.HP_DICT)
+    >>> prb_dict = alphaspace.get_probe_score(prot_coord, prot_types, hp_type, acc_type, don_type, probe_coords=probe_coords)
 
     Use the given protein atom type to calculate probe score at given location.
 
