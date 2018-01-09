@@ -415,17 +415,15 @@
 <span class="sd">    &gt;&gt;&gt; for pocket in universe.pockets(snapshot_idx = 0):</span>
 <span class="sd">    &gt;&gt;&gt; 	for beta in pocket.betas:</span>
 <span class="sd">    &gt;&gt;&gt; 		beta_coords.append(beta.centroid) # This will use the centroid of all alpha atom in the beta atom</span>
-<span class="sd">    &gt;&gt;&gt; protein_coords = universe.receptor.xyz[0]</span>
-<span class="sd">    &gt;&gt;&gt; prot_coord, prot_types, hp_type, acc_type, don_type = pre_process_pdbqt(&#39;path to pdbqt file&#39;, alphaspace.HP_DICT)</span>
-<span class="sd">    &gt;&gt;&gt; prb_dict = get_probe_score(prot_coord, prot_types, hp_type, acc_type, don_type, probe_coords=probe_coords)</span>
+<span class="sd">    &gt;&gt;&gt; protein_coords = universe.receptor.traj.xyz[0]</span>
+<span class="sd">    &gt;&gt;&gt; prot_coord, prot_types, hp_type, acc_type, don_type = alphaspace.pre_process_pdbqt(&#39;path to pdbqt file&#39;, alphaspace.HP_DICT)</span>
+<span class="sd">    &gt;&gt;&gt; prb_dict = alphaspace.get_probe_score(prot_coord, prot_types, hp_type, acc_type, don_type, probe_coords=probe_coords)</span>
 
 <span class="sd">    Use the given protein atom type to calculate probe score at given location.</span>
 
-<span class="sd">    get_probe_score(*pre_process_pdbqt(),probe_coords)</span>
-
-
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
+
 <span class="sd">    prot_coord : np.ndarray</span>
 <span class="sd">        shape = (n,3)</span>
 <span class="sd">    prot_types : np.ndarray</span>
@@ -441,10 +439,9 @@
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
+
 <span class="sd">    prb_dict : dict</span>
-<span class="sd">        probe score dictionary.</span>
-
-
+<span class="sd">        probe score dictionary</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">dist</span> <span class="o">=</span> <span class="n">spatial</span><span class="o">.</span><span class="n">distance</span><span class="o">.</span><span class="n">cdist</span><span class="p">(</span><span class="n">probe_coords</span><span class="p">,</span> <span class="n">prot_coord</span><span class="p">)</span>

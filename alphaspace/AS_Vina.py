@@ -257,11 +257,9 @@ def get_probe_score(prot_coord, prot_types, hp_type, don_type, acc_type, probe_c
 
     Use the given protein atom type to calculate probe score at given location.
 
-    get_probe_score(*pre_process_pdbqt(),probe_coords)
-
-
     Parameters
     ----------
+
     prot_coord : np.ndarray
         shape = (n,3)
     prot_types : np.ndarray
@@ -277,10 +275,9 @@ def get_probe_score(prot_coord, prot_types, hp_type, don_type, acc_type, probe_c
 
     Returns
     -------
+
     prb_dict : dict
-        probe score dictionary.
-
-
+        probe score dictionary
 
     """
     dist = spatial.distance.cdist(probe_coords, prot_coord)

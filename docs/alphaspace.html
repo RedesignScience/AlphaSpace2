@@ -1658,7 +1658,7 @@ changing the attributes or loading from a new config.ini file.</p>
 
 <dl class="class">
 <dt id="alphaspace.AS_Funct.Task">
-<em class="property">class </em><code class="descclassname">alphaspace.AS_Funct.</code><code class="descname">Task</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Funct.html#Task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Funct.Task" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">alphaspace.AS_Funct.</code><code class="descname">Task</code><span class="sig-paren">(</span><em>*args</em>, <em>info=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Funct.html#Task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Funct.Task" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
 </dd></dl>
 
@@ -1710,6 +1710,34 @@ The total_index is maximum of all indices in the indices list.
 </dd></dl>
 
 <dl class="function">
+<dt id="alphaspace.AS_Funct.combination_intersection_count_mp">
+<code class="descclassname">alphaspace.AS_Funct.</code><code class="descname">combination_intersection_count_mp</code><span class="sig-paren">(</span><em>indices_list: list</em>, <em>total_index: int</em>, <em>cpu=None</em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="_modules/alphaspace/AS_Funct.html#combination_intersection_count_mp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Funct.combination_intersection_count_mp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a list of indices list, such as [ [1,2,3], [4,5,6] , [2,3,4]]
+This function calculates the intersection count between each pair in the list
+if indices_list is a N list of M indices, the return array D is a N * N ndarray, where Dij is the intersection count
+between i and j.</p>
+<p>Note this D matrix is symmetrical. The total_index is maximum of all indices in the indices list.</p>
+<p>This is a multiprocessing oversion of combination_intersection_count()</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>indices_list</strong> : list [[indices].]</p>
+<p><strong>total_index</strong> : int, upper limits of the indices</p>
+<p><strong>cpu</strong> : int, number of cpu to use</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>intersection binary matrix</strong> : np.ndarray</p>
+<blockquote class="last">
+<div><p>N * N where (i,j) means count of i and j element wise intersection</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="alphaspace.AS_Funct.combination_union_count">
 <code class="descclassname">alphaspace.AS_Funct.</code><code class="descname">combination_union_count</code><span class="sig-paren">(</span><em>indices_list</em>, <em>total_index: int</em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="_modules/alphaspace/AS_Funct.html#combination_union_count"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Funct.combination_union_count" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a list of indices list, such as [ [1,2,3], [4,5,6] , [2,3,4]]
@@ -1722,6 +1750,25 @@ The total_index is maximum of all indices in the indices list.
 :param total_index: int, upper limits of the indices
 :return: np.ndarray N * N where (i,j) means count of i and j element wise union</p>
 </dd></dl>
+
+<dl class="function">
+<dt id="alphaspace.AS_Funct.combination_union_count_mp">
+<code class="descclassname">alphaspace.AS_Funct.</code><code class="descname">combination_union_count_mp</code><span class="sig-paren">(</span><em>indices_list</em>, <em>total_index: int</em>, <em>cpu=None</em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="_modules/alphaspace/AS_Funct.html#combination_union_count_mp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Funct.combination_union_count_mp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a list of indices list, such as [ [1,2,3], [4,5,6] , [2,3,4]]
+This function calculates the union count between each pair in the list
+if indices_list is a N list of M indices, the return array D is a N * N ndarray, where Dij is the union count
+between i and j.
+Note this D matrix is symmetrical.
+The total_index is maximum of all indices in the indices list.
+:param indices_list: list [[indices].]
+:param total_index: int, upper limits of the indices
+:return: np.ndarray N * N where (i,j) means count of i and j element wise union</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="alphaspace.AS_Funct.count_intersect">
+<code class="descclassname">alphaspace.AS_Funct.</code><code class="descname">count_intersect</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Funct.html#count_intersect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Funct.count_intersect" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="alphaspace.AS_Funct.extractResidue">
@@ -1860,7 +1907,7 @@ AAC are set to resemble Carbon with a radii - 0.17
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>prb_dict</strong> : dict</p>
 <blockquote class="last">
-<div><p>probe score dictionary.</p>
+<div><p>probe score dictionary</p>
 </div></blockquote>
 </td>
 </tr>
@@ -1875,13 +1922,12 @@ AAC are set to resemble Carbon with a radii - 0.17
 <span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">pocket</span> <span class="ow">in</span> <span class="n">universe</span><span class="o">.</span><span class="n">pockets</span><span class="p">(</span><span class="n">snapshot_idx</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
 <span class="gp">&gt;&gt;&gt; </span>        <span class="k">for</span> <span class="n">beta</span> <span class="ow">in</span> <span class="n">pocket</span><span class="o">.</span><span class="n">betas</span><span class="p">:</span>
 <span class="gp">&gt;&gt;&gt; </span>                <span class="n">beta_coords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">beta</span><span class="o">.</span><span class="n">centroid</span><span class="p">)</span> <span class="c1"># This will use the centroid of all alpha atom in the beta atom</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">protein_coords</span> <span class="o">=</span> <span class="n">universe</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">xyz</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">prot_coord</span><span class="p">,</span> <span class="n">prot_types</span><span class="p">,</span> <span class="n">hp_type</span><span class="p">,</span> <span class="n">acc_type</span><span class="p">,</span> <span class="n">don_type</span> <span class="o">=</span> <span class="n">pre_process_pdbqt</span><span class="p">(</span><span class="s1">&#39;path to pdbqt file&#39;</span><span class="p">,</span> <span class="n">alphaspace</span><span class="o">.</span><span class="n">HP_DICT</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">prb_dict</span> <span class="o">=</span> <span class="n">get_probe_score</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">,</span> <span class="n">prot_types</span><span class="p">,</span> <span class="n">hp_type</span><span class="p">,</span> <span class="n">acc_type</span><span class="p">,</span> <span class="n">don_type</span><span class="p">,</span> <span class="n">probe_coords</span><span class="o">=</span><span class="n">probe_coords</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">protein_coords</span> <span class="o">=</span> <span class="n">universe</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">traj</span><span class="o">.</span><span class="n">xyz</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">prot_coord</span><span class="p">,</span> <span class="n">prot_types</span><span class="p">,</span> <span class="n">hp_type</span><span class="p">,</span> <span class="n">acc_type</span><span class="p">,</span> <span class="n">don_type</span> <span class="o">=</span> <span class="n">alphaspace</span><span class="o">.</span><span class="n">pre_process_pdbqt</span><span class="p">(</span><span class="s1">&#39;path to pdbqt file&#39;</span><span class="p">,</span> <span class="n">alphaspace</span><span class="o">.</span><span class="n">HP_DICT</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">prb_dict</span> <span class="o">=</span> <span class="n">alphaspace</span><span class="o">.</span><span class="n">get_probe_score</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">,</span> <span class="n">prot_types</span><span class="p">,</span> <span class="n">hp_type</span><span class="p">,</span> <span class="n">acc_type</span><span class="p">,</span> <span class="n">don_type</span><span class="p">,</span> <span class="n">probe_coords</span><span class="o">=</span><span class="n">probe_coords</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Use the given protein atom type to calculate probe score at given location.</p>
-<p>get_probe_score(<a href="#id1"><span class="problematic" id="id2">*</span></a>pre_process_pdbqt(),probe_coords)</p>
 </dd></dl>
 
 <dl class="function">

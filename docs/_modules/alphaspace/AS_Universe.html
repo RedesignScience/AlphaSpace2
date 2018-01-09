@@ -213,7 +213,7 @@
 
 <span class="kn">from</span> <span class="nn">.AS_Cluster</span> <span class="k">import</span> <span class="n">AS_D_Pocket</span>
 <span class="kn">from</span> <span class="nn">.AS_Config</span> <span class="k">import</span> <span class="n">AS_Config</span>
-<span class="kn">from</span> <span class="nn">.AS_Funct</span> <span class="k">import</span> <span class="n">_tessellation_mp</span><span class="p">,</span> <span class="n">getCosAngleBetween</span><span class="p">,</span> <span class="n">combination_intersection_count</span><span class="p">,</span> <span class="n">combination_union_count</span>
+<span class="kn">from</span> <span class="nn">.AS_Funct</span> <span class="k">import</span> <span class="n">_tessellation_mp</span><span class="p">,</span> <span class="n">getCosAngleBetween</span><span class="p">,</span> <span class="n">combination_intersection_count_mp</span><span class="p">,</span><span class="n">combination_intersection_count</span><span class="p">,</span> <span class="n">combination_union_count</span>
 <span class="kn">from</span> <span class="nn">.AS_Struct</span> <span class="k">import</span> <span class="n">AS_Structure</span>
 
 
@@ -230,7 +230,7 @@
 <span class="sd">        :param config: object,AS_config</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span> <span class="k">if</span> <span class="n">config</span> <span class="k">else</span> <span class="n">AS_Config</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span> <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">AS_Config</span><span class="p">()</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">set_receptor</span><span class="p">(</span><span class="n">receptor</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_binder</span><span class="p">(</span><span class="n">binder</span><span class="p">)</span>
