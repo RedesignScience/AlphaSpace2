@@ -637,8 +637,6 @@ def cluster_by_overlap(vectors, total_index, overlap_cutoff, ):
 
     jaccard_diff_matrix = 1 - intersection_matrix / union_matrix
 
-
-
     cluster_index = list(fcluster(Z=linkage(squareform(jaccard_diff_matrix), method='average'),
                                   t=overlap_cutoff,
                                   criterion='distance') - 1)

@@ -56,7 +56,7 @@ from .AS_Struct import AS_Structure
 # noinspection PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit
 class AS_Universe(object):
     def __init__(self, receptor=None, binder=None, guess_receptor_binder=True, guess_by_order=True, config=None,
-                 tag=""):
+                 tag="",keepH = False):
         """
         Container for an AlphaSpace session, have child container receptor and binder
         :param receptor: object
@@ -68,8 +68,10 @@ class AS_Universe(object):
 
         self.config = config if config is not None else AS_Config()
 
-        self.set_receptor(receptor)
-        self.set_binder(binder)
+        self.receptor = None
+        self.binder = None
+        self.set_receptor(receptor,keepH)
+        self.set_binder(binder,keepH)
 
         if guess_receptor_binder and receptor and not binder:
             if self.guess_receptor_binder(receptor, guess_by_order):
@@ -238,7 +240,7 @@ class AS_Universe(object):
         else:
             return False
 
-    def set_binder(self, structure, append=False):
+    def set_binder(self, structure, append=False,keepH = False):
         """
         set binder (ligand) in session
         :param structure: object, trajectory
@@ -248,13 +250,18 @@ class AS_Universe(object):
         if structure is None:
             self.binder = None
             return
+
+        if not keepH:
+            non_h_idx = structure.topology.select_atom_indices(selection='heavy')
+            structure.atom_slice(non_h_idx, inplace=True)
+
         if append and (self.binder is not None):
             x = self.binder.trajectory + structure
             self.binder.trajectory = x
         else:
             self.binder = AS_Structure(structure, structure_type=1, parent=self)
 
-    def set_receptor(self, structure, append=False, keepH=True):
+    def set_receptor(self, structure, append=False, keepH=False):
         """
         set receptor (protein) in session
         :param structure: trajectory
@@ -479,6 +486,40 @@ class AS_Universe(object):
         # for i, pockets in self._d_pockets.items():
         #     if i not in core_d_pockets:
         #         print(len([True for p in pockets if p._connected]))
+
+
+    def load_pdbqt(self,pdbqt_file):
+        from .AS_Vina import pre_process_pdbqt
+        self.pdbqt_prot_coord, self.prot_types, self.hp_type, self.acc_type, self.don_type = pre_process_pdbqt(
+            pdbqt_file,truncation_length=self.receptor.n_atoms)
+
+
+    def calculate_vina_score(self,snapshot_idx = 0):
+        from .AS_Vina import get_probe_score
+
+        betas = []
+        probe_coords = []
+        for pocket in self.pockets(active_only=True):
+            for beta in pocket.betas:
+                betas.append(beta)
+                probe_coords.append(beta.centroid)
+
+        prb_dict = get_probe_score(self.receptor.traj.xyz[snapshot_idx] * 10, self.prot_types, self.hp_type,
+                                   self.acc_type, self.don_type,
+                                   probe_coords=np.array(probe_coords) * 10)
+
+        prb_score = []
+        prb_element = []
+
+        for i in prb_dict:
+            prb_element.append(i)
+            prb_score.append(prb_dict[i])
+
+        prb_score = np.array(prb_score).transpose((1, 0, 2))
+
+        for i, beta in enumerate(betas):
+            beta.prb_element = prb_element
+            beta.vina_score = prb_score[i]
 
     """
     Visualization methods

@@ -77,29 +77,6 @@ ADV_PARM = {"gauss_1": -0.035579,
 PROBE_TYPE = ['C', 'Br', 'F', 'Cl', 'I', 'OA', 'SA', 'N', 'P']
 
 
-def _NP_interp(r):
-    """
-    """
-    if r < 0.5:
-        x = 1.0
-    elif r > 1.5:
-        x = 0.0
-    else:
-        x = 1.5 - r
-    #        x=np.interp(r, [0.i5,1.5], [1,0])
-    return x
-
-
-def _P_interp(r):  ##step for polar
-    if r < -0.7:
-        x = 1.0
-    elif r >= 0:
-        x = 0.0
-    else:
-        x = -r / 0.7
-    return x
-
-
 def _calc_score(g1, g2, rep, hydrophobe, hbond, vina_weights_dict):
     """
 
@@ -126,75 +103,73 @@ def _calc_score(g1, g2, rep, hydrophobe, hbond, vina_weights_dict):
            + hbond * vina_weights_dict['Hydrogen']
 
 
-def _assign_hp(prot_coord, prot_types, hp_type):
-    """
-    """
-
-    tree = spatial.KDTree(prot_coord)
-    for ix in np.where(hp_type == 'UNK')[0]:
-        indx = np.array(tree.query_ball_point(prot_coord[ix], 2.0))
-        if prot_types[ix] not in POLAR_ATOM_TYPE:
-            if np.any(np.in1d(prot_types[indx[indx != ix]], POLAR_ATOM_TYPE)):
-                hp_type[ix] = 'NNP'
-            else:
-                hp_type[ix] = 'NP'
-        else:
-            hp_type[ix] = 'XXX'
-    return hp_type
-
-
-def _assign_acc(prot_coord, prot_types, hp_type):
-    """
-
-    Parameters
-    ----------
-    prot_coord
-    prot_types
-    hp_type
-
-    Returns
-    -------
-
-    """
-    tree = spatial.KDTree(prot_coord)
-    for ix in np.where(hp_type == 'UNK')[0]:
-        indx = np.array(tree.query_ball_point(prot_coord[ix], 2.0))
-        if prot_types[ix] in ['OA', 'OS', 'SA', 'S']:
-            hp_type[ix] = 'P'
-        else:
-            hp_type[ix] = 'XXX'
-    return hp_type
-
-
-def _assign_don(prot_coord, prot_types, hp_type):
-    tree = spatial.KDTree(prot_coord)
-    for ix in np.where(hp_type == 'UNK')[0]:
-        indx = np.array(tree.query_ball_point(prot_coord[ix], 2.0))
-        if prot_types[ix] in ['N', 'NS', 'NA']:
-            if len(indx[indx != ix]) > 2:
-                hp_type[ix] = 'NPP'
-            else:
-                hp_type[ix] = 'P'
-        else:
-            hp_type[ix] = 'XXX'
-    return hp_type
-
-
-def pre_process_pdbqt(pdbqt_file, types_dict):
+def pre_process_pdbqt(pdbqt_file, truncation_length=0):
     """
 
     Parameters
     ----------
     pdbqt_file : str
         path to pdbqt file
-    types_dict : dict
 
 
     Returns
     -------
 
     """
-    ali_atoms = np.array(['C', 'A'])
+
+    def _assign_hp(prot_coord, prot_types, hp_type):
+        """
+        """
+
+        tree = spatial.KDTree(prot_coord)
+        for ix in np.where(hp_type == 'UNK')[0]:
+            indx = np.array(tree.query_ball_point(prot_coord[ix], 2.0))
+            if prot_types[ix] not in POLAR_ATOM_TYPE:
+                if np.any(np.in1d(prot_types[indx[indx != ix]], POLAR_ATOM_TYPE)):
+                    hp_type[ix] = 'NNP'
+                else:
+                    hp_type[ix] = 'NP'
+            else:
+                hp_type[ix] = 'XXX'
+        return hp_type
+
+    def _assign_acc(prot_coord, prot_types, hp_type):
+        """
+
+        Parameters
+        ----------
+        prot_coord
+        prot_types
+        hp_type
+
+        Returns
+        -------
+
+        """
+        tree = spatial.KDTree(prot_coord)
+        for ix in np.where(hp_type == 'UNK')[0]:
+            indx = np.array(tree.query_ball_point(prot_coord[ix], 2.0))
+            if prot_types[ix] in ['OA', 'OS', 'SA', 'S']:
+                hp_type[ix] = 'P'
+            else:
+                hp_type[ix] = 'XXX'
+        return hp_type
+
+    def _assign_don(prot_coord, prot_types, hp_type):
+        tree = spatial.KDTree(prot_coord)
+        for ix in np.where(hp_type == 'UNK')[0]:
+            indx = np.array(tree.query_ball_point(prot_coord[ix], 2.0))
+            if prot_types[ix] in ['N', 'NS', 'NA']:
+                if len(indx[indx != ix]) > 2:
+                    hp_type[ix] = 'NPP'
+                else:
+                    hp_type[ix] = 'P'
+            else:
+                hp_type[ix] = 'XXX'
+        return hp_type
+
+    types_dict = ADV_DICT
+    ali_atoms = {'C', 'A'}
     with open(pdbqt_file, 'r') as f:
         templines = f.readlines()
     hp_type = []
@@ -203,7 +178,7 @@ def pre_process_pdbqt(pdbqt_file, types_dict):
     prot_coord = []
     prot_types = []
     for t in templines:
-        if t[0:6] in ['ATOM  ', 'HETATM'] and t[-3:].strip() not in ['H', 'HD', 'HS']:
+        if t[0:6] in {'ATOM  ', 'HETATM'} and t[-3:].strip() not in {'H', 'HD', 'HS'}:
             prot_coord.append([float(t[30:38].strip()), float(t[38:46].strip()), float(t[46:54].strip())])
             prot_types.append(t[76:].strip())
             if t[17:20].strip() in types_dict.keys():
@@ -233,7 +208,13 @@ def pre_process_pdbqt(pdbqt_file, types_dict):
         _assign_hp(prot_coord, prot_types, hp_type)
         _assign_don(prot_coord, prot_types, don_type)
         _assign_acc(prot_coord, prot_types, acc_type)
-    return prot_coord, prot_types, hp_type, acc_type, don_type
+
+    if truncation_length != 0:
+
+        return prot_coord[:truncation_length], prot_types[:truncation_length], hp_type[:truncation_length], \
+               acc_type[:truncation_length], don_type[:truncation_length]
+    else:
+        return prot_coord, prot_types, hp_type, acc_type, don_type
 
 
 def get_probe_score(prot_coord, prot_types, hp_type, don_type, acc_type, probe_coords):
@@ -279,7 +260,30 @@ def get_probe_score(prot_coord, prot_types, hp_type, don_type, acc_type, probe_c
     prb_dict : dict
         probe score dictionary
 
+
     """
+
+    def _NP_interp(r):
+        """
+        """
+        if r < 0.5:
+            x = 1.0
+        elif r > 1.5:
+            x = 0.0
+        else:
+            x = 1.5 - r
+        #        x=np.interp(r, [0.i5,1.5], [1,0])
+        return x
+
+    def _P_interp(r):  ##step for polar
+        if r < -0.7:
+            x = 1.0
+        elif r >= 0:
+            x = 0.0
+        else:
+            x = -r / 0.7
+        return x
+
     dist = spatial.distance.cdist(probe_coords, prot_coord)
     prb_dict = {i: [] for i in PROBE_TYPE}
 
@@ -312,14 +316,41 @@ def get_probe_score(prot_coord, prot_types, hp_type, don_type, acc_type, probe_c
     return prb_dict
 
 
+
+
 if __name__ == '__main__':
     import sys
     import numpy as np
 
-    probe_coords = np.random.rand(10, 3)
+    import alphaspace
+    import mdtraj
 
-    prot_coord, prot_types, hp_type, acc_type, don_type = pre_process_pdbqt(sys.argv[1], HP_DICT)
+    u = alphaspace.AS_Universe(mdtraj.load(sys.argv[1]), keepH=False)
 
-    prb_dict = get_probe_score(prot_coord, prot_types, hp_type, acc_type, don_type, probe_coords=probe_coords)
+    u.run_alphaspace()
 
-    print(prb_dict)
+
+    betas = []
+    probe_coords = []
+    for pocket in u.pockets(active_only=True):
+        for beta in pocket.betas:
+            betas.append(beta)
+            probe_coords.append(beta.centroid)
+
+
+    pdbqt_prot_coord, prot_types, hp_type, acc_type, don_type = pre_process_pdbqt(sys.argv[2],
+                                                                                  truncation_length=u.receptor.n_atoms)
+    prb_dict = get_probe_score(u.receptor.traj.xyz[0]* 10, prot_types, hp_type, acc_type, don_type,
+                               probe_coords=np.array(probe_coords) * 10)
+    prb_score = []
+    prb_element = []
+    for i in prb_dict:
+        prb_element.append(i)
+        prb_score.append(prb_dict[i])
+    prb_score = np.array(prb_score).transpose((1,0,2))
+    for i, beta in enumerate(betas):
+        beta.prb_element = prb_element
+        beta.vina_score = prb_score[i]
+
+    for pocket in u.pockets():
+        print(pocket.score)

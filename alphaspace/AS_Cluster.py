@@ -460,6 +460,7 @@ class AS_Pocket:
         self._reordered_index = None
         self._connected = False
         self._is_core_d = False
+        self._betas = None
 
     @property
     def snapshot_idx(self):
@@ -801,16 +802,22 @@ class AS_Pocket:
         beta atom : AS_BetaAtom
 
         """
-        if len(self) > 1:
-            zmat = linkage(self.xyz, method='average')
-            beta_cluster_idx = fcluster(zmat, self.config.beta_clust_cutoff / 10, criterion='distance') - 1
-            beta_list = [[] for _ in range(max(beta_cluster_idx) + 1)]
-            for i, c_i in enumerate(beta_cluster_idx):
-                beta_list[c_i].append(i)
-            for beta in beta_list:
-                yield AS_BetaAtom(alpha_idx_in_pocket=beta, pocket=self)
-        else:
-            yield AS_BetaAtom([0], self)
+        if self._betas is None:
+            if len(self) > 1:
+                zmat = linkage(self.xyz, method='average')
+                beta_cluster_idx = fcluster(zmat, self.config.beta_clust_cutoff / 10, criterion='distance') - 1
+                beta_list = [[] for _ in range(max(beta_cluster_idx) + 1)]
+                for i, c_i in enumerate(beta_cluster_idx):
+                    beta_list[c_i].append(i)
+                self._betas = [AS_BetaAtom(alpha_idx_in_pocket=beta, pocket=self) for beta in beta_list]
+            else:
+                self._betas = [AS_BetaAtom([0], self)]
+        return iter(self._betas)
+
+
+    @property
+    def score(self):
+        return np.sum([beta.score for beta in self.betas])
 
     @property
     def centroid(self):
@@ -822,7 +829,7 @@ class AS_Pocket:
         centroid : np.ndarray
             shape = (3,)
         """
-        return np.average(self.xyz, axis=0)
+        return np.mean(self.xyz, axis=0)
 
     @property
     def core_aux_minor(self):
@@ -871,6 +878,9 @@ class AS_BetaAtom:
         self._alpha_idx_in_pocket = alpha_idx_in_pocket
         self.alpha_idx = pocket.alpha_idx[alpha_idx_in_pocket]
 
+        self.prb_element = []
+        self.vina_score = None
+
     def __repr__(self):
         return "Beta atom with {} space".format(self.space)
 
@@ -901,7 +911,7 @@ class AS_BetaAtom:
         centroid coordinate : np.ndarray
             shape = (3,)
         """
-        return np.average(self.xyz, axis=0)
+        return np.mean(self.xyz, axis=0)
 
     @property
     def alphas(self):
@@ -941,6 +951,17 @@ class AS_BetaAtom:
 
         """
         return np.sum([alpha.space for alpha in self.alphas])
+
+    @property
+    def vina_scores(self):
+        if self.vina_score is None:
+            raise Exception('No Vina Score Calculated')
+        else:
+            return self.vina_score
+
+    @property
+    def score(self):
+        return np.min(self.vina_scores[:,0])
 
 
 class AS_D_Pocket:

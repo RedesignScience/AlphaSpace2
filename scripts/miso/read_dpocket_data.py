@@ -21,7 +21,7 @@ class dp_log():
 def parser(lines):
     data = []
 
-    for line in lines:
+    for line in lines[1:]:
         fluctuation, space, space_std, occupancy, occurrence, total_snapshot = map(float, line.split())
         data.append(dp_log(fluctuation, space, space_std, occupancy, occurrence, total_snapshot))
 
@@ -60,9 +60,39 @@ def plot_occupancy_stability(lines):
 
     plt.show()
 
+def snapshot_folder_navigation(ss_folder, target_name ):
+    import os
+
+    ss_folder = os.path.abspath(ss_folder)
+
+    log_path = {}
+
+    for protein in os.listdir(ss_folder):
+        prot_path = os.path.join(ss_folder,protein)
+        if os.path.isdir(protein):
+            for complex in os.listdir(prot_path):
+                cmplx_path = os.path.join(prot_path,complex)
+                if os.path.isdir(cmplx_path):
+                    log_path[(protein,complex)] = os.path.join(cmplx_path,target_name)
+    return log_path
+
+
+
+
+
 
 if __name__ == '__main__':
-    logfile = sys.argv[1]
-    with open(logfile, 'r') as handle:
-        lines = handle.readlines()[1:]
-    plot_occupancy_stability(lines)
+    for cmplx_name , path in snapshot_folder_navigation(sys.argv[1],'dpocket.log').items():
+
+
+
+
+        try:
+            with open(path, 'r') as handle:
+                lines = handle.readlines()[1:]
+            dp_count = len(parser(lines))
+        except:
+            dp_count = 'NA'
+
+        print(cmplx_name[0],cmplx_name[1],dp_count)
+
