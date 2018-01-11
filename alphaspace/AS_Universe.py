@@ -49,14 +49,15 @@ import mdtraj
 
 from .AS_Cluster import AS_D_Pocket
 from .AS_Config import AS_Config
-from .AS_Funct import _tessellation_mp, getCosAngleBetween, combination_intersection_count_mp,combination_intersection_count, combination_union_count
+from .AS_Funct import _tessellation_mp, getCosAngleBetween, combination_intersection_count_mp, \
+    combination_intersection_count, combination_union_count
 from .AS_Struct import AS_Structure
 
 
 # noinspection PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit
 class AS_Universe(object):
     def __init__(self, receptor=None, binder=None, guess_receptor_binder=True, guess_by_order=True, config=None,
-                 tag="",keepH = False):
+                 tag="", keepH=False):
         """
         Container for an AlphaSpace session, have child container receptor and binder
         :param receptor: object
@@ -70,8 +71,8 @@ class AS_Universe(object):
 
         self.receptor = None
         self.binder = None
-        self.set_receptor(receptor,keepH)
-        self.set_binder(binder,keepH)
+        self.set_receptor(receptor, keepH)
+        self.set_binder(binder, keepH)
 
         if guess_receptor_binder and receptor and not binder:
             if self.guess_receptor_binder(receptor, guess_by_order):
@@ -240,7 +241,7 @@ class AS_Universe(object):
         else:
             return False
 
-    def set_binder(self, structure, append=False,keepH = False):
+    def set_binder(self, structure, append=False, keepH=False):
         """
         set binder (ligand) in session
         :param structure: object, trajectory
@@ -453,7 +454,7 @@ class AS_Universe(object):
 
         d_pockets = dict(list(enumerate(sorted(d_pocket_p_idx.values(), reverse=True, key=len))))
         # fill pocket list
-        for key,idx in d_pockets.items():
+        for key, idx in d_pockets.items():
             d_pockets[key] = [pockets_all[i] for i in idx]
 
         self._d_pockets = d_pockets
@@ -487,14 +488,40 @@ class AS_Universe(object):
         #     if i not in core_d_pockets:
         #         print(len([True for p in pockets if p._connected]))
 
+    def set_pdbqt(self, pdbqt_file):
+        """
+        Load pdbqt file of the receptor protein.
 
-    def load_pdbqt(self,pdbqt_file):
+        Parameters
+        ----------
+        pdbqt_file : str
+            path of pdbqt file
+        """
         from .AS_Vina import pre_process_pdbqt
         self.pdbqt_prot_coord, self.prot_types, self.hp_type, self.acc_type, self.don_type = pre_process_pdbqt(
-            pdbqt_file,truncation_length=self.receptor.n_atoms)
+            pdbqt_file, truncation_length=self.receptor.n_atoms)
+
+    def calculate_vina_score(self, snapshot_idx=0):
+        """
+        Calculate the vina score for all beta atoms in the given snapshot.
+        This action requires:
+
+        1. Main tessellation was performed on the given snapshot, so beta atoms can be generated.
+        2. Protein atom types must be specified by assigning pdbqt file in `.load_pdbqt()`
+
+        After finishing this calculation, you can access the score through beta atom or pocket via method:
+        'beta.score' or 'pocket.score'
+
+        See Also
+        --------
+        load_pdbqt : load atom type from pdbqt file.
 
 
-    def calculate_vina_score(self,snapshot_idx = 0):
+        Parameters
+        ----------
+        snapshot_idx : int
+            index of snapshot you wish to calculate
+        """
         from .AS_Vina import get_probe_score
 
         betas = []

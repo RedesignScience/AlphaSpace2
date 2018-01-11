@@ -786,20 +786,15 @@ class AS_Pocket:
     def betas(self):
         # noinspection PyUnresolvedReferences
         """
-        Gives iterator for beta atoms.
-
-        Examples
-        --------
-
-        >>> universe = AS_Universe()
-        >>> for pocket in universe.pockets(snapshot_idx=0):
-        >>>     for beta in pocket.betas:
-        >>>         print(beta.xyz)
+        Iterate over beta atoms in this pocket.
 
         Yields
         ------
+        beta_atom : AS_BetaAtom
 
-        beta atom : AS_BetaAtom
+        See Also:
+        ---------
+        AS_BetaAtom
 
         """
         if self._betas is None:
@@ -817,18 +812,28 @@ class AS_Pocket:
 
     @property
     def score(self):
+        """
+        Calculate the ligandibility for this pocket, it's the sum of all beta atom scores
+
+        Returns
+        -------
+        score: float
+
+        """
+
         return np.sum([beta.score for beta in self.betas])
 
     @property
     def centroid(self):
         """
+        Calculate the centroid of all alpha atoms in this pocket.
 
         Returns
         -------
-
         centroid : np.ndarray
-            shape = (3,)
+            shape : (3)
         """
+
         return np.mean(self.xyz, axis=0)
 
     @property
@@ -866,9 +871,10 @@ class AS_BetaAtom:
 
     It belongs to the AS_Pocket object.
     """
-
     def __init__(self, alpha_idx_in_pocket, pocket: AS_Pocket):
         """
+        AS_BetaAtom are automatically generated from 'AS_Pocket.betas' iterator.
+
         Parameters
         ----------
         alpha_idx_in_pocket : list
@@ -916,11 +922,11 @@ class AS_BetaAtom:
     @property
     def alphas(self):
         """
-        Generate alpha atom objects
+        Iterate over member alpha atoms
 
         Yields
         ------
-        child AlphaAtom : AS_AlphaAtom
+        AlphaAtom : AS_AlphaAtom
 
         """
         for alpha_idx in self.alpha_idx:
@@ -954,6 +960,15 @@ class AS_BetaAtom:
 
     @property
     def vina_scores(self):
+        """
+        Return all terms of the Vina Scores.
+
+        Returns
+        -------
+        vina_scores : np.ndarray
+            shape : (9 , 6)
+
+        """
         if self.vina_score is None:
             raise Exception('No Vina Score Calculated')
         else:
@@ -961,6 +976,14 @@ class AS_BetaAtom:
 
     @property
     def score(self):
+        """
+        Get the score of this beta atom, which is the lowest vina score in all 9 probes.
+
+        Returns
+        -------
+        float
+
+        """
         return np.min(self.vina_scores[:,0])
 
 

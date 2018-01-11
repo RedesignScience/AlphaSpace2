@@ -801,8 +801,6 @@
 
     <span class="n">jaccard_diff_matrix</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">intersection_matrix</span> <span class="o">/</span> <span class="n">union_matrix</span>
 
-
-
     <span class="n">cluster_index</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">fcluster</span><span class="p">(</span><span class="n">Z</span><span class="o">=</span><span class="n">linkage</span><span class="p">(</span><span class="n">squareform</span><span class="p">(</span><span class="n">jaccard_diff_matrix</span><span class="p">),</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;average&#39;</span><span class="p">),</span>
                                   <span class="n">t</span><span class="o">=</span><span class="n">overlap_cutoff</span><span class="p">,</span>
                                   <span class="n">criterion</span><span class="o">=</span><span class="s1">&#39;distance&#39;</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>

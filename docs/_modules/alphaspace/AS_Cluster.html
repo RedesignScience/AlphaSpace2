@@ -624,6 +624,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_reordered_index</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_connected</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_is_core_d</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_betas</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">snapshot_idx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -949,44 +950,55 @@
     <span class="k">def</span> <span class="nf">betas</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># noinspection PyUnresolvedReferences</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Gives iterator for beta atoms.</span>
-
-<span class="sd">        Examples</span>
-<span class="sd">        --------</span>
-
-<span class="sd">        &gt;&gt;&gt; universe = AS_Universe()</span>
-<span class="sd">        &gt;&gt;&gt; for pocket in universe.pockets(snapshot_idx=0):</span>
-<span class="sd">        &gt;&gt;&gt;     for beta in pocket.betas:</span>
-<span class="sd">        &gt;&gt;&gt;         print(beta.xyz)</span>
+<span class="sd">        Iterate over beta atoms in this pocket.</span>
 
 <span class="sd">        Yields</span>
 <span class="sd">        ------</span>
+<span class="sd">        beta_atom : AS_BetaAtom</span>
 
-<span class="sd">        beta atom : AS_BetaAtom</span>
+<span class="sd">        See Also:</span>
+<span class="sd">        ---------</span>
+<span class="sd">        AS_BetaAtom</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">zmat</span> <span class="o">=</span> <span class="n">linkage</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xyz</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;average&#39;</span><span class="p">)</span>
-            <span class="n">beta_cluster_idx</span> <span class="o">=</span> <span class="n">fcluster</span><span class="p">(</span><span class="n">zmat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">beta_clust_cutoff</span> <span class="o">/</span> <span class="mi">10</span><span class="p">,</span> <span class="n">criterion</span><span class="o">=</span><span class="s1">&#39;distance&#39;</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
-            <span class="n">beta_list</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">beta_cluster_idx</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
-            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">c_i</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">beta_cluster_idx</span><span class="p">):</span>
-                <span class="n">beta_list</span><span class="p">[</span><span class="n">c_i</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">beta</span> <span class="ow">in</span> <span class="n">beta_list</span><span class="p">:</span>
-                <span class="k">yield</span> <span class="n">AS_BetaAtom</span><span class="p">(</span><span class="n">alpha_idx_in_pocket</span><span class="o">=</span><span class="n">beta</span><span class="p">,</span> <span class="n">pocket</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">yield</span> <span class="n">AS_BetaAtom</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_betas</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">zmat</span> <span class="o">=</span> <span class="n">linkage</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xyz</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;average&#39;</span><span class="p">)</span>
+                <span class="n">beta_cluster_idx</span> <span class="o">=</span> <span class="n">fcluster</span><span class="p">(</span><span class="n">zmat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">beta_clust_cutoff</span> <span class="o">/</span> <span class="mi">10</span><span class="p">,</span> <span class="n">criterion</span><span class="o">=</span><span class="s1">&#39;distance&#39;</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+                <span class="n">beta_list</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">beta_cluster_idx</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">c_i</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">beta_cluster_idx</span><span class="p">):</span>
+                    <span class="n">beta_list</span><span class="p">[</span><span class="n">c_i</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_betas</span> <span class="o">=</span> <span class="p">[</span><span class="n">AS_BetaAtom</span><span class="p">(</span><span class="n">alpha_idx_in_pocket</span><span class="o">=</span><span class="n">beta</span><span class="p">,</span> <span class="n">pocket</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span> <span class="k">for</span> <span class="n">beta</span> <span class="ow">in</span> <span class="n">beta_list</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_betas</span> <span class="o">=</span> <span class="p">[</span><span class="n">AS_BetaAtom</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_betas</span><span class="p">)</span>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">score</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the ligandibility for this pocket, it&#39;s the sum of all beta atom scores</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        score: float</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">beta</span><span class="o">.</span><span class="n">score</span> <span class="k">for</span> <span class="n">beta</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">betas</span><span class="p">])</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">centroid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the centroid of all alpha atoms in this pocket.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-
 <span class="sd">        centroid : np.ndarray</span>
-<span class="sd">            shape = (3,)</span>
+<span class="sd">            shape : (3)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xyz</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xyz</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">core_aux_minor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1023,9 +1035,10 @@
 
 <span class="sd">    It belongs to the AS_Pocket object.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_idx_in_pocket</span><span class="p">,</span> <span class="n">pocket</span><span class="p">:</span> <span class="n">AS_Pocket</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        AS_BetaAtom are automatically generated from &#39;AS_Pocket.betas&#39; iterator.</span>
+
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        alpha_idx_in_pocket : list</span>
@@ -1034,6 +1047,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_pocket</span> <span class="o">=</span> <span class="n">pocket</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_alpha_idx_in_pocket</span> <span class="o">=</span> <span class="n">alpha_idx_in_pocket</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">alpha_idx</span> <span class="o">=</span> <span class="n">pocket</span><span class="o">.</span><span class="n">alpha_idx</span><span class="p">[</span><span class="n">alpha_idx_in_pocket</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">prb_element</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vina_score</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;Beta atom with </span><span class="si">{}</span><span class="s2"> space&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">space</span><span class="p">)</span>
@@ -1065,16 +1081,16 @@
 <span class="sd">        centroid coordinate : np.ndarray</span>
 <span class="sd">            shape = (3,)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xyz</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xyz</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">alphas</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Generate alpha atom objects</span>
+<span class="sd">        Iterate over member alpha atoms</span>
 
 <span class="sd">        Yields</span>
 <span class="sd">        ------</span>
-<span class="sd">        child AlphaAtom : AS_AlphaAtom</span>
+<span class="sd">        AlphaAtom : AS_AlphaAtom</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">alpha_idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha_idx</span><span class="p">:</span>
@@ -1104,7 +1120,35 @@
 <span class="sd">        total_space : float</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">alpha</span><span class="o">.</span><span class="n">space</span> <span class="k">for</span> <span class="n">alpha</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphas</span><span class="p">])</span></div>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">alpha</span><span class="o">.</span><span class="n">space</span> <span class="k">for</span> <span class="n">alpha</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphas</span><span class="p">])</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">vina_scores</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return all terms of the Vina Scores.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        vina_scores : np.ndarray</span>
+<span class="sd">            shape : (9 , 6)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">vina_score</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;No Vina Score Calculated&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">vina_score</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">score</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the score of this beta atom, which is the lowest vina score in all 9 probes.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vina_scores</span><span class="p">[:,</span><span class="mi">0</span><span class="p">])</span></div>
 
 
 <div class="viewcode-block" id="AS_D_Pocket"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_D_Pocket">[docs]</a><span class="k">class</span> <span class="nc">AS_D_Pocket</span><span class="p">:</span>

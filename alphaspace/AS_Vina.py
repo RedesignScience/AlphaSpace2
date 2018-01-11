@@ -1,7 +1,5 @@
 """
 AS_Vina contains function and classes for scoring probes using vina scoring function.
-
-
 """
 
 import numpy as np
