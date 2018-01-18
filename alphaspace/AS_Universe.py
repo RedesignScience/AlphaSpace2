@@ -242,18 +242,21 @@ class AS_Universe(object):
             return False
 
     def set_binder(self, structure, append=False, keepH=False):
+
         """
         set binder (ligand) in session
         :param structure: object, trajectory
         :param append: Bool, if the new binder should be appended to the preview one, default overwritten.
         :return:
         """
+
+        from mdtraj.core import element
         if structure is None:
             self.binder = None
             return
 
         if not keepH:
-            non_h_idx = structure.topology.select_atom_indices(selection='heavy')
+            non_h_idx = [a.index for a in structure.topology.atoms if a.element != element.hydrogen]
             structure.atom_slice(non_h_idx, inplace=True)
 
         if append and (self.binder is not None):
