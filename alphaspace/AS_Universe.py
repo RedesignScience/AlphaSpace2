@@ -270,7 +270,7 @@ class AS_Universe(object):
 
         if self.receptor:
 
-            non_h_idx = [a.index for a in self.receptor.topology.agittoms if a.element != element.hydrogen]
+            non_h_idx = [a.index for a in self.receptor.topology.atoms if a.element != element.hydrogen]
             self.receptor.traj.atom_slice(non_h_idx, inplace=True)
 
         if self.binder:
