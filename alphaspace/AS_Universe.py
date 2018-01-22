@@ -265,6 +265,20 @@ class AS_Universe(object):
         else:
             self.binder = AS_Structure(structure, structure_type=1, parent=self)
 
+    def remove_h(self):
+        from mdtraj.core import element
+
+        if self.receptor:
+
+            non_h_idx = [a.index for a in self.receptor.topology.atoms if a.element != element.hydrogen]
+            self.receptor.atom_slice(non_h_idx, inplace=True)
+
+        if self.binder:
+
+            non_h_idx = [a.index for a in self.binder.topology.atoms if a.element != element.hydrogen]
+            self.binder.atom_slice(non_h_idx, inplace=True)
+
+
     def set_receptor(self, structure, append=False, keepH=False):
         """
         set receptor (protein) in session
