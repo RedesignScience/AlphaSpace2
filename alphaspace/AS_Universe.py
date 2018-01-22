@@ -270,13 +270,13 @@ class AS_Universe(object):
 
         if self.receptor:
 
-            non_h_idx = [a.index for a in self.receptor.topology.atoms if a.element != element.hydrogen]
-            self.receptor.atom_slice(non_h_idx, inplace=True)
+            non_h_idx = [a.index for a in self.receptor.topology.agittoms if a.element != element.hydrogen]
+            self.receptor.traj.atom_slice(non_h_idx, inplace=True)
 
         if self.binder:
 
             non_h_idx = [a.index for a in self.binder.topology.atoms if a.element != element.hydrogen]
-            self.binder.atom_slice(non_h_idx, inplace=True)
+            self.binder.traj.atom_slice(non_h_idx, inplace=True)
 
 
     def set_receptor(self, structure, append=False, keepH=False):
