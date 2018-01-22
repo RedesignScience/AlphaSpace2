@@ -491,6 +491,21 @@ class AS_Universe(object):
         #     if i not in core_d_pockets:
         #         print(len([True for p in pockets if p._connected]))
 
+    def load(self, as_file):
+        import _pickle as pickle
+
+        with open(as_file, 'rb') as handle:
+            u = pickle.load(handle)
+
+        self.__dict__.update(u.__dict__)
+
+    def dump(self, as_file):
+
+        import _pickle as pickle
+
+        with open(as_file, 'wb') as handle:
+            pickle.dump(self, handle)
+
     def set_pdbqt(self, pdbqt_file):
         """
         Load pdbqt file of the receptor protein.
