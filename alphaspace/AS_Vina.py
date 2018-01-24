@@ -348,7 +348,7 @@ if __name__ == '__main__':
     prb_score = np.array(prb_score).transpose((1,0,2))
     for i, beta in enumerate(betas):
         beta.prb_element = prb_element
-        beta.vina_score = prb_score[i]
+        beta._vina_scores = prb_score[i]
 
     for pocket in u.pockets():
         print(pocket.score)

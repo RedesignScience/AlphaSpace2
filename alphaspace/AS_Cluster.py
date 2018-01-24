@@ -800,7 +800,7 @@ class AS_Pocket:
         if self._betas is None:
             if len(self) > 1:
                 zmat = linkage(self.xyz, method='average')
-                beta_cluster_idx = fcluster(zmat, self.config.beta_clust_cutoff / 10, criterion='distance') - 1
+                beta_cluster_idx = fcluster(zmat, 1.6 / 10, criterion='distance') - 1
                 beta_list = [[] for _ in range(max(beta_cluster_idx) + 1)]
                 for i, c_i in enumerate(beta_cluster_idx):
                     beta_list[c_i].append(i)
@@ -885,7 +885,7 @@ class AS_BetaAtom:
         self.alpha_idx = pocket.alpha_idx[alpha_idx_in_pocket]
 
         self.prb_element = []
-        self.vina_score = None
+        self._vina_scores = None
 
     def __repr__(self):
         return "Beta atom with {} space".format(self.space)
@@ -967,12 +967,36 @@ class AS_BetaAtom:
         -------
         vina_scores : np.ndarray
             shape : (9 , 6)
+            9 probe element by 6 scores
+            PROBE_TYPE = ['C', 'Br', 'F', 'Cl', 'I', 'OA', 'SA', 'N', 'P']
+            scores ={'total', "gauss_1","gauss_2", "repulsion", "hydrophobic", "Hydrogen"}
+
 
         """
-        if self.vina_score is None:
+        if self._vina_scores is None:
             raise Exception('No Vina Score Calculated')
         else:
-            return self.vina_score
+            return self._vina_scores
+
+    @property
+    def best_probe_type(self):
+
+        """
+        Parameters
+        ----------
+        beta_atom : AS_BetaAtom
+
+        Get the probe type for the best score in this beta atom.
+
+        Returns
+        -------
+        probe_type : str
+                ['C', 'Br', 'F', 'Cl', 'I', 'OA', 'SA', 'N', 'P']
+        """
+
+        return alphaspace.best_probe_type(self)
+
+
 
     @property
     def score(self):

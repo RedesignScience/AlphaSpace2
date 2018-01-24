@@ -647,3 +647,20 @@ def cluster_by_overlap(vectors, total_index, overlap_cutoff, ):
         cluster_list[item_idx].append(cluster_i)
 
     return cluster_list
+
+def best_probe_type(beta_atom):
+    """
+    Parameters
+    ----------
+    beta_atom : AS_BetaAtom
+
+    Get the probe type for the best score in this beta atom.
+
+    Returns
+    -------
+    probe_type : str
+            ['C', 'Br', 'F', 'Cl', 'I', 'OA', 'SA', 'N', 'P']
+    """
+    _best_score_index = min(range(9), key=lambda i: beta_atom.vina_scores[i, 0])
+
+    return ['C', 'Br', 'F', 'Cl', 'I', 'OA', 'SA', 'N', 'P'][_best_score_index]

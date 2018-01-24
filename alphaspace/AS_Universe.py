@@ -533,7 +533,7 @@ class AS_Universe(object):
         self.pdbqt_prot_coord, self.prot_types, self.hp_type, self.acc_type, self.don_type = pre_process_pdbqt(
             pdbqt_file, truncation_length=self.receptor.n_atoms)
 
-    def calculate_vina_score(self, snapshot_idx=0):
+    def calculate_vina_score(self, snapshot_idx=0,active_only=False):
         """
         Calculate the vina score for all beta atoms in the given snapshot.
         This action requires:
@@ -558,7 +558,7 @@ class AS_Universe(object):
 
         betas = []
         probe_coords = []
-        for pocket in self.pockets(active_only=True):
+        for pocket in self.pockets(snapshot_idx, active_only):
             for beta in pocket.betas:
                 betas.append(beta)
                 probe_coords.append(beta.centroid)
@@ -577,8 +577,8 @@ class AS_Universe(object):
         prb_score = np.array(prb_score).transpose((1, 0, 2))
 
         for i, beta in enumerate(betas):
-            beta.prb_element = prb_element
-            beta.vina_score = prb_score[i]
+            # beta.prb_element = prb_element
+            beta._vina_scores = prb_score[i]
 
     """
     Visualization methods
