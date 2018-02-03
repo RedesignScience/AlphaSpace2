@@ -164,8 +164,6 @@
   <h1>Source code for alphaspace.AS_Vina</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">AS_Vina contains function and classes for scoring probes using vina scoring function.</span>
-
-
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -241,29 +239,6 @@
 <span class="n">PROBE_TYPE</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;Br&#39;</span><span class="p">,</span> <span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="s1">&#39;Cl&#39;</span><span class="p">,</span> <span class="s1">&#39;I&#39;</span><span class="p">,</span> <span class="s1">&#39;OA&#39;</span><span class="p">,</span> <span class="s1">&#39;SA&#39;</span><span class="p">,</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">]</span>
 
 
-<span class="k">def</span> <span class="nf">_NP_interp</span><span class="p">(</span><span class="n">r</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">r</span> <span class="o">&lt;</span> <span class="mf">0.5</span><span class="p">:</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="mf">1.0</span>
-    <span class="k">elif</span> <span class="n">r</span> <span class="o">&gt;</span> <span class="mf">1.5</span><span class="p">:</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="mf">0.0</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="mf">1.5</span> <span class="o">-</span> <span class="n">r</span>
-    <span class="c1">#        x=np.interp(r, [0.i5,1.5], [1,0])</span>
-    <span class="k">return</span> <span class="n">x</span>
-
-
-<span class="k">def</span> <span class="nf">_P_interp</span><span class="p">(</span><span class="n">r</span><span class="p">):</span>  <span class="c1">##step for polar</span>
-    <span class="k">if</span> <span class="n">r</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mf">0.7</span><span class="p">:</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="mf">1.0</span>
-    <span class="k">elif</span> <span class="n">r</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="mf">0.0</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="o">-</span><span class="n">r</span> <span class="o">/</span> <span class="mf">0.7</span>
-    <span class="k">return</span> <span class="n">x</span>
-
-
 <span class="k">def</span> <span class="nf">_calc_score</span><span class="p">(</span><span class="n">g1</span><span class="p">,</span> <span class="n">g2</span><span class="p">,</span> <span class="n">rep</span><span class="p">,</span> <span class="n">hydrophobe</span><span class="p">,</span> <span class="n">hbond</span><span class="p">,</span> <span class="n">vina_weights_dict</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 
@@ -290,75 +265,73 @@
            <span class="o">+</span> <span class="n">hbond</span> <span class="o">*</span> <span class="n">vina_weights_dict</span><span class="p">[</span><span class="s1">&#39;Hydrogen&#39;</span><span class="p">]</span>
 
 
-<span class="k">def</span> <span class="nf">_assign_hp</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">,</span> <span class="n">prot_types</span><span class="p">,</span> <span class="n">hp_type</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">tree</span> <span class="o">=</span> <span class="n">spatial</span><span class="o">.</span><span class="n">KDTree</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">ix</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">hp_type</span> <span class="o">==</span> <span class="s1">&#39;UNK&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]:</span>
-        <span class="n">indx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">query_ball_point</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">[</span><span class="n">ix</span><span class="p">],</span> <span class="mf">2.0</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">prot_types</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">POLAR_ATOM_TYPE</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">in1d</span><span class="p">(</span><span class="n">prot_types</span><span class="p">[</span><span class="n">indx</span><span class="p">[</span><span class="n">indx</span> <span class="o">!=</span> <span class="n">ix</span><span class="p">]],</span> <span class="n">POLAR_ATOM_TYPE</span><span class="p">)):</span>
-                <span class="n">hp_type</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;NNP&#39;</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">hp_type</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;NP&#39;</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">hp_type</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;XXX&#39;</span>
-    <span class="k">return</span> <span class="n">hp_type</span>
-
-
-<span class="k">def</span> <span class="nf">_assign_acc</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">,</span> <span class="n">prot_types</span><span class="p">,</span> <span class="n">hp_type</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    prot_coord</span>
-<span class="sd">    prot_types</span>
-<span class="sd">    hp_type</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">tree</span> <span class="o">=</span> <span class="n">spatial</span><span class="o">.</span><span class="n">KDTree</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">ix</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">hp_type</span> <span class="o">==</span> <span class="s1">&#39;UNK&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]:</span>
-        <span class="n">indx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">query_ball_point</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">[</span><span class="n">ix</span><span class="p">],</span> <span class="mf">2.0</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">prot_types</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;OA&#39;</span><span class="p">,</span> <span class="s1">&#39;OS&#39;</span><span class="p">,</span> <span class="s1">&#39;SA&#39;</span><span class="p">,</span> <span class="s1">&#39;S&#39;</span><span class="p">]:</span>
-            <span class="n">hp_type</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;P&#39;</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">hp_type</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;XXX&#39;</span>
-    <span class="k">return</span> <span class="n">hp_type</span>
-
-
-<span class="k">def</span> <span class="nf">_assign_don</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">,</span> <span class="n">prot_types</span><span class="p">,</span> <span class="n">hp_type</span><span class="p">):</span>
-    <span class="n">tree</span> <span class="o">=</span> <span class="n">spatial</span><span class="o">.</span><span class="n">KDTree</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">ix</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">hp_type</span> <span class="o">==</span> <span class="s1">&#39;UNK&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]:</span>
-        <span class="n">indx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">query_ball_point</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">[</span><span class="n">ix</span><span class="p">],</span> <span class="mf">2.0</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">prot_types</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;NS&#39;</span><span class="p">,</span> <span class="s1">&#39;NA&#39;</span><span class="p">]:</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">indx</span><span class="p">[</span><span class="n">indx</span> <span class="o">!=</span> <span class="n">ix</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
-                <span class="n">hp_type</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;NPP&#39;</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">hp_type</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;P&#39;</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">hp_type</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;XXX&#39;</span>
-    <span class="k">return</span> <span class="n">hp_type</span>
-
-
-<div class="viewcode-block" id="pre_process_pdbqt"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Vina.pre_process_pdbqt">[docs]</a><span class="k">def</span> <span class="nf">pre_process_pdbqt</span><span class="p">(</span><span class="n">pdbqt_file</span><span class="p">,</span> <span class="n">types_dict</span><span class="p">):</span>
+<div class="viewcode-block" id="pre_process_pdbqt"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Vina.pre_process_pdbqt">[docs]</a><span class="k">def</span> <span class="nf">pre_process_pdbqt</span><span class="p">(</span><span class="n">pdbqt_file</span><span class="p">,</span> <span class="n">truncation_length</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    pdbqt_file : str</span>
 <span class="sd">        path to pdbqt file</span>
-<span class="sd">    types_dict : dict</span>
 
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">ali_atoms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="nf">_assign_hp</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">,</span> <span class="n">prot_types</span><span class="p">,</span> <span class="n">hp_type</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">spatial</span><span class="o">.</span><span class="n">KDTree</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ix</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">hp_type</span> <span class="o">==</span> <span class="s1">&#39;UNK&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">indx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">query_ball_point</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">[</span><span class="n">ix</span><span class="p">],</span> <span class="mf">2.0</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">prot_types</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">POLAR_ATOM_TYPE</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">in1d</span><span class="p">(</span><span class="n">prot_types</span><span class="p">[</span><span class="n">indx</span><span class="p">[</span><span class="n">indx</span> <span class="o">!=</span> <span class="n">ix</span><span class="p">]],</span> <span class="n">POLAR_ATOM_TYPE</span><span class="p">)):</span>
+                    <span class="n">hp_type</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;NNP&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">hp_type</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;NP&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">hp_type</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;XXX&#39;</span>
+        <span class="k">return</span> <span class="n">hp_type</span>
+
+    <span class="k">def</span> <span class="nf">_assign_acc</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">,</span> <span class="n">prot_types</span><span class="p">,</span> <span class="n">hp_type</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        prot_coord</span>
+<span class="sd">        prot_types</span>
+<span class="sd">        hp_type</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">spatial</span><span class="o">.</span><span class="n">KDTree</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ix</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">hp_type</span> <span class="o">==</span> <span class="s1">&#39;UNK&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">indx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">query_ball_point</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">[</span><span class="n">ix</span><span class="p">],</span> <span class="mf">2.0</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">prot_types</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;OA&#39;</span><span class="p">,</span> <span class="s1">&#39;OS&#39;</span><span class="p">,</span> <span class="s1">&#39;SA&#39;</span><span class="p">,</span> <span class="s1">&#39;S&#39;</span><span class="p">]:</span>
+                <span class="n">hp_type</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;P&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">hp_type</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;XXX&#39;</span>
+        <span class="k">return</span> <span class="n">hp_type</span>
+
+    <span class="k">def</span> <span class="nf">_assign_don</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">,</span> <span class="n">prot_types</span><span class="p">,</span> <span class="n">hp_type</span><span class="p">):</span>
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">spatial</span><span class="o">.</span><span class="n">KDTree</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ix</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">hp_type</span> <span class="o">==</span> <span class="s1">&#39;UNK&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="n">indx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">tree</span><span class="o">.</span><span class="n">query_ball_point</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">[</span><span class="n">ix</span><span class="p">],</span> <span class="mf">2.0</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">prot_types</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;NS&#39;</span><span class="p">,</span> <span class="s1">&#39;NA&#39;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">indx</span><span class="p">[</span><span class="n">indx</span> <span class="o">!=</span> <span class="n">ix</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="n">hp_type</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;NPP&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">hp_type</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;P&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">hp_type</span><span class="p">[</span><span class="n">ix</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;XXX&#39;</span>
+        <span class="k">return</span> <span class="n">hp_type</span>
+
+    <span class="n">types_dict</span> <span class="o">=</span> <span class="n">ADV_DICT</span>
+    <span class="n">ali_atoms</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;A&#39;</span><span class="p">}</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">pdbqt_file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
         <span class="n">templines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
     <span class="n">hp_type</span> <span class="o">=</span> <span class="p">[]</span>
@@ -367,7 +340,7 @@
     <span class="n">prot_coord</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">prot_types</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">templines</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;ATOM  &#39;</span><span class="p">,</span> <span class="s1">&#39;HETATM&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">t</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">:]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="s1">&#39;HD&#39;</span><span class="p">,</span> <span class="s1">&#39;HS&#39;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;ATOM  &#39;</span><span class="p">,</span> <span class="s1">&#39;HETATM&#39;</span><span class="p">}</span> <span class="ow">and</span> <span class="n">t</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">:]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="s1">&#39;HD&#39;</span><span class="p">,</span> <span class="s1">&#39;HS&#39;</span><span class="p">}:</span>
             <span class="n">prot_coord</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">30</span><span class="p">:</span><span class="mi">38</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()),</span> <span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">38</span><span class="p">:</span><span class="mi">46</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()),</span> <span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">46</span><span class="p">:</span><span class="mi">54</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">())])</span>
             <span class="n">prot_types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">76</span><span class="p">:]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
             <span class="k">if</span> <span class="n">t</span><span class="p">[</span><span class="mi">17</span><span class="p">:</span><span class="mi">20</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">in</span> <span class="n">types_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
@@ -397,7 +370,12 @@
         <span class="n">_assign_hp</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">,</span> <span class="n">prot_types</span><span class="p">,</span> <span class="n">hp_type</span><span class="p">)</span>
         <span class="n">_assign_don</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">,</span> <span class="n">prot_types</span><span class="p">,</span> <span class="n">don_type</span><span class="p">)</span>
         <span class="n">_assign_acc</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">,</span> <span class="n">prot_types</span><span class="p">,</span> <span class="n">acc_type</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">prot_coord</span><span class="p">,</span> <span class="n">prot_types</span><span class="p">,</span> <span class="n">hp_type</span><span class="p">,</span> <span class="n">acc_type</span><span class="p">,</span> <span class="n">don_type</span></div>
+
+    <span class="k">if</span> <span class="n">truncation_length</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">prot_coord</span><span class="p">[:</span><span class="n">truncation_length</span><span class="p">],</span> <span class="n">prot_types</span><span class="p">[:</span><span class="n">truncation_length</span><span class="p">],</span> <span class="n">hp_type</span><span class="p">[:</span><span class="n">truncation_length</span><span class="p">],</span> \
+               <span class="n">acc_type</span><span class="p">[:</span><span class="n">truncation_length</span><span class="p">],</span> <span class="n">don_type</span><span class="p">[:</span><span class="n">truncation_length</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">prot_coord</span><span class="p">,</span> <span class="n">prot_types</span><span class="p">,</span> <span class="n">hp_type</span><span class="p">,</span> <span class="n">acc_type</span><span class="p">,</span> <span class="n">don_type</span></div>
 
 
 <div class="viewcode-block" id="get_probe_score"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Vina.get_probe_score">[docs]</a><span class="k">def</span> <span class="nf">get_probe_score</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">,</span> <span class="n">prot_types</span><span class="p">,</span> <span class="n">hp_type</span><span class="p">,</span> <span class="n">don_type</span><span class="p">,</span> <span class="n">acc_type</span><span class="p">,</span> <span class="n">probe_coords</span><span class="p">):</span>
@@ -415,17 +393,15 @@
 <span class="sd">    &gt;&gt;&gt; for pocket in universe.pockets(snapshot_idx = 0):</span>
 <span class="sd">    &gt;&gt;&gt; 	for beta in pocket.betas:</span>
 <span class="sd">    &gt;&gt;&gt; 		beta_coords.append(beta.centroid) # This will use the centroid of all alpha atom in the beta atom</span>
-<span class="sd">    &gt;&gt;&gt; protein_coords = universe.receptor.xyz[0]</span>
-<span class="sd">    &gt;&gt;&gt; prot_coord, prot_types, hp_type, acc_type, don_type = pre_process_pdbqt(&#39;path to pdbqt file&#39;, alphaspace.HP_DICT)</span>
-<span class="sd">    &gt;&gt;&gt; prb_dict = get_probe_score(prot_coord, prot_types, hp_type, acc_type, don_type, probe_coords=probe_coords)</span>
+<span class="sd">    &gt;&gt;&gt; protein_coords = universe.receptor.traj.xyz[0]</span>
+<span class="sd">    &gt;&gt;&gt; prot_coord, prot_types, hp_type, acc_type, don_type = alphaspace.pre_process_pdbqt(&#39;path to pdbqt file&#39;, alphaspace.HP_DICT)</span>
+<span class="sd">    &gt;&gt;&gt; prb_dict = alphaspace.get_probe_score(prot_coord, prot_types, hp_type, acc_type, don_type, probe_coords=probe_coords)</span>
 
 <span class="sd">    Use the given protein atom type to calculate probe score at given location.</span>
 
-<span class="sd">    get_probe_score(*pre_process_pdbqt(),probe_coords)</span>
-
-
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
+
 <span class="sd">    prot_coord : np.ndarray</span>
 <span class="sd">        shape = (n,3)</span>
 <span class="sd">    prot_types : np.ndarray</span>
@@ -441,12 +417,34 @@
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    prb_dict : dict</span>
-<span class="sd">        probe score dictionary.</span>
 
+<span class="sd">    prb_dict : dict</span>
+<span class="sd">        probe score dictionary</span>
 
 
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_NP_interp</span><span class="p">(</span><span class="n">r</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">r</span> <span class="o">&lt;</span> <span class="mf">0.5</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="k">elif</span> <span class="n">r</span> <span class="o">&gt;</span> <span class="mf">1.5</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="mf">1.5</span> <span class="o">-</span> <span class="n">r</span>
+        <span class="c1">#        x=np.interp(r, [0.i5,1.5], [1,0])</span>
+        <span class="k">return</span> <span class="n">x</span>
+
+    <span class="k">def</span> <span class="nf">_P_interp</span><span class="p">(</span><span class="n">r</span><span class="p">):</span>  <span class="c1">##step for polar</span>
+        <span class="k">if</span> <span class="n">r</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mf">0.7</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="k">elif</span> <span class="n">r</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="o">-</span><span class="n">r</span> <span class="o">/</span> <span class="mf">0.7</span>
+        <span class="k">return</span> <span class="n">x</span>
+
     <span class="n">dist</span> <span class="o">=</span> <span class="n">spatial</span><span class="o">.</span><span class="n">distance</span><span class="o">.</span><span class="n">cdist</span><span class="p">(</span><span class="n">probe_coords</span><span class="p">,</span> <span class="n">prot_coord</span><span class="p">)</span>
     <span class="n">prb_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">PROBE_TYPE</span><span class="p">}</span>
 
@@ -479,17 +477,44 @@
     <span class="k">return</span> <span class="n">prb_dict</span></div>
 
 
+
+
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="kn">import</span> <span class="nn">sys</span>
     <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-    <span class="n">probe_coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="kn">import</span> <span class="nn">alphaspace</span>
+    <span class="kn">import</span> <span class="nn">mdtraj</span>
 
-    <span class="n">prot_coord</span><span class="p">,</span> <span class="n">prot_types</span><span class="p">,</span> <span class="n">hp_type</span><span class="p">,</span> <span class="n">acc_type</span><span class="p">,</span> <span class="n">don_type</span> <span class="o">=</span> <span class="n">pre_process_pdbqt</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">HP_DICT</span><span class="p">)</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="n">alphaspace</span><span class="o">.</span><span class="n">AS_Universe</span><span class="p">(</span><span class="n">mdtraj</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">keepH</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
-    <span class="n">prb_dict</span> <span class="o">=</span> <span class="n">get_probe_score</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">,</span> <span class="n">prot_types</span><span class="p">,</span> <span class="n">hp_type</span><span class="p">,</span> <span class="n">acc_type</span><span class="p">,</span> <span class="n">don_type</span><span class="p">,</span> <span class="n">probe_coords</span><span class="o">=</span><span class="n">probe_coords</span><span class="p">)</span>
+    <span class="n">u</span><span class="o">.</span><span class="n">run_alphaspace</span><span class="p">()</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="n">prb_dict</span><span class="p">)</span>
+
+    <span class="n">betas</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">probe_coords</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">pocket</span> <span class="ow">in</span> <span class="n">u</span><span class="o">.</span><span class="n">pockets</span><span class="p">(</span><span class="n">active_only</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">beta</span> <span class="ow">in</span> <span class="n">pocket</span><span class="o">.</span><span class="n">betas</span><span class="p">:</span>
+            <span class="n">betas</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">beta</span><span class="p">)</span>
+            <span class="n">probe_coords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">beta</span><span class="o">.</span><span class="n">centroid</span><span class="p">)</span>
+
+
+    <span class="n">pdbqt_prot_coord</span><span class="p">,</span> <span class="n">prot_types</span><span class="p">,</span> <span class="n">hp_type</span><span class="p">,</span> <span class="n">acc_type</span><span class="p">,</span> <span class="n">don_type</span> <span class="o">=</span> <span class="n">pre_process_pdbqt</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                                                                                  <span class="n">truncation_length</span><span class="o">=</span><span class="n">u</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">n_atoms</span><span class="p">)</span>
+    <span class="n">prb_dict</span> <span class="o">=</span> <span class="n">get_probe_score</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">traj</span><span class="o">.</span><span class="n">xyz</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span> <span class="mi">10</span><span class="p">,</span> <span class="n">prot_types</span><span class="p">,</span> <span class="n">hp_type</span><span class="p">,</span> <span class="n">acc_type</span><span class="p">,</span> <span class="n">don_type</span><span class="p">,</span>
+                               <span class="n">probe_coords</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">probe_coords</span><span class="p">)</span> <span class="o">*</span> <span class="mi">10</span><span class="p">)</span>
+    <span class="n">prb_score</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">prb_element</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">prb_dict</span><span class="p">:</span>
+        <span class="n">prb_element</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">prb_score</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prb_dict</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+    <span class="n">prb_score</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">prb_score</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">beta</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">betas</span><span class="p">):</span>
+        <span class="n">beta</span><span class="o">.</span><span class="n">prb_element</span> <span class="o">=</span> <span class="n">prb_element</span>
+        <span class="n">beta</span><span class="o">.</span><span class="n">_vina_scores</span> <span class="o">=</span> <span class="n">prb_score</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">pocket</span> <span class="ow">in</span> <span class="n">u</span><span class="o">.</span><span class="n">pockets</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">pocket</span><span class="o">.</span><span class="n">score</span><span class="p">)</span>
 </pre></div>
 
            </div>

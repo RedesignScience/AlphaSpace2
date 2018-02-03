@@ -62,7 +62,12 @@ For interactive session in jupyter notebook, type in
 ```
 To start, you can open the [FCTM_tutorial](examples/FCTM_tutorial.ipynb) in the [examples](examples) folder.
 
-### Using commandline __experimental__
+You might also want to checkout [Pocket Scoring](examples/PocketScoring.ipynb)
+
+### Using commandline
+
+__experimental__
+
 AlphaSpace also support command line usage, if you run AlphaSpace on a pdb file the mapping will be outputted in the working directory as PDB file and chimera .py file. You will be able to open them in chimera later. Alternatively, a binary pickled file can be saved, this allows for direct loading of results in python.   
 To run it in command line mode, do
 ```

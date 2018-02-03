@@ -265,7 +265,7 @@ class AS_AlphaAtom:
         return np.linalg.norm(self.xyz - other.xyz)
 
     @property
-    def _data(self) -> AS_Data:
+    def _data(self) -> AS_Snapshot:
         return self.parent_structure._data[self.snapshot_idx]
 
     @property
@@ -278,7 +278,7 @@ class AS_AlphaAtom:
         bool
 
         """
-        return bool(self._data.is_active(self.idx, self.snapshot_idx))
+        return bool(self._data.is_active(self.idx))
 
     @property
     def idx(self):
@@ -315,7 +315,7 @@ class AS_AlphaAtom:
             size 3
 
         """
-        return self._data.xyz(self._idx, self.snapshot_idx)
+        return self._data.xyz(self._idx)
 
     @property
     def polar_space(self):
@@ -326,7 +326,7 @@ class AS_AlphaAtom:
         float
 
         """
-        return self._data.get_polar_space(self._idx, self.snapshot_idx)
+        return self._data.get_polar_space(self._idx)
 
     @property
     def nonpolar_space(self):
@@ -337,7 +337,7 @@ class AS_AlphaAtom:
         float
 
         """
-        return self._data.get_nonpolar_space(self._idx, self.snapshot_idx)
+        return self._data.get_nonpolar_space(self._idx)
 
     @property
     def space(self):
@@ -364,7 +364,7 @@ class AS_AlphaAtom:
             size (4)
 
         """
-        return self._data.lining_atoms_idx(self._idx, self.snapshot_idx)
+        return self._data.lining_atoms_idx(self._idx)
 
     @property
     def is_contact(self) -> bool:
@@ -377,7 +377,7 @@ class AS_AlphaAtom:
         bool
 
         """
-        return bool(self._data.is_contact(self._idx, self.snapshot_idx))
+        return bool(self._data.is_contact(self._idx))
 
     @property
     def lining_atom_asa(self):
@@ -389,7 +389,7 @@ class AS_AlphaAtom:
         ASA : float
         """
 
-        return float(self._data.lining_atoms_idx(self._idx, self.snapshot_idx))
+        return float(self._data.lining_atoms_idx(self._idx))
 
     @property
     def is_solvated(self):
@@ -413,7 +413,7 @@ class AS_AlphaAtom:
         index : np.array
 
         """
-        return self._data.get_closest_atom_idx(self._idx, self.snapshot_idx)
+        return self._data.get_closest_atom_idx(self._idx)
 
     @property
     def closest_atom_dist(self):
@@ -423,7 +423,7 @@ class AS_AlphaAtom:
         -------
         distance to closest atom : float
         """
-        return self._data.get_closest_atom_dist(self._idx, self.snapshot_idx)
+        return self._data.get_closest_atom_dist(self._idx)
 
 
 # noinspection PyTypeChecker
@@ -460,6 +460,7 @@ class AS_Pocket:
         self._reordered_index = None
         self._connected = False
         self._is_core_d = False
+        self._betas = None
 
     @property
     def snapshot_idx(self):
@@ -785,44 +786,55 @@ class AS_Pocket:
     def betas(self):
         # noinspection PyUnresolvedReferences
         """
-        Gives iterator for beta atoms.
-
-        Examples
-        --------
-
-        >>> universe = AS_Universe()
-        >>> for pocket in universe.pockets(snapshot_idx=0):
-        >>>     for beta in pocket.betas:
-        >>>         print(beta.xyz)
+        Iterate over beta atoms in this pocket.
 
         Yields
         ------
+        beta_atom : AS_BetaAtom
 
-        beta atom : AS_BetaAtom
+        See Also:
+        ---------
+        AS_BetaAtom
 
         """
-        if len(self) > 1:
-            zmat = linkage(self.xyz, method='average')
-            beta_cluster_idx = fcluster(zmat, self.config.beta_clust_cutoff / 10, criterion='distance') - 1
-            beta_list = [[] for _ in range(max(beta_cluster_idx) + 1)]
-            for i, c_i in enumerate(beta_cluster_idx):
-                beta_list[c_i].append(i)
-            for beta in beta_list:
-                yield AS_BetaAtom(alpha_idx_in_pocket=beta, pocket=self)
-        else:
-            yield AS_BetaAtom([0], self)
+        if self._betas is None:
+            if len(self) > 1:
+                zmat = linkage(self.xyz, method='average')
+                beta_cluster_idx = fcluster(zmat, 1.6 / 10, criterion='distance') - 1
+                beta_list = [[] for _ in range(max(beta_cluster_idx) + 1)]
+                for i, c_i in enumerate(beta_cluster_idx):
+                    beta_list[c_i].append(i)
+                self._betas = [AS_BetaAtom(alpha_idx_in_pocket=beta, pocket=self) for beta in beta_list]
+            else:
+                self._betas = [AS_BetaAtom([0], self)]
+        return iter(self._betas)
+
+
+    @property
+    def score(self):
+        """
+        Calculate the ligandibility for this pocket, it's the sum of all beta atom scores
+
+        Returns
+        -------
+        score: float
+
+        """
+
+        return np.sum([beta.score for beta in self.betas])
 
     @property
     def centroid(self):
         """
+        Calculate the centroid of all alpha atoms in this pocket.
 
         Returns
         -------
-
         centroid : np.ndarray
-            shape = (3,)
+            shape : (3)
         """
-        return np.average(self.xyz, axis=0)
+
+        return np.mean(self.xyz, axis=0)
 
     @property
     def core_aux_minor(self):
@@ -859,9 +871,10 @@ class AS_BetaAtom:
 
     It belongs to the AS_Pocket object.
     """
-
     def __init__(self, alpha_idx_in_pocket, pocket: AS_Pocket):
         """
+        AS_BetaAtom are automatically generated from 'AS_Pocket.betas' iterator.
+
         Parameters
         ----------
         alpha_idx_in_pocket : list
@@ -870,6 +883,9 @@ class AS_BetaAtom:
         self._pocket = pocket
         self._alpha_idx_in_pocket = alpha_idx_in_pocket
         self.alpha_idx = pocket.alpha_idx[alpha_idx_in_pocket]
+
+        self.prb_element = []
+        self._vina_score = None
 
     def __repr__(self):
         return "Beta atom with {} space".format(self.space)
@@ -901,20 +917,20 @@ class AS_BetaAtom:
         centroid coordinate : np.ndarray
             shape = (3,)
         """
-        return np.average(self.xyz, axis=0)
+        return np.mean(self.xyz, axis=0)
 
     @property
     def alphas(self):
         """
-        Generate alpha atom objects
+        Iterate over member alpha atoms
 
         Yields
         ------
-        child AlphaAtom : AS_AlphaAtom
+        AlphaAtom : AS_AlphaAtom
 
         """
         for alpha_idx in self.alpha_idx:
-            yield AS_AlphaAtom(idx=alpha_idx, parent_structure=self.pocket.parent_structure, parent_pocket=self.pocket)
+            yield AS_AlphaAtom(idx=alpha_idx, snapshot_idx=self._pocket.snapshot_idx ,parent_structure=self.pocket.parent_structure, parent_pocket=self.pocket)
 
     @property
     def pocket(self):
@@ -942,12 +958,68 @@ class AS_BetaAtom:
         """
         return np.sum([alpha.space for alpha in self.alphas])
 
+    @property
+    def vina_scores(self):
+        """
+        Return all terms of the Vina Scores.
+
+        Returns
+        -------
+        vina_scores : np.ndarray
+            shape : (9 , 6)
+            9 probe element by 6 scores
+            PROBE_TYPE = ['C', 'Br', 'F', 'Cl', 'I', 'OA', 'SA', 'N', 'P']
+            scores ={'total', "gauss_1","gauss_2", "repulsion", "hydrophobic", "Hydrogen"}
+
+
+        """
+
+
+        if self._vina_score is None:
+            raise Exception('No Vina Score Calculated')
+        else:
+            return self._vina_score
+
+    @property
+    def best_probe_type(self):
+
+        """
+        Parameters
+        ----------
+        beta_atom : AS_BetaAtom
+
+        Get the probe type for the best score in this beta atom.
+
+        Returns
+        -------
+        probe_type : str
+                ['C', 'Br', 'F', 'Cl', 'I', 'OA', 'SA', 'N', 'P']
+        """
+
+        return alphaspace.best_probe_type(self)
+
+
+
+    @property
+    def score(self):
+        """
+        Get the score of this beta atom, which is the lowest vina score in all 9 probes.
+
+        Returns
+        -------
+        float
+
+        """
+        return np.min(self.vina_scores[:,0])
+
 
 class AS_D_Pocket:
     def __init__(self, parent_structure, pocket_indices=None):
         """
         Initialize a mask for information storage of a dpocket, this is user accessible and can only be read from public
          methods
+
+        
         :param parent_structure: AS_Universe, parent universe
         """
         self.structure = parent_structure
@@ -1070,3 +1142,49 @@ class AS_D_Pocket:
     def pocket_xyz(self) -> np.array:
         for pocket in self.pockets:
             yield pocket.get_centroid()
+
+
+class AS_community:
+    def __init__(self, core = None, aux = None):
+        self._core = core if core is not None else []
+        self._aux = aux if aux is not None else []
+        self._lining_atoms = None
+
+    def connected_core(self, pocket):
+        from .AS_Funct import is_pocket_connected
+        for c in self._core:
+            if is_pocket_connected(c, pocket):
+                return True
+        return False
+
+    def __len__(self):
+        return len(self.pockets)
+
+    @property
+    def pockets(self):
+        return self._core + self._aux
+
+    @property
+    def core(self):
+        return self._core
+    @property
+    def aux(self):
+        return self._aux
+
+    @property
+    def lining_atoms(self):
+        if self._lining_atoms is None:
+            lining_atoms = np.hstack([pocket.lining_atoms_idx for pocket in self.pockets])
+            self._lining_atoms = np.unique(lining_atoms)
+        return self._lining_atoms
+
+
+    def similarity(self,community):
+
+        return len(np.intersect1d(self.lining_atoms,community.lining_atoms,assume_unique=True))/len(
+            np.unique(np.hstack([self.lining_atoms, community.lining_atoms])))
+
+    def similarity_atoms(self,lining_atoms):
+        return len(np.intersect1d(self.lining_atoms, np.array(lining_atoms), assume_unique=True)) / len(
+            np.unique(np.hstack([self.lining_atoms, np.array(lining_atoms)])))
+

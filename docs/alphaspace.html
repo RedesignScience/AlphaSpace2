@@ -219,12 +219,44 @@ You can set the receptor and binder after you have initialized the universe.</p>
 <p>You can checkout more on how to load and select molecular object in the receptor_binder_selection.py</p>
 <dl class="class">
 <dt id="alphaspace.AS_Universe.AS_Universe">
-<em class="property">class </em><code class="descclassname">alphaspace.AS_Universe.</code><code class="descname">AS_Universe</code><span class="sig-paren">(</span><em>receptor=None</em>, <em>binder=None</em>, <em>guess_receptor_binder=True</em>, <em>guess_by_order=True</em>, <em>config=None</em>, <em>tag=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Universe.html#AS_Universe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Universe.AS_Universe" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">alphaspace.AS_Universe.</code><code class="descname">AS_Universe</code><span class="sig-paren">(</span><em>receptor=None</em>, <em>binder=None</em>, <em>guess_receptor_binder=True</em>, <em>guess_by_order=True</em>, <em>config=None</em>, <em>label=''</em>, <em>keepH=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Universe.html#AS_Universe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Universe.AS_Universe" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
 <dl class="method">
 <dt id="alphaspace.AS_Universe.AS_Universe.alphas">
 <code class="descname">alphas</code><span class="sig-paren">(</span><em>snapshot_idx=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Universe.html#AS_Universe.alphas"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Universe.AS_Universe.alphas" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="alphaspace.AS_Universe.AS_Universe.calculate_vina_score">
+<code class="descname">calculate_vina_score</code><span class="sig-paren">(</span><em>snapshot_idx=0</em>, <em>active_only=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Universe.html#AS_Universe.calculate_vina_score"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Universe.AS_Universe.calculate_vina_score" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the vina score for all beta atoms in the given snapshot.
+This action requires:</p>
+<ol class="arabic simple">
+<li>Main tessellation was performed on the given snapshot, so beta atoms can be generated.</li>
+<li>Protein atom types must be specified by assigning pdbqt file in <cite>.load_pdbqt()</cite></li>
+</ol>
+<p>After finishing this calculation, you can access the score through beta atom or pocket via method:
+‘beta.score’ or ‘pocket.score’</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>snapshot_idx</strong> : int</p>
+<blockquote class="last">
+<div><p>index of snapshot you wish to calculate</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<dl class="last docutils">
+<dt><code class="xref py py-obj docutils literal"><span class="pre">load_pdbqt</span></code></dt>
+<dd>load atom type from pdbqt file.</dd>
+</dl>
+</div>
+</dd></dl>
 
 <dl class="method">
 <dt id="alphaspace.AS_Universe.AS_Universe.communities">
@@ -264,6 +296,11 @@ calculate the d pockets and give a iterator os AS_D_Pocket
 <code class="descname">data</code><a class="headerlink" href="#alphaspace.AS_Universe.AS_Universe.data" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="method">
+<dt id="alphaspace.AS_Universe.AS_Universe.dump">
+<code class="descname">dump</code><span class="sig-paren">(</span><em>as_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Universe.html#AS_Universe.dump"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Universe.AS_Universe.dump" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="attribute">
 <dt id="alphaspace.AS_Universe.AS_Universe.frame_indices">
 <code class="descname">frame_indices</code><a class="headerlink" href="#alphaspace.AS_Universe.AS_Universe.frame_indices" title="Permalink to this definition">¶</a></dt>
@@ -288,6 +325,11 @@ This process automatically removes water and other solvents
 :param by_order: bool, if False, guess by appearances in file
 :return: bool, if any macro molecule were found.</p>
 </dd></dl>
+
+<dl class="method">
+<dt id="alphaspace.AS_Universe.AS_Universe.load">
+<code class="descname">load</code><span class="sig-paren">(</span><em>as_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Universe.html#AS_Universe.load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Universe.AS_Universe.load" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="alphaspace.AS_Universe.AS_Universe.molecules">
@@ -331,6 +373,11 @@ This process automatically removes water and other solvents
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="alphaspace.AS_Universe.AS_Universe.remove_h">
+<code class="descname">remove_h</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Universe.html#AS_Universe.remove_h"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Universe.AS_Universe.remove_h" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="alphaspace.AS_Universe.AS_Universe.run_alphaspace">
 <code class="descname">run_alphaspace</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Universe.html#AS_Universe.run_alphaspace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Universe.AS_Universe.run_alphaspace" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -347,7 +394,7 @@ This process automatically removes water and other solvents
 
 <dl class="method">
 <dt id="alphaspace.AS_Universe.AS_Universe.set_binder">
-<code class="descname">set_binder</code><span class="sig-paren">(</span><em>structure</em>, <em>append=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Universe.html#AS_Universe.set_binder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Universe.AS_Universe.set_binder" title="Permalink to this definition">¶</a></dt>
+<code class="descname">set_binder</code><span class="sig-paren">(</span><em>structure</em>, <em>append=False</em>, <em>keepH=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Universe.html#AS_Universe.set_binder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Universe.AS_Universe.set_binder" title="Permalink to this definition">¶</a></dt>
 <dd><p>set binder (ligand) in session
 :param structure: object, trajectory
 :param append: Bool, if the new binder should be appended to the preview one, default overwritten.
@@ -355,8 +402,26 @@ This process automatically removes water and other solvents
 </dd></dl>
 
 <dl class="method">
+<dt id="alphaspace.AS_Universe.AS_Universe.set_pdbqt">
+<code class="descname">set_pdbqt</code><span class="sig-paren">(</span><em>pdbqt_file</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Universe.html#AS_Universe.set_pdbqt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Universe.AS_Universe.set_pdbqt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load pdbqt file of the receptor protein.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>pdbqt_file</strong> : str</p>
+<blockquote class="last">
+<div><p>path of pdbqt file</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="alphaspace.AS_Universe.AS_Universe.set_receptor">
-<code class="descname">set_receptor</code><span class="sig-paren">(</span><em>structure</em>, <em>append=False</em>, <em>keepH=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Universe.html#AS_Universe.set_receptor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Universe.AS_Universe.set_receptor" title="Permalink to this definition">¶</a></dt>
+<code class="descname">set_receptor</code><span class="sig-paren">(</span><em>structure</em>, <em>append=False</em>, <em>keepH=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Universe.html#AS_Universe.set_receptor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Universe.AS_Universe.set_receptor" title="Permalink to this definition">¶</a></dt>
 <dd><p>set receptor (protein) in session
 :param structure: trajectory
 :param append: Bool, if the new binder should be appended to the preview one, default overwritten.
@@ -438,6 +503,11 @@ This process automatically removes water and other solvents
 The contact distance cutoff can be set in config
 :param snapshot_idx: int</p>
 </dd></dl>
+
+<dl class="attribute">
+<dt id="alphaspace.AS_Struct.AS_Structure.config">
+<code class="descname">config</code><a class="headerlink" href="#alphaspace.AS_Struct.AS_Structure.config" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="alphaspace.AS_Struct.AS_Structure.is_polar">
@@ -778,12 +848,33 @@ True if lining_atom_asa &gt; 0</p>
 <dl class="attribute">
 <dt id="alphaspace.AS_Cluster.AS_BetaAtom.alphas">
 <code class="descname">alphas</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_BetaAtom.alphas" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate alpha atom objects</p>
+<dd><p>Iterate over member alpha atoms</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Yields:</th><td class="field-body"><strong>child AlphaAtom</strong> : AS_AlphaAtom</td>
+<tr class="field-odd field"><th class="field-name">Yields:</th><td class="field-body"><strong>AlphaAtom</strong> : AS_AlphaAtom</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="alphaspace.AS_Cluster.AS_BetaAtom.best_probe_type">
+<code class="descname">best_probe_type</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_BetaAtom.best_probe_type" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>beta_atom</strong> : AS_BetaAtom</p>
+<p><strong>Get the probe type for the best score in this beta atom.</strong></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>probe_type</strong> : str</p>
+<blockquote class="last">
+<div><p>[‘C’, ‘Br’, ‘F’, ‘Cl’, ‘I’, ‘OA’, ‘SA’, ‘N’, ‘P’]</p>
+</div></blockquote>
+</td>
 </tr>
 </tbody>
 </table>
@@ -822,6 +913,20 @@ True if lining_atom_asa &gt; 0</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="alphaspace.AS_Cluster.AS_BetaAtom.score">
+<code class="descname">score</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_BetaAtom.score" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the score of this beta atom, which is the lowest vina score in all 9 probes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="alphaspace.AS_Cluster.AS_BetaAtom.space">
 <code class="descname">space</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_BetaAtom.space" title="Permalink to this definition">¶</a></dt>
 <dd><p>Total space of all alphas</p>
@@ -830,6 +935,27 @@ True if lining_atom_asa &gt; 0</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><strong>total_space</strong> : float</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="alphaspace.AS_Cluster.AS_BetaAtom.vina_scores">
+<code class="descname">vina_scores</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_BetaAtom.vina_scores" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return all terms of the Vina Scores.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>vina_scores</strong> : np.ndarray</p>
+<blockquote class="last">
+<div><p>shape : (9 , 6)
+9 probe element by 6 scores
+PROBE_TYPE = [‘C’, ‘Br’, ‘F’, ‘Cl’, ‘I’, ‘OA’, ‘SA’, ‘N’, ‘P’]
+scores ={‘total’, “gauss_1”,”gauss_2”, “repulsion”, “hydrophobic”, “Hydrogen”}</p>
+</div></blockquote>
+</td>
 </tr>
 </tbody>
 </table>
@@ -1103,34 +1229,28 @@ you can use the build in methods to access the data such as contact, occupancy, 
 <dl class="attribute">
 <dt id="alphaspace.AS_Cluster.AS_Pocket.betas">
 <code class="descname">betas</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_Pocket.betas" title="Permalink to this definition">¶</a></dt>
-<dd><p>Gives iterator for beta atoms.</p>
+<dd><p>Iterate over beta atoms in this pocket.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Yields:</th><td class="field-body"><strong>beta atom</strong> : AS_BetaAtom</td>
+<tr class="field-odd field"><th class="field-name">Yields:</th><td class="field-body"><strong>beta_atom</strong> : AS_BetaAtom</td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">Examples</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">universe</span> <span class="o">=</span> <span class="n">AS_Universe</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">pocket</span> <span class="ow">in</span> <span class="n">universe</span><span class="o">.</span><span class="n">pockets</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-<span class="gp">&gt;&gt;&gt; </span>    <span class="k">for</span> <span class="n">beta</span> <span class="ow">in</span> <span class="n">pocket</span><span class="o">.</span><span class="n">betas</span><span class="p">:</span>
-<span class="gp">&gt;&gt;&gt; </span>        <span class="nb">print</span><span class="p">(</span><span class="n">beta</span><span class="o">.</span><span class="n">xyz</span><span class="p">)</span>
-</pre></div>
-</div>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="alphaspace.AS_Cluster.AS_Pocket.centroid">
 <code class="descname">centroid</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_Pocket.centroid" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
+<dd><p>Calculate the centroid of all alpha atoms in this pocket.</p>
+<table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>centroid</strong> : np.ndarray</p>
 <blockquote class="last">
-<div><p>shape = (3,)</p>
+<div><p>shape : (3)</p>
 </div></blockquote>
 </td>
 </tr>
@@ -1355,6 +1475,20 @@ If the reordered_index hasn’t been set, original index is returned.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="alphaspace.AS_Cluster.AS_Pocket.score">
+<code class="descname">score</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_Pocket.score" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the ligandibility for this pocket, it’s the sum of all beta atom scores</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">score: float</td>
 </tr>
 </tbody>
 </table>
@@ -1587,6 +1721,47 @@ Most of AS_Data runs under the hood so you can safely ignore this part until nee
 
 </dd></dl>
 
+<dl class="class">
+<dt id="alphaspace.AS_Cluster.AS_community">
+<em class="property">class </em><code class="descclassname">alphaspace.AS_Cluster.</code><code class="descname">AS_community</code><span class="sig-paren">(</span><em>core=None</em>, <em>aux=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Cluster.html#AS_community"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Cluster.AS_community" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dl class="attribute">
+<dt id="alphaspace.AS_Cluster.AS_community.aux">
+<code class="descname">aux</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_community.aux" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="alphaspace.AS_Cluster.AS_community.connected_core">
+<code class="descname">connected_core</code><span class="sig-paren">(</span><em>pocket</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Cluster.html#AS_community.connected_core"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Cluster.AS_community.connected_core" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="alphaspace.AS_Cluster.AS_community.core">
+<code class="descname">core</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_community.core" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="alphaspace.AS_Cluster.AS_community.lining_atoms">
+<code class="descname">lining_atoms</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_community.lining_atoms" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="alphaspace.AS_Cluster.AS_community.pockets">
+<code class="descname">pockets</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_community.pockets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="alphaspace.AS_Cluster.AS_community.similarity">
+<code class="descname">similarity</code><span class="sig-paren">(</span><em>community</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Cluster.html#AS_community.similarity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Cluster.AS_community.similarity" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="alphaspace.AS_Cluster.AS_community.similarity_atoms">
+<code class="descname">similarity_atoms</code><span class="sig-paren">(</span><em>lining_atoms</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Cluster.html#AS_community.similarity_atoms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Cluster.AS_community.similarity_atoms" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="module-alphaspace.AS_Config">
 <span id="alphaspace-as-config-module"></span><h2>alphaspace.AS_Config module<a class="headerlink" href="#module-alphaspace.AS_Config" title="Permalink to this headline">¶</a></h2>
@@ -1658,8 +1833,29 @@ changing the attributes or loading from a new config.ini file.</p>
 
 <dl class="class">
 <dt id="alphaspace.AS_Funct.Task">
-<em class="property">class </em><code class="descclassname">alphaspace.AS_Funct.</code><code class="descname">Task</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Funct.html#Task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Funct.Task" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">alphaspace.AS_Funct.</code><code class="descname">Task</code><span class="sig-paren">(</span><em>*args</em>, <em>info=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Funct.html#Task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Funct.Task" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="alphaspace.AS_Funct.best_probe_type">
+<code class="descclassname">alphaspace.AS_Funct.</code><code class="descname">best_probe_type</code><span class="sig-paren">(</span><em>beta_atom</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Funct.html#best_probe_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Funct.best_probe_type" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>beta_atom</strong> : AS_BetaAtom</p>
+<p><strong>Get the probe type for the best score in this beta atom.</strong></p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>probe_type</strong> : str</p>
+<blockquote class="last">
+<div><p>[‘C’, ‘Br’, ‘F’, ‘Cl’, ‘I’, ‘OA’, ‘SA’, ‘N’, ‘P’]</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
@@ -1710,6 +1906,34 @@ The total_index is maximum of all indices in the indices list.
 </dd></dl>
 
 <dl class="function">
+<dt id="alphaspace.AS_Funct.combination_intersection_count_mp">
+<code class="descclassname">alphaspace.AS_Funct.</code><code class="descname">combination_intersection_count_mp</code><span class="sig-paren">(</span><em>indices_list: list</em>, <em>total_index: int</em>, <em>cpu=None</em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="_modules/alphaspace/AS_Funct.html#combination_intersection_count_mp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Funct.combination_intersection_count_mp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a list of indices list, such as [ [1,2,3], [4,5,6] , [2,3,4]]
+This function calculates the intersection count between each pair in the list
+if indices_list is a N list of M indices, the return array D is a N * N ndarray, where Dij is the intersection count
+between i and j.</p>
+<p>Note this D matrix is symmetrical. The total_index is maximum of all indices in the indices list.</p>
+<p>This is a multiprocessing oversion of combination_intersection_count()</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>indices_list</strong> : list [[indices].]</p>
+<p><strong>total_index</strong> : int, upper limits of the indices</p>
+<p><strong>cpu</strong> : int, number of cpu to use</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>intersection binary matrix</strong> : np.ndarray</p>
+<blockquote class="last">
+<div><p>N * N where (i,j) means count of i and j element wise intersection</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="alphaspace.AS_Funct.combination_union_count">
 <code class="descclassname">alphaspace.AS_Funct.</code><code class="descname">combination_union_count</code><span class="sig-paren">(</span><em>indices_list</em>, <em>total_index: int</em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="_modules/alphaspace/AS_Funct.html#combination_union_count"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Funct.combination_union_count" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given a list of indices list, such as [ [1,2,3], [4,5,6] , [2,3,4]]
@@ -1722,6 +1946,25 @@ The total_index is maximum of all indices in the indices list.
 :param total_index: int, upper limits of the indices
 :return: np.ndarray N * N where (i,j) means count of i and j element wise union</p>
 </dd></dl>
+
+<dl class="function">
+<dt id="alphaspace.AS_Funct.combination_union_count_mp">
+<code class="descclassname">alphaspace.AS_Funct.</code><code class="descname">combination_union_count_mp</code><span class="sig-paren">(</span><em>indices_list</em>, <em>total_index: int</em>, <em>cpu=None</em><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="reference internal" href="_modules/alphaspace/AS_Funct.html#combination_union_count_mp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Funct.combination_union_count_mp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a list of indices list, such as [ [1,2,3], [4,5,6] , [2,3,4]]
+This function calculates the union count between each pair in the list
+if indices_list is a N list of M indices, the return array D is a N * N ndarray, where Dij is the union count
+between i and j.
+Note this D matrix is symmetrical.
+The total_index is maximum of all indices in the indices list.
+:param indices_list: list [[indices].]
+:param total_index: int, upper limits of the indices
+:return: np.ndarray N * N where (i,j) means count of i and j element wise union</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="alphaspace.AS_Funct.count_intersect">
+<code class="descclassname">alphaspace.AS_Funct.</code><code class="descname">count_intersect</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Funct.html#count_intersect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Funct.count_intersect" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="alphaspace.AS_Funct.extractResidue">
@@ -1795,6 +2038,11 @@ AAC are set to resemble Carbon with a radii - 0.17
 </dd></dl>
 
 <dl class="function">
+<dt id="alphaspace.AS_Funct.is_pocket_connected">
+<code class="descclassname">alphaspace.AS_Funct.</code><code class="descname">is_pocket_connected</code><span class="sig-paren">(</span><em>p1</em>, <em>p2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Funct.html#is_pocket_connected"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Funct.is_pocket_connected" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="alphaspace.AS_Funct.screenContact">
 <code class="descclassname">alphaspace.AS_Funct.</code><code class="descname">screenContact</code><span class="sig-paren">(</span><em>data</em>, <em>binder_xyz</em>, <em>threshold</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Funct.html#screenContact"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Funct.screenContact" title="Permalink to this definition">¶</a></dt>
 <dd><p>Mark the contact in AS_Data as true for each frame.
@@ -1860,7 +2108,7 @@ AAC are set to resemble Carbon with a radii - 0.17
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>prb_dict</strong> : dict</p>
 <blockquote class="last">
-<div><p>probe score dictionary.</p>
+<div><p>probe score dictionary</p>
 </div></blockquote>
 </td>
 </tr>
@@ -1875,27 +2123,25 @@ AAC are set to resemble Carbon with a radii - 0.17
 <span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">pocket</span> <span class="ow">in</span> <span class="n">universe</span><span class="o">.</span><span class="n">pockets</span><span class="p">(</span><span class="n">snapshot_idx</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
 <span class="gp">&gt;&gt;&gt; </span>        <span class="k">for</span> <span class="n">beta</span> <span class="ow">in</span> <span class="n">pocket</span><span class="o">.</span><span class="n">betas</span><span class="p">:</span>
 <span class="gp">&gt;&gt;&gt; </span>                <span class="n">beta_coords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">beta</span><span class="o">.</span><span class="n">centroid</span><span class="p">)</span> <span class="c1"># This will use the centroid of all alpha atom in the beta atom</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">protein_coords</span> <span class="o">=</span> <span class="n">universe</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">xyz</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">prot_coord</span><span class="p">,</span> <span class="n">prot_types</span><span class="p">,</span> <span class="n">hp_type</span><span class="p">,</span> <span class="n">acc_type</span><span class="p">,</span> <span class="n">don_type</span> <span class="o">=</span> <span class="n">pre_process_pdbqt</span><span class="p">(</span><span class="s1">&#39;path to pdbqt file&#39;</span><span class="p">,</span> <span class="n">alphaspace</span><span class="o">.</span><span class="n">HP_DICT</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">prb_dict</span> <span class="o">=</span> <span class="n">get_probe_score</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">,</span> <span class="n">prot_types</span><span class="p">,</span> <span class="n">hp_type</span><span class="p">,</span> <span class="n">acc_type</span><span class="p">,</span> <span class="n">don_type</span><span class="p">,</span> <span class="n">probe_coords</span><span class="o">=</span><span class="n">probe_coords</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">protein_coords</span> <span class="o">=</span> <span class="n">universe</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">traj</span><span class="o">.</span><span class="n">xyz</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">prot_coord</span><span class="p">,</span> <span class="n">prot_types</span><span class="p">,</span> <span class="n">hp_type</span><span class="p">,</span> <span class="n">acc_type</span><span class="p">,</span> <span class="n">don_type</span> <span class="o">=</span> <span class="n">alphaspace</span><span class="o">.</span><span class="n">pre_process_pdbqt</span><span class="p">(</span><span class="s1">&#39;path to pdbqt file&#39;</span><span class="p">,</span> <span class="n">alphaspace</span><span class="o">.</span><span class="n">HP_DICT</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">prb_dict</span> <span class="o">=</span> <span class="n">alphaspace</span><span class="o">.</span><span class="n">get_probe_score</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">,</span> <span class="n">prot_types</span><span class="p">,</span> <span class="n">hp_type</span><span class="p">,</span> <span class="n">acc_type</span><span class="p">,</span> <span class="n">don_type</span><span class="p">,</span> <span class="n">probe_coords</span><span class="o">=</span><span class="n">probe_coords</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Use the given protein atom type to calculate probe score at given location.</p>
-<p>get_probe_score(<a href="#id1"><span class="problematic" id="id2">*</span></a>pre_process_pdbqt(),probe_coords)</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="alphaspace.AS_Vina.pre_process_pdbqt">
-<code class="descclassname">alphaspace.AS_Vina.</code><code class="descname">pre_process_pdbqt</code><span class="sig-paren">(</span><em>pdbqt_file</em>, <em>types_dict</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Vina.html#pre_process_pdbqt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Vina.pre_process_pdbqt" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">alphaspace.AS_Vina.</code><code class="descname">pre_process_pdbqt</code><span class="sig-paren">(</span><em>pdbqt_file</em>, <em>truncation_length=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Vina.html#pre_process_pdbqt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Vina.pre_process_pdbqt" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>pdbqt_file</strong> : str</p>
-<blockquote>
+<blockquote class="last">
 <div><p>path to pdbqt file</p>
 </div></blockquote>
-<p class="last"><strong>types_dict</strong> : dict</p>
 </td>
 </tr>
 </tbody>

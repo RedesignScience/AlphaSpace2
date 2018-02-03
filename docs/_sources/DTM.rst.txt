@@ -6,12 +6,12 @@ Retrospective method
 
 When the approximate binding surface is known, it can be used to speed up the retrospective analysis.
 
-    1.	Identify the community overlapping with the binder in the binder complex.
+1.	Identify the community overlapping with the binder in the binder complex.
 
-    2.	Run AlphaSpace on all snapshots and generate community based on each snapshot. And select the community by its
+2.	Run AlphaSpace on all snapshots and generate community based on each snapshot. And select the community by its
 contact to the known binder, which was superimposed to each snapshot.
 
-    3. This gives the community of interests and designate it as the D-community, subsequent D-pocket analysis are done
+3. This gives the community of interests and designate it as the D-community, subsequent D-pocket analysis are done
 only on the member of these communities.
 
 This method, though simplistic, requires the information of the binding region, which is not always available. But for cases such as optimization of lead compound it provides an intuitive way represent the area of interests on the surface.

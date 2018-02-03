@@ -203,24 +203,18 @@
 
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">chain</span>
-
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy.cluster.hierarchy</span> <span class="k">import</span> <span class="n">linkage</span><span class="p">,</span> <span class="n">fcluster</span>
-<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="k">import</span> <span class="n">squareform</span>
-<span class="kn">from</span> <span class="nn">mdtraj.geometry.sasa</span> <span class="k">import</span> <span class="n">_ATOMIC_RADII</span>
-<span class="kn">import</span> <span class="nn">mdtraj</span>
 
 <span class="kn">from</span> <span class="nn">.AS_Cluster</span> <span class="k">import</span> <span class="n">AS_D_Pocket</span>
 <span class="kn">from</span> <span class="nn">.AS_Config</span> <span class="k">import</span> <span class="n">AS_Config</span>
-<span class="kn">from</span> <span class="nn">.AS_Funct</span> <span class="k">import</span> <span class="n">_tessellation_mp</span><span class="p">,</span> <span class="n">getCosAngleBetween</span><span class="p">,</span> <span class="n">combination_intersection_count</span><span class="p">,</span> <span class="n">combination_union_count</span>
+<span class="kn">from</span> <span class="nn">.AS_Funct</span> <span class="k">import</span> <span class="n">_tessellation_mp</span><span class="p">,</span> <span class="n">getCosAngleBetween</span><span class="p">,</span> <span class="n">combination_intersection_count</span>
 <span class="kn">from</span> <span class="nn">.AS_Struct</span> <span class="k">import</span> <span class="n">AS_Structure</span>
 
 
 <span class="c1"># noinspection PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit</span>
 <div class="viewcode-block" id="AS_Universe"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe">[docs]</a><span class="k">class</span> <span class="nc">AS_Universe</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">receptor</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">binder</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">guess_receptor_binder</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">guess_by_order</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">tag</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+                 <span class="n">label</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">keepH</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Container for an AlphaSpace session, have child container receptor and binder</span>
 <span class="sd">        :param receptor: object</span>
@@ -230,10 +224,12 @@
 <span class="sd">        :param config: object,AS_config</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span> <span class="k">if</span> <span class="n">config</span> <span class="k">else</span> <span class="n">AS_Config</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span> <span class="k">if</span> <span class="n">config</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">AS_Config</span><span class="p">()</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_receptor</span><span class="p">(</span><span class="n">receptor</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_binder</span><span class="p">(</span><span class="n">binder</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">binder</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_receptor</span><span class="p">(</span><span class="n">receptor</span><span class="p">,</span> <span class="n">keepH</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_binder</span><span class="p">(</span><span class="n">binder</span><span class="p">,</span> <span class="n">keepH</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">guess_receptor_binder</span> <span class="ow">and</span> <span class="n">receptor</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">binder</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">guess_receptor_binder</span><span class="p">(</span><span class="n">receptor</span><span class="p">,</span> <span class="n">guess_by_order</span><span class="p">):</span>
@@ -249,7 +245,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_d_pockets</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_pocket_network</span> <span class="o">=</span> <span class="p">{}</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">tag</span> <span class="o">=</span> <span class="n">tag</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">label</span>
 
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">rec_res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">n_residues</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span> <span class="k">else</span> <span class="mi">0</span>
@@ -402,23 +398,45 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span></div>
 
-<div class="viewcode-block" id="AS_Universe.set_binder"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe.set_binder">[docs]</a>    <span class="k">def</span> <span class="nf">set_binder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="AS_Universe.set_binder"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe.set_binder">[docs]</a>    <span class="k">def</span> <span class="nf">set_binder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">keepH</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        set binder (ligand) in session</span>
 <span class="sd">        :param structure: object, trajectory</span>
 <span class="sd">        :param append: Bool, if the new binder should be appended to the preview one, default overwritten.</span>
 <span class="sd">        :return:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="kn">from</span> <span class="nn">mdtraj.core</span> <span class="k">import</span> <span class="n">element</span>
         <span class="k">if</span> <span class="n">structure</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">binder</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="k">return</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">keepH</span><span class="p">:</span>
+            <span class="n">non_h_idx</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">index</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">structure</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">atoms</span> <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">element</span> <span class="o">!=</span> <span class="n">element</span><span class="o">.</span><span class="n">hydrogen</span><span class="p">]</span>
+            <span class="n">structure</span><span class="o">.</span><span class="n">atom_slice</span><span class="p">(</span><span class="n">non_h_idx</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="n">append</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">binder</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">binder</span><span class="o">.</span><span class="n">trajectory</span> <span class="o">+</span> <span class="n">structure</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">binder</span><span class="o">.</span><span class="n">trajectory</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span><span class="n">check_topology</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">binder</span><span class="o">.</span><span class="n">trajectory</span> <span class="o">=</span> <span class="n">x</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">binder</span> <span class="o">=</span> <span class="n">AS_Structure</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">structure_type</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="AS_Universe.set_receptor"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe.set_receptor">[docs]</a>    <span class="k">def</span> <span class="nf">set_receptor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">keepH</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="AS_Universe.remove_h"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe.remove_h">[docs]</a>    <span class="k">def</span> <span class="nf">remove_h</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">mdtraj.core</span> <span class="k">import</span> <span class="n">element</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="p">:</span>
+
+            <span class="n">non_h_idx</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">index</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">atoms</span> <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">element</span> <span class="o">!=</span> <span class="n">element</span><span class="o">.</span><span class="n">hydrogen</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">traj</span><span class="o">.</span><span class="n">atom_slice</span><span class="p">(</span><span class="n">non_h_idx</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">binder</span><span class="p">:</span>
+
+            <span class="n">non_h_idx</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">index</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">binder</span><span class="o">.</span><span class="n">topology</span><span class="o">.</span><span class="n">atoms</span> <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">element</span> <span class="o">!=</span> <span class="n">element</span><span class="o">.</span><span class="n">hydrogen</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">binder</span><span class="o">.</span><span class="n">traj</span><span class="o">.</span><span class="n">atom_slice</span><span class="p">(</span><span class="n">non_h_idx</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AS_Universe.set_receptor"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe.set_receptor">[docs]</a>    <span class="k">def</span> <span class="nf">set_receptor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">keepH</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        set receptor (protein) in session</span>
 <span class="sd">        :param structure: trajectory</span>
@@ -435,7 +453,7 @@
             <span class="n">structure</span><span class="o">.</span><span class="n">atom_slice</span><span class="p">(</span><span class="n">non_h_idx</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">append</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">receptor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">trajectory</span> <span class="o">+</span> <span class="n">structure</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">trajectory</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span><span class="n">check_topology</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">trajectory</span> <span class="o">=</span> <span class="n">x</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span> <span class="o">=</span> <span class="n">AS_Structure</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">structure_type</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span></div>
@@ -474,14 +492,6 @@
             <span class="n">pocket_graph</span> <span class="o">=</span> <span class="n">networkx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
             <span class="n">pocket_graph</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pockets</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="p">,</span> <span class="n">active_only</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
 
-            <span class="c1"># def connectPockets(p1, p2):</span>
-            <span class="c1">#     pocket_vector1 = p1.lining_atoms_centroid - p1.centroid</span>
-            <span class="c1">#     pocket_vector2 = p2.lining_atoms_centroid - p2.centroid</span>
-            <span class="c1">#     if getCosAngleBetween(pocket_vector1, pocket_vector2) &gt; 0:  # pocket vector facing inwards</span>
-            <span class="c1">#         pocket_graph.add_edge(p1, p2)</span>
-            <span class="c1">#         return True</span>
-            <span class="c1">#     return False</span>
-
             <span class="n">contact_pair</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">combination_intersection_count</span><span class="p">(</span>
                 <span class="p">[</span><span class="n">pocket</span><span class="o">.</span><span class="n">lining_atoms_idx</span> <span class="k">for</span> <span class="n">pocket</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pockets</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="p">,</span> <span class="n">active_only</span><span class="o">=</span><span class="kc">False</span><span class="p">)],</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">n_atoms</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">))</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
@@ -489,54 +499,99 @@
             <span class="k">for</span> <span class="n">pi</span><span class="p">,</span> <span class="n">pj</span> <span class="ow">in</span> <span class="n">contact_pair</span><span class="p">:</span>
                 <span class="n">p1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pockets</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="p">,</span> <span class="n">active_only</span><span class="o">=</span><span class="kc">False</span><span class="p">)[</span><span class="n">pi</span><span class="p">]</span>
                 <span class="n">p2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pockets</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="p">,</span> <span class="n">active_only</span><span class="o">=</span><span class="kc">False</span><span class="p">)[</span><span class="n">pj</span><span class="p">]</span>
-                <span class="k">if</span> <span class="p">{</span><span class="n">p1</span><span class="o">.</span><span class="n">core_aux_minor</span><span class="p">,</span> <span class="n">p2</span><span class="o">.</span><span class="n">core_aux_minor</span><span class="p">}</span> <span class="ow">in</span> <span class="p">{{</span><span class="s1">&#39;core&#39;</span><span class="p">,</span> <span class="s1">&#39;aux&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;core&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;core&#39;</span><span class="p">,</span> <span class="s1">&#39;minor&#39;</span><span class="p">},</span>
-                                                              <span class="p">{</span><span class="s1">&#39;aux&#39;</span><span class="p">,</span> <span class="s1">&#39;minor&#39;</span><span class="p">}}:</span>
+                <span class="k">if</span> <span class="p">{</span><span class="n">p1</span><span class="o">.</span><span class="n">core_aux_minor</span><span class="p">,</span> <span class="n">p2</span><span class="o">.</span><span class="n">core_aux_minor</span><span class="p">}</span> <span class="ow">in</span> <span class="p">{{</span><span class="s1">&#39;core&#39;</span><span class="p">,</span> <span class="s1">&#39;aux&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;core&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;core&#39;</span><span class="p">,</span> <span class="s1">&#39;minor&#39;</span><span class="p">},</span>  <span class="p">{</span><span class="s1">&#39;aux&#39;</span><span class="p">,</span> <span class="s1">&#39;minor&#39;</span><span class="p">}}:</span>
                     <span class="n">pocket_vector1</span> <span class="o">=</span> <span class="n">p1</span><span class="o">.</span><span class="n">lining_atoms_centroid</span> <span class="o">-</span> <span class="n">p1</span><span class="o">.</span><span class="n">centroid</span>
                     <span class="n">pocket_vector2</span> <span class="o">=</span> <span class="n">p2</span><span class="o">.</span><span class="n">lining_atoms_centroid</span> <span class="o">-</span> <span class="n">p2</span><span class="o">.</span><span class="n">centroid</span>
                     <span class="k">if</span> <span class="n">getCosAngleBetween</span><span class="p">(</span><span class="n">pocket_vector1</span><span class="p">,</span> <span class="n">pocket_vector2</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># pocket vector facing inwards</span>
                         <span class="n">pocket_graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">)</span>
 
-            <span class="n">core_aux_communities</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">(</span><span class="n">networkx</span><span class="o">.</span><span class="n">connected_components</span><span class="p">(</span><span class="n">pocket_graph</span><span class="p">))</span> <span class="k">if</span>
-                                    <span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">([</span><span class="n">p</span><span class="o">.</span><span class="n">core_aux_minor</span> <span class="o">==</span> <span class="s1">&#39;core&#39;</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">c</span><span class="p">])]</span>
-
             <span class="n">communities</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">community</span> <span class="ow">in</span> <span class="n">core_aux_communities</span><span class="p">:</span>
-                <span class="n">linked_minor</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">([</span><span class="n">pocket_graph</span><span class="o">.</span><span class="n">neighbors</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">community</span><span class="p">]))</span>
-                <span class="n">communities</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">linked_minor</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">community</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">cp</span> <span class="ow">in</span> <span class="n">pocket_graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">():</span>
+                <span class="n">community</span> <span class="o">=</span> <span class="p">[</span><span class="n">cp</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">pocket_graph</span><span class="p">[</span><span class="n">cp</span><span class="p">])</span>
+                <span class="n">communities</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">community</span><span class="p">)</span>
+
+
+
+
+            <span class="c1"># for community in core_aux_communities:</span>
+            <span class="c1">#     linked_minor = set(chain.from_iterable([pocket_graph.neighbors(p) for p in community]))</span>
+            <span class="c1">#     communities.append(linked_minor.union(community))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_communities</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">communities</span>
 
-    <span class="k">def</span> <span class="nf">_gen_communities</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="c1"># def _gen_communities(self):</span>
+    <span class="c1">#</span>
+    <span class="c1">#     import networkx</span>
+    <span class="c1">#     self._communities = {}</span>
+    <span class="c1">#     self._pocket_network = {}</span>
+    <span class="c1">#     for snapshot_idx in self.snapshots_indices:</span>
+    <span class="c1">#         pocket_graph = networkx.Graph()</span>
+    <span class="c1">#         pocket_graph.add_nodes_from(self.pockets(snapshot_idx, active_only=False))</span>
+    <span class="c1">#</span>
+    <span class="c1">#         contact_pair = np.array(np.where(combination_intersection_count(</span>
+    <span class="c1">#             [pocket.lining_atoms_idx for pocket in self.pockets(snapshot_idx, active_only=False)],</span>
+    <span class="c1">#             self.receptor.n_atoms) &gt; 0)).transpose()</span>
+    <span class="c1">#</span>
+    <span class="c1">#         for pi, pj in contact_pair:</span>
+    <span class="c1">#             p1 = self.pockets(snapshot_idx, active_only=False)[pi]</span>
+    <span class="c1">#             p2 = self.pockets(snapshot_idx, active_only=False)[pj]</span>
+    <span class="c1">#             if &quot;core&quot; in {p1.core_aux_minor, p2.core_aux_minor}:</span>
+    <span class="c1">#                 pocket_vector1 = p1.lining_atoms_centroid - p1.centroid</span>
+    <span class="c1">#                 pocket_vector2 = p2.lining_atoms_centroid - p2.centroid</span>
+    <span class="c1">#                 if getCosAngleBetween(pocket_vector1, pocket_vector2) &gt; 0:  # pocket vector facing inwards</span>
+    <span class="c1">#                     pocket_graph.add_edge(p1, p2)</span>
+    <span class="c1">#</span>
+    <span class="c1">#         core_aux_communities = [c for c in (networkx.connected_components(pocket_graph)) if</span>
+    <span class="c1">#                                 len(c) &gt; 1 and any([p.core_aux_minor == &#39;core&#39; for p in c])]</span>
+    <span class="c1">#         communities = []</span>
+    <span class="c1">#         for community in core_aux_communities:</span>
+    <span class="c1">#             linked_minor = set(chain.from_iterable([pocket_graph.neighbors(p) for p in community]))</span>
+    <span class="c1">#             communities.append(linked_minor.union(community))</span>
+    <span class="c1">#         self._communities[snapshot_idx] = communities</span>
+    <span class="c1">#         self._pocket_network[snapshot_idx] = pocket_graph</span>
 
-        <span class="c1"># Todo convert to function and use multi core</span>
-        <span class="kn">import</span> <span class="nn">networkx</span>
+    <span class="k">def</span> <span class="nf">_gen_community</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">core_cutoff</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        core_cutoff</span>
+<span class="sd">        int : space for core cutoff</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">.AS_Cluster</span> <span class="k">import</span> <span class="n">AS_community</span>
+        <span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
+        <span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">combinations</span>
+        <span class="kn">from</span> <span class="nn">.AS_Funct</span> <span class="k">import</span> <span class="n">is_pocket_connected</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_communities</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_pocket_network</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">snapshot_idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">snapshots_indices</span><span class="p">:</span>
-            <span class="n">pocket_graph</span> <span class="o">=</span> <span class="n">networkx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
-            <span class="n">pocket_graph</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pockets</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="p">,</span> <span class="n">active_only</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
-
-            <span class="n">contact_pair</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">combination_intersection_count</span><span class="p">(</span>
-                <span class="p">[</span><span class="n">pocket</span><span class="o">.</span><span class="n">lining_atoms_idx</span> <span class="k">for</span> <span class="n">pocket</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pockets</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="p">,</span> <span class="n">active_only</span><span class="o">=</span><span class="kc">False</span><span class="p">)],</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">n_atoms</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">))</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
-
-            <span class="k">for</span> <span class="n">pi</span><span class="p">,</span> <span class="n">pj</span> <span class="ow">in</span> <span class="n">contact_pair</span><span class="p">:</span>
-                <span class="n">p1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pockets</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="p">,</span> <span class="n">active_only</span><span class="o">=</span><span class="kc">False</span><span class="p">)[</span><span class="n">pi</span><span class="p">]</span>
-                <span class="n">p2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pockets</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="p">,</span> <span class="n">active_only</span><span class="o">=</span><span class="kc">False</span><span class="p">)[</span><span class="n">pj</span><span class="p">]</span>
-                <span class="k">if</span> <span class="s2">&quot;core&quot;</span> <span class="ow">in</span> <span class="p">{</span><span class="n">p1</span><span class="o">.</span><span class="n">core_aux_minor</span><span class="p">,</span> <span class="n">p2</span><span class="o">.</span><span class="n">core_aux_minor</span><span class="p">}:</span>
-                    <span class="n">pocket_vector1</span> <span class="o">=</span> <span class="n">p1</span><span class="o">.</span><span class="n">lining_atoms_centroid</span> <span class="o">-</span> <span class="n">p1</span><span class="o">.</span><span class="n">centroid</span>
-                    <span class="n">pocket_vector2</span> <span class="o">=</span> <span class="n">p2</span><span class="o">.</span><span class="n">lining_atoms_centroid</span> <span class="o">-</span> <span class="n">p2</span><span class="o">.</span><span class="n">centroid</span>
-                    <span class="k">if</span> <span class="n">getCosAngleBetween</span><span class="p">(</span><span class="n">pocket_vector1</span><span class="p">,</span> <span class="n">pocket_vector2</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># pocket vector facing inwards</span>
-                        <span class="n">pocket_graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">)</span>
-
-            <span class="n">core_aux_communities</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">(</span><span class="n">networkx</span><span class="o">.</span><span class="n">connected_components</span><span class="p">(</span><span class="n">pocket_graph</span><span class="p">))</span> <span class="k">if</span>
-                                    <span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">([</span><span class="n">p</span><span class="o">.</span><span class="n">core_aux_minor</span> <span class="o">==</span> <span class="s1">&#39;core&#39;</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">c</span><span class="p">])]</span>
+            <span class="n">pockets</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pockets</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="p">),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">space</span><span class="p">)</span>
 
             <span class="n">communities</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">community</span> <span class="ow">in</span> <span class="n">core_aux_communities</span><span class="p">:</span>
-                <span class="n">linked_minor</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">([</span><span class="n">pocket_graph</span><span class="o">.</span><span class="n">neighbors</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">community</span><span class="p">]))</span>
-                <span class="n">communities</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">linked_minor</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">community</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="n">pockets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">space</span> <span class="o">&lt;</span> <span class="mi">100</span><span class="p">:</span>
+                <span class="n">cores</span> <span class="o">=</span> <span class="p">[</span><span class="n">pockets</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cores</span> <span class="o">=</span> <span class="p">[</span><span class="n">pocket</span> <span class="k">for</span> <span class="n">pocket</span> <span class="ow">in</span> <span class="n">pockets</span> <span class="k">if</span> <span class="n">pocket</span><span class="o">.</span><span class="n">space</span> <span class="o">&gt;</span> <span class="n">core_cutoff</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cores</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">core_graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+                <span class="n">core_graph</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">(</span><span class="n">cores</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">p1</span><span class="p">,</span> <span class="n">p2</span> <span class="ow">in</span> <span class="n">combinations</span><span class="p">(</span><span class="n">core_graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">(),</span> <span class="mi">2</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">is_pocket_connected</span><span class="p">(</span><span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">):</span>
+                        <span class="n">core_graph</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">)</span>
+
+                <span class="k">for</span> <span class="n">com</span> <span class="ow">in</span> <span class="n">nx</span><span class="o">.</span><span class="n">connected_components</span><span class="p">(</span><span class="n">core_graph</span><span class="p">):</span>
+                    <span class="n">communities</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">AS_community</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">com</span><span class="p">)))</span>
+
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pockets</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+                <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">space</span> <span class="o">&lt;</span> <span class="n">core_cutoff</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">communities</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">connected_core</span><span class="p">(</span><span class="n">p</span><span class="p">):</span>
+                            <span class="n">c</span><span class="o">.</span><span class="n">aux</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+
             <span class="bp">self</span><span class="o">.</span><span class="n">_communities</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">communities</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_pocket_network</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">pocket_graph</span>
+
 
 <div class="viewcode-block" id="AS_Universe.communities"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe.communities">[docs]</a>    <span class="k">def</span> <span class="nf">communities</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -600,7 +655,10 @@
         <span class="c1"># list all pockets</span>
         <span class="n">pockets_all</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">snapshot_idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">snapshots_indices</span><span class="p">:</span>
-            <span class="n">pockets_all</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pockets</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">pocket</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pockets</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">pocket</span><span class="o">.</span><span class="n">space</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">:</span>
+                    <span class="n">pockets_all</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pocket</span><span class="p">)</span>
+
 
         <span class="c1"># extract lining atom into list</span>
         <span class="n">lining_atom_indices</span> <span class="o">=</span> <span class="p">[</span><span class="n">pocket</span><span class="o">.</span><span class="n">lining_atoms_idx</span> <span class="k">for</span> <span class="n">pocket</span> <span class="ow">in</span> <span class="n">pockets_all</span><span class="p">]</span>
@@ -610,7 +668,7 @@
 
         <span class="n">d_pockets</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">d_pocket_p_idx</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="nb">len</span><span class="p">))))</span>
         <span class="c1"># fill pocket list</span>
-        <span class="k">for</span> <span class="n">key</span><span class="p">,</span><span class="n">idx</span> <span class="ow">in</span> <span class="n">d_pockets</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">d_pockets</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">d_pockets</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">pockets_all</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">idx</span><span class="p">]</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_d_pockets</span> <span class="o">=</span> <span class="n">d_pockets</span>
@@ -621,7 +679,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_gen_d_pockets</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pocket_network</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_gen_communities</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_gen_community</span><span class="p">()</span>
 
         <span class="n">core_d_pockets</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">pockets</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d_pockets</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -643,6 +701,81 @@
         <span class="c1"># for i, pockets in self._d_pockets.items():</span>
         <span class="c1">#     if i not in core_d_pockets:</span>
         <span class="c1">#         print(len([True for p in pockets if p._connected]))</span>
+
+<div class="viewcode-block" id="AS_Universe.load"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">as_file</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">_pickle</span> <span class="k">as</span> <span class="nn">pickle</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">as_file</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">handle</span><span class="p">:</span>
+            <span class="n">u</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">handle</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AS_Universe.dump"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe.dump">[docs]</a>    <span class="k">def</span> <span class="nf">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">as_file</span><span class="p">):</span>
+
+        <span class="kn">import</span> <span class="nn">_pickle</span> <span class="k">as</span> <span class="nn">pickle</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">as_file</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">handle</span><span class="p">:</span>
+            <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handle</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AS_Universe.set_pdbqt"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe.set_pdbqt">[docs]</a>    <span class="k">def</span> <span class="nf">set_pdbqt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pdbqt_file</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load pdbqt file of the receptor protein.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pdbqt_file : str</span>
+<span class="sd">            path of pdbqt file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">.AS_Vina</span> <span class="k">import</span> <span class="n">pre_process_pdbqt</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pdbqt_prot_coord</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">prot_types</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hp_type</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">acc_type</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">don_type</span> <span class="o">=</span> <span class="n">pre_process_pdbqt</span><span class="p">(</span>
+            <span class="n">pdbqt_file</span><span class="p">,</span> <span class="n">truncation_length</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">n_atoms</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AS_Universe.calculate_vina_score"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe.calculate_vina_score">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_vina_score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">active_only</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the vina score for all beta atoms in the given snapshot.</span>
+<span class="sd">        This action requires:</span>
+
+<span class="sd">        1. Main tessellation was performed on the given snapshot, so beta atoms can be generated.</span>
+<span class="sd">        2. Protein atom types must be specified by assigning pdbqt file in `.load_pdbqt()`</span>
+
+<span class="sd">        After finishing this calculation, you can access the score through beta atom or pocket via method:</span>
+<span class="sd">        &#39;beta.score&#39; or &#39;pocket.score&#39;</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        load_pdbqt : load atom type from pdbqt file.</span>
+
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        snapshot_idx : int</span>
+<span class="sd">            index of snapshot you wish to calculate</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">.AS_Vina</span> <span class="k">import</span> <span class="n">get_probe_score</span>
+
+        <span class="n">betas</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">probe_coords</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">pocket</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pockets</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="p">,</span> <span class="n">active_only</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">beta</span> <span class="ow">in</span> <span class="n">pocket</span><span class="o">.</span><span class="n">betas</span><span class="p">:</span>
+                <span class="n">betas</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">beta</span><span class="p">)</span>
+                <span class="n">probe_coords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">beta</span><span class="o">.</span><span class="n">centroid</span><span class="p">)</span>
+
+        <span class="n">prb_dict</span> <span class="o">=</span> <span class="n">get_probe_score</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">traj</span><span class="o">.</span><span class="n">xyz</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span> <span class="o">*</span> <span class="mi">10</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">prot_types</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hp_type</span><span class="p">,</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">acc_type</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">don_type</span><span class="p">,</span>
+                                   <span class="n">probe_coords</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">probe_coords</span><span class="p">)</span> <span class="o">*</span> <span class="mi">10</span><span class="p">)</span>
+
+        <span class="n">prb_score</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">prb_element</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">prb_dict</span><span class="p">:</span>
+            <span class="n">prb_element</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="n">prb_score</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prb_dict</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+        <span class="n">prb_score</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">prb_score</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">beta</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">betas</span><span class="p">):</span>
+            <span class="c1"># beta.prb_element = prb_element</span>
+            <span class="n">beta</span><span class="o">.</span><span class="n">_vina_score</span> <span class="o">=</span> <span class="n">prb_score</span><span class="p">[</span><span class="n">i</span><span class="p">]</span></div>
 
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Visualization methods</span>

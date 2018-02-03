@@ -4,7 +4,7 @@ from mdtraj.geometry.sasa import _ATOMIC_RADII
 from scipy.cluster.hierarchy import linkage, fcluster
 from scipy.spatial import Voronoi, Delaunay
 from scipy.spatial.distance import cdist
-from itertools import combinations_with_replacement
+from itertools import combinations_with_replacement,combinations
 
 from alphaspace.AS_Cluster import AS_Data, AS_Snapshot
 
@@ -161,7 +161,6 @@ def combination_intersection_count(indices_list: list, total_index: int) -> np.n
         overlap_matrix[i][j] = overlap_matrix[j][i] = overlap
 
     return overlap_matrix
-
 def combination_union_count(indices_list, total_index: int) -> np.ndarray:
     """
     Given a list of indices list, such as [ [1,2,3], [4,5,6] , [2,3,4]]
@@ -541,8 +540,6 @@ def cluster_by_overlap(vectors, total_index, overlap_cutoff, ):
 
     jaccard_diff_matrix = 1 - intersection_matrix / union_matrix
 
-
-
     cluster_index = list(fcluster(Z=linkage(squareform(jaccard_diff_matrix), method='average'),
                                   t=overlap_cutoff,
                                   criterion='distance') - 1)
@@ -553,3 +550,30 @@ def cluster_by_overlap(vectors, total_index, overlap_cutoff, ):
         cluster_list[item_idx].append(cluster_i)
 
     return cluster_list
+
+
+def best_probe_type(beta_atom):
+    """
+    Parameters
+    ----------
+    beta_atom : AS_BetaAtom
+
+    Get the probe type for the best score in this beta atom.
+
+    Returns
+    -------
+    probe_type : str
+            ['C', 'Br', 'F', 'Cl', 'I', 'OA', 'SA', 'N', 'P']
+    """
+    _best_score_index = min(range(9), key=lambda i: beta_atom.vina_scores[i, 0])
+
+    return ['C', 'Br', 'F', 'Cl', 'I', 'OA', 'SA', 'N', 'P'][_best_score_index]
+
+
+def is_pocket_connected(p1, p2):
+    if set(p1.lining_atoms_idx).intersection(p2.lining_atoms_idx):
+        pocket_vector1 = p1.lining_atoms_centroid - p1.centroid
+        pocket_vector2 = p2.lining_atoms_centroid - p2.centroid
+        if getCosAngleBetween(pocket_vector1, pocket_vector2) > 0:  # pocket vector facing inwards
+            return True
+    return False

@@ -31,7 +31,6 @@ class AS_Structure:
         self.trajectory = trajectory
         self.parent = parent
         self.universe = parent
-        self.config = self.parent.config
         # self.contact_cluster = [[None for i in range(self.n_residues)] for j in range(self.n_frames)]
         self._data = None
         self._pockets_alpha_idx = {}
@@ -50,6 +49,11 @@ class AS_Structure:
         :return: int
         """
         return self.n_frames
+
+    @property
+    def config(self):
+        return self.parent.config
+
 
     def _tessellation(self, config, snapshot_idx: int) -> np.ndarray:
         """
