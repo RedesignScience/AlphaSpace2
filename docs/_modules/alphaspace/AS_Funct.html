@@ -168,7 +168,7 @@
 <span class="kn">from</span> <span class="nn">scipy.cluster.hierarchy</span> <span class="k">import</span> <span class="n">linkage</span><span class="p">,</span> <span class="n">fcluster</span>
 <span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="k">import</span> <span class="n">Voronoi</span><span class="p">,</span> <span class="n">Delaunay</span>
 <span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="k">import</span> <span class="n">cdist</span>
-<span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">combinations_with_replacement</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">combinations_with_replacement</span><span class="p">,</span><span class="n">combinations</span>
 
 <span class="kn">from</span> <span class="nn">alphaspace.AS_Cluster</span> <span class="k">import</span> <span class="n">AS_Data</span><span class="p">,</span> <span class="n">AS_Snapshot</span>
 
@@ -373,12 +373,11 @@
 
     <span class="c1"># Enqueue jobs</span>
     <span class="n">num_jobs</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span>  <span class="n">combinations_with_replacement</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">indices_list</span><span class="p">)),</span> <span class="mi">2</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">combinations_with_replacement</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">indices_list</span><span class="p">)),</span> <span class="mi">2</span><span class="p">):</span>
         <span class="n">tasks</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">Task</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">),</span>
                        <span class="n">a</span><span class="o">=</span><span class="n">item_binary_vectors</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">b</span><span class="o">=</span><span class="n">item_binary_vectors</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
                        <span class="p">))</span>
         <span class="n">num_jobs</span> <span class="o">+=</span> <span class="mi">1</span>
-
 
     <span class="c1"># Add a poison pill for each consumer</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_consumers</span><span class="p">):</span>
@@ -811,6 +810,33 @@
         <span class="n">cluster_list</span><span class="p">[</span><span class="n">item_idx</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cluster_i</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">cluster_list</span></div>
+
+
+<div class="viewcode-block" id="best_probe_type"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Funct.best_probe_type">[docs]</a><span class="k">def</span> <span class="nf">best_probe_type</span><span class="p">(</span><span class="n">beta_atom</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    beta_atom : AS_BetaAtom</span>
+
+<span class="sd">    Get the probe type for the best score in this beta atom.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    probe_type : str</span>
+<span class="sd">            [&#39;C&#39;, &#39;Br&#39;, &#39;F&#39;, &#39;Cl&#39;, &#39;I&#39;, &#39;OA&#39;, &#39;SA&#39;, &#39;N&#39;, &#39;P&#39;]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_best_score_index</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">9</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">i</span><span class="p">:</span> <span class="n">beta_atom</span><span class="o">.</span><span class="n">vina_scores</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;Br&#39;</span><span class="p">,</span> <span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="s1">&#39;Cl&#39;</span><span class="p">,</span> <span class="s1">&#39;I&#39;</span><span class="p">,</span> <span class="s1">&#39;OA&#39;</span><span class="p">,</span> <span class="s1">&#39;SA&#39;</span><span class="p">,</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">][</span><span class="n">_best_score_index</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="is_pocket_connected"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Funct.is_pocket_connected">[docs]</a><span class="k">def</span> <span class="nf">is_pocket_connected</span><span class="p">(</span><span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">p1</span><span class="o">.</span><span class="n">lining_atoms_idx</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">p2</span><span class="o">.</span><span class="n">lining_atoms_idx</span><span class="p">):</span>
+        <span class="n">pocket_vector1</span> <span class="o">=</span> <span class="n">p1</span><span class="o">.</span><span class="n">lining_atoms_centroid</span> <span class="o">-</span> <span class="n">p1</span><span class="o">.</span><span class="n">centroid</span>
+        <span class="n">pocket_vector2</span> <span class="o">=</span> <span class="n">p2</span><span class="o">.</span><span class="n">lining_atoms_centroid</span> <span class="o">-</span> <span class="n">p2</span><span class="o">.</span><span class="n">centroid</span>
+        <span class="k">if</span> <span class="n">getCosAngleBetween</span><span class="p">(</span><span class="n">pocket_vector1</span><span class="p">,</span> <span class="n">pocket_vector2</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># pocket vector facing inwards</span>
+            <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">return</span> <span class="kc">False</span></div>
 </pre></div>
 
            </div>

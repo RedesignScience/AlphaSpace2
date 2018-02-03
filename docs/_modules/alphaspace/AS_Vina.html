@@ -372,7 +372,6 @@
         <span class="n">_assign_acc</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">,</span> <span class="n">prot_types</span><span class="p">,</span> <span class="n">acc_type</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">truncation_length</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-
         <span class="k">return</span> <span class="n">prot_coord</span><span class="p">[:</span><span class="n">truncation_length</span><span class="p">],</span> <span class="n">prot_types</span><span class="p">[:</span><span class="n">truncation_length</span><span class="p">],</span> <span class="n">hp_type</span><span class="p">[:</span><span class="n">truncation_length</span><span class="p">],</span> \
                <span class="n">acc_type</span><span class="p">[:</span><span class="n">truncation_length</span><span class="p">],</span> <span class="n">don_type</span><span class="p">[:</span><span class="n">truncation_length</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
@@ -512,7 +511,7 @@
     <span class="n">prb_score</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">prb_score</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">beta</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">betas</span><span class="p">):</span>
         <span class="n">beta</span><span class="o">.</span><span class="n">prb_element</span> <span class="o">=</span> <span class="n">prb_element</span>
-        <span class="n">beta</span><span class="o">.</span><span class="n">vina_score</span> <span class="o">=</span> <span class="n">prb_score</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">beta</span><span class="o">.</span><span class="n">_vina_scores</span> <span class="o">=</span> <span class="n">prb_score</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
 
     <span class="k">for</span> <span class="n">pocket</span> <span class="ow">in</span> <span class="n">u</span><span class="o">.</span><span class="n">pockets</span><span class="p">():</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">pocket</span><span class="o">.</span><span class="n">score</span><span class="p">)</span>

@@ -39,25 +39,18 @@ You can checkout more on how to load and select molecular object in the receptor
 
 """
 
-from itertools import chain
-
 import numpy as np
-from scipy.cluster.hierarchy import linkage, fcluster
-from scipy.spatial.distance import squareform
-from mdtraj.geometry.sasa import _ATOMIC_RADII
-import mdtraj
 
 from .AS_Cluster import AS_D_Pocket
 from .AS_Config import AS_Config
-from .AS_Funct import _tessellation_mp, getCosAngleBetween, combination_intersection_count_mp, \
-    combination_intersection_count, combination_union_count
+from .AS_Funct import _tessellation_mp, getCosAngleBetween, combination_intersection_count
 from .AS_Struct import AS_Structure
 
 
 # noinspection PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit
 class AS_Universe(object):
     def __init__(self, receptor=None, binder=None, guess_receptor_binder=True, guess_by_order=True, config=None,
-                 tag="", keepH=False):
+                 label="", keepH=False):
         """
         Container for an AlphaSpace session, have child container receptor and binder
         :param receptor: object
@@ -88,7 +81,7 @@ class AS_Universe(object):
         self._d_pockets = {}
         self._pocket_network = {}
 
-        self.tag = tag
+        self.label = label
 
     def __repr__(self):
         rec_res = self.receptor.n_residues if self.receptor else 0
@@ -361,41 +354,79 @@ class AS_Universe(object):
             #     communities.append(linked_minor.union(community))
             self._communities[snapshot_idx] = communities
 
-    def _gen_communities(self):
+    # def _gen_communities(self):
+    #
+    #     import networkx
+    #     self._communities = {}
+    #     self._pocket_network = {}
+    #     for snapshot_idx in self.snapshots_indices:
+    #         pocket_graph = networkx.Graph()
+    #         pocket_graph.add_nodes_from(self.pockets(snapshot_idx, active_only=False))
+    #
+    #         contact_pair = np.array(np.where(combination_intersection_count(
+    #             [pocket.lining_atoms_idx for pocket in self.pockets(snapshot_idx, active_only=False)],
+    #             self.receptor.n_atoms) > 0)).transpose()
+    #
+    #         for pi, pj in contact_pair:
+    #             p1 = self.pockets(snapshot_idx, active_only=False)[pi]
+    #             p2 = self.pockets(snapshot_idx, active_only=False)[pj]
+    #             if "core" in {p1.core_aux_minor, p2.core_aux_minor}:
+    #                 pocket_vector1 = p1.lining_atoms_centroid - p1.centroid
+    #                 pocket_vector2 = p2.lining_atoms_centroid - p2.centroid
+    #                 if getCosAngleBetween(pocket_vector1, pocket_vector2) > 0:  # pocket vector facing inwards
+    #                     pocket_graph.add_edge(p1, p2)
+    #
+    #         core_aux_communities = [c for c in (networkx.connected_components(pocket_graph)) if
+    #                                 len(c) > 1 and any([p.core_aux_minor == 'core' for p in c])]
+    #         communities = []
+    #         for community in core_aux_communities:
+    #             linked_minor = set(chain.from_iterable([pocket_graph.neighbors(p) for p in community]))
+    #             communities.append(linked_minor.union(community))
+    #         self._communities[snapshot_idx] = communities
+    #         self._pocket_network[snapshot_idx] = pocket_graph
 
-        import networkx
+    def _gen_community(self, core_cutoff=100):
+        """
+
+        Parameters
+        ----------
+        core_cutoff
+        int : space for core cutoff
+
+        """
+        from .AS_Cluster import AS_community
+        import networkx as nx
+        from itertools import combinations
+        from .AS_Funct import is_pocket_connected
+
         self._communities = {}
-        self._pocket_network = {}
         for snapshot_idx in self.snapshots_indices:
-            pocket_graph = networkx.Graph()
-            pocket_graph.add_nodes_from(self.pockets(snapshot_idx, active_only=False))
+            pockets = sorted(self.pockets(snapshot_idx), reverse=True, key=lambda p: p.space)
 
-            contact_pair = np.array(np.where(combination_intersection_count(
-                [pocket.lining_atoms_idx for pocket in self.pockets(snapshot_idx, active_only=False)],
-                self.receptor.n_atoms) > 0)).transpose()
-
-            for pi, pj in contact_pair:
-                p1 = self.pockets(snapshot_idx, active_only=False)[pi]
-                p2 = self.pockets(snapshot_idx, active_only=False)[pj]
-                if "core" in {p1.core_aux_minor, p2.core_aux_minor}:
-                    pocket_vector1 = p1.lining_atoms_centroid - p1.centroid
-                    pocket_vector2 = p2.lining_atoms_centroid - p2.centroid
-                    if getCosAngleBetween(pocket_vector1, pocket_vector2) > 0:  # pocket vector facing inwards
-                        pocket_graph.add_edge(p1, p2)
-
-            core_aux_communities = [c for c in (networkx.connected_components(pocket_graph)) if
-                                    len(c) > 1 and any([p.core_aux_minor == 'core' for p in c])]
             communities = []
-            for community in core_aux_communities:
-                linked_minor = set(chain.from_iterable([pocket_graph.neighbors(p) for p in community]))
-                communities.append(linked_minor.union(community))
+
+            if pockets[0].space < 100:
+                cores = [pockets[0]]
+            else:
+                cores = [pocket for pocket in pockets if pocket.space > core_cutoff]
+
+            if len(cores) > 1:
+                core_graph = nx.Graph()
+                core_graph.add_nodes_from(cores)
+                for p1, p2 in combinations(core_graph.nodes(), 2):
+                    if is_pocket_connected(p1, p2):
+                        core_graph.add_edge(p1, p2)
+
+                for com in nx.connected_components(core_graph):
+                    communities.append(AS_community(list(com)))
+
+            for p in pockets[1:]:
+                if p.space < core_cutoff:
+                    for c in communities:
+                        if c.connected_core(p):
+                            c.aux.append(p)
+
             self._communities[snapshot_idx] = communities
-            self._pocket_network[snapshot_idx] = pocket_graph
-
-
-
-
-
 
 
     def communities(self, snapshot_idx=0):
@@ -484,7 +515,7 @@ class AS_Universe(object):
             self._gen_d_pockets()
 
         if not self._pocket_network:
-            self._gen_communities()
+            self._gen_community()
 
         core_d_pockets = {}
         for i, pockets in self._d_pockets.items():
