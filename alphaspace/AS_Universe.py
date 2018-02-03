@@ -260,7 +260,7 @@ class AS_Universe(object):
             structure.atom_slice(non_h_idx, inplace=True)
 
         if append and (self.binder is not None):
-            x = self.binder.trajectory + structure
+            x = self.binder.trajectory.join(structure,check_topology=True)
             self.binder.trajectory = x
         else:
             self.binder = AS_Structure(structure, structure_type=1, parent=self)
@@ -296,7 +296,7 @@ class AS_Universe(object):
             structure.atom_slice(non_h_idx, inplace=True)
 
         if append and (self.receptor is not None):
-            x = self.receptor.trajectory + structure
+            x = self.receptor.trajectory.join(structure,check_topology=True)
             self.receptor.trajectory = x
         else:
             self.receptor = AS_Structure(structure, structure_type=0, parent=self)
@@ -335,14 +335,6 @@ class AS_Universe(object):
             pocket_graph = networkx.Graph()
             pocket_graph.add_nodes_from(self.pockets(snapshot_idx, active_only=False))
 
-            # def connectPockets(p1, p2):
-            #     pocket_vector1 = p1.lining_atoms_centroid - p1.centroid
-            #     pocket_vector2 = p2.lining_atoms_centroid - p2.centroid
-            #     if getCosAngleBetween(pocket_vector1, pocket_vector2) > 0:  # pocket vector facing inwards
-            #         pocket_graph.add_edge(p1, p2)
-            #         return True
-            #     return False
-
             contact_pair = np.array(np.where(combination_intersection_count(
                 [pocket.lining_atoms_idx for pocket in self.pockets(snapshot_idx, active_only=False)],
                 self.receptor.n_atoms) > 0)).transpose()
@@ -350,25 +342,27 @@ class AS_Universe(object):
             for pi, pj in contact_pair:
                 p1 = self.pockets(snapshot_idx, active_only=False)[pi]
                 p2 = self.pockets(snapshot_idx, active_only=False)[pj]
-                if {p1.core_aux_minor, p2.core_aux_minor} in {{'core', 'aux'}, {'core'}, {'core', 'minor'},
-                                                              {'aux', 'minor'}}:
+                if {p1.core_aux_minor, p2.core_aux_minor} in {{'core', 'aux'}, {'core'}, {'core', 'minor'},  {'aux', 'minor'}}:
                     pocket_vector1 = p1.lining_atoms_centroid - p1.centroid
                     pocket_vector2 = p2.lining_atoms_centroid - p2.centroid
                     if getCosAngleBetween(pocket_vector1, pocket_vector2) > 0:  # pocket vector facing inwards
                         pocket_graph.add_edge(p1, p2)
 
-            core_aux_communities = [c for c in (networkx.connected_components(pocket_graph)) if
-                                    len(c) > 1 and any([p.core_aux_minor == 'core' for p in c])]
-
             communities = []
-            for community in core_aux_communities:
-                linked_minor = set(chain.from_iterable([pocket_graph.neighbors(p) for p in community]))
-                communities.append(linked_minor.union(community))
+            for cp in pocket_graph.nodes():
+                community = [cp].extend(pocket_graph[cp])
+                communities.append(community)
+
+
+
+
+            # for community in core_aux_communities:
+            #     linked_minor = set(chain.from_iterable([pocket_graph.neighbors(p) for p in community]))
+            #     communities.append(linked_minor.union(community))
             self._communities[snapshot_idx] = communities
 
     def _gen_communities(self):
 
-        # Todo convert to function and use multi core
         import networkx
         self._communities = {}
         self._pocket_network = {}
@@ -391,13 +385,18 @@ class AS_Universe(object):
 
             core_aux_communities = [c for c in (networkx.connected_components(pocket_graph)) if
                                     len(c) > 1 and any([p.core_aux_minor == 'core' for p in c])]
-
             communities = []
             for community in core_aux_communities:
                 linked_minor = set(chain.from_iterable([pocket_graph.neighbors(p) for p in community]))
                 communities.append(linked_minor.union(community))
             self._communities[snapshot_idx] = communities
             self._pocket_network[snapshot_idx] = pocket_graph
+
+
+
+
+
+
 
     def communities(self, snapshot_idx=0):
         """
@@ -461,7 +460,10 @@ class AS_Universe(object):
         # list all pockets
         pockets_all = []
         for snapshot_idx in self.snapshots_indices:
-            pockets_all.extend(self.pockets(snapshot_idx))
+            for pocket in self.pockets(snapshot_idx):
+                if pocket.space > 100:
+                    pockets_all.append(pocket)
+
 
         # extract lining atom into list
         lining_atom_indices = [pocket.lining_atoms_idx for pocket in pockets_all]
@@ -578,7 +580,7 @@ class AS_Universe(object):
 
         for i, beta in enumerate(betas):
             # beta.prb_element = prb_element
-            beta._vina_scores = prb_score[i]
+            beta._vina_score = prb_score[i]
 
     """
     Visualization methods

@@ -208,7 +208,6 @@ def pre_process_pdbqt(pdbqt_file, truncation_length=0):
         _assign_acc(prot_coord, prot_types, acc_type)
 
     if truncation_length != 0:
-
         return prot_coord[:truncation_length], prot_types[:truncation_length], hp_type[:truncation_length], \
                acc_type[:truncation_length], don_type[:truncation_length]
     else:
