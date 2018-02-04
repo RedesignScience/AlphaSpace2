@@ -10,6 +10,7 @@ from alphaspace.AS_Cluster import AS_Data, AS_Snapshot
 
 import multiprocessing as mp
 from numba import jit
+from numba import jit
 
 
 class Consumer(mp.Process):
@@ -37,7 +38,6 @@ class Consumer(mp.Process):
 
 
 class Task(object):
-
     def __init__(self, *args, info=None, **kwargs):
         self.kwargs = kwargs
         self.function = args[0]
@@ -49,7 +49,7 @@ class Task(object):
         else:
             return self.function(**self.kwargs), self.info
 
-
+@jit
 def getTetrahedronVolume(coord_list: list):
     """
     Calculate the volume of a tetrahedron described by four 3-d points.
@@ -61,7 +61,7 @@ def getTetrahedronVolume(coord_list: list):
 
     return volume
 
-
+@jit
 def getContactMatrix(coord_list_1, coord_list_2, threshold):
     """
     For two sets of points A and B, generate the contact matrix M,
@@ -75,7 +75,7 @@ def getContactMatrix(coord_list_1, coord_list_2, threshold):
     distance_matrix = cdist(coord_list_1, coord_list_2)
     return (distance_matrix < threshold).astype(int)
 
-
+@jit
 def getIfContact(checked_coord_list, ref_coord_list, threshold):
     """
     Check which one in the coordinate list is in contact with the second coordinate
@@ -86,7 +86,7 @@ def getIfContact(checked_coord_list, ref_coord_list, threshold):
     """
     return np.where(getContactMatrix(checked_coord_list, ref_coord_list, threshold))
 
-
+@jit
 def getGridVolume(coord_list, threshold=1.6, resolution=0.05):
     """
     Calculate the volume of a point set using grid point approximation
@@ -104,7 +104,7 @@ def getGridVolume(coord_list, threshold=1.6, resolution=0.05):
     grid_count = len(getIfContact(grid_coords, coord_list, threshold=threshold)[0])
     return grid_count * (resolution ** 3)
 
-
+@jit
 def getCosAngleBetween(v1, v2):
     """
     Calculate the Cos of the angle be vector v1 and v2
@@ -123,7 +123,7 @@ def getCosAngleBetween(v1, v2):
     v2_u = unit_vector(v2)
     return np.clip(np.dot(v1_u, v2_u), -1.0, 1.0)
 
-
+@jit
 def combination_intersection_count(indices_list: list, total_index: int) -> np.ndarray:
     """
 
@@ -161,6 +161,8 @@ def combination_intersection_count(indices_list: list, total_index: int) -> np.n
         overlap_matrix[i][j] = overlap_matrix[j][i] = overlap
 
     return overlap_matrix
+
+@jit
 def combination_union_count(indices_list, total_index: int) -> np.ndarray:
     """
     Given a list of indices list, such as [ [1,2,3], [4,5,6] , [2,3,4]]
@@ -220,11 +222,11 @@ def combination_union_count_jit(indices_list: list, total_index: int):
     return intersection_matrix
 
 
-
+@jit
 def count_intersect(a, b):
     return np.count_nonzero(a + b)
 
-
+@jit
 def getSASA(protein_snapshot, cover_atom_coords=None):
     """
     Calculate the absolute solvent accessible surface area.
@@ -258,7 +260,7 @@ def getSASA(protein_snapshot, cover_atom_coords=None):
     out = out[:, :protein_snapshot.xyz.shape[1]]
     return out[0]
 
-
+@jit
 def screenContact(data, binder_xyz, threshold):
     """
     Mark the contact in AS_Data as true for each frame.
@@ -273,8 +275,6 @@ def screenContact(data, binder_xyz, threshold):
     contact_matrix = getContactMatrix(alpha_xyz, binder_xyz[data.snapshot_idx()], threshold)
     data[:, 12] = contact_matrix.any(axis=1).astype(int)
 
-
-# noinspection PyUnresolvedReferences
 def _tessellation(**kwargs):
     """
     This is the main AlphaSpace function, it's self contained so you can run it in
@@ -324,43 +324,12 @@ def _tessellation(**kwargs):
     _total_space = np.array(
         [getTetrahedronVolume(i) for i in filtered_lining_xyz]) * 1000  # here the 1000 is to convert nm^3 to A^3
 
-    """if calculate polar nonpolar space"""
-    if config.use_asa:
-        alpha_radii = [0.17 for _ in range(len(alpha_pocket_index))]
-        _xyz = np.array(np.expand_dims(np.concatenate((protein_xyz, filtered_alpha_xyz), axis=0), axis=0),
-                        dtype=np.float32)
-        dim1 = _xyz.shape[1]
-        atom_mapping = np.arange(dim1, dtype=np.int32)
-        covered = np.zeros((1, dim1), dtype=np.float32)
-        radii = np.array(atom_radii + alpha_radii, np.float32) + config.probe_radius
-        _geometry._sasa(_xyz, radii, int(config.n_sphere_points), atom_mapping, covered)
-        covered = covered[:, :protein_xyz.shape[0]]
-
-        _xyz = np.array(np.expand_dims(protein_xyz, axis=0),
-                        dtype=np.float32)
-        dim1 = _xyz.shape[1]
-        atom_mapping = np.arange(dim1, dtype=np.int32)
-        total = np.zeros((1, dim1), dtype=np.float32)
-        radii = np.array(atom_radii, np.float32) + config.probe_radius
-        _geometry._sasa(_xyz, radii, int(config.n_sphere_points), atom_mapping, total)
-
-        atom_sasa = (total - covered)[0] * 100  # nm^2 to A^2 convertion
-
-        pocket_sasa = np.take(atom_sasa, alpha_lining)
-
-        polar_ratio = np.average(np.take(is_polar.astype(float), alpha_lining), axis=1, weights=pocket_sasa)
-
-        _polar_space = _total_space * polar_ratio
-
-        _nonpolar_space = _total_space - _polar_space
-
-    else:
-        _nonpolar_space = _polar_space = _total_space / 2
+    _nonpolar_space = _polar_space = _total_space / 2
 
     if binder_xyz is not None:
 
         """
-        Calculate the contact matrix, and link each alpha with closest atom.
+        Calculate the contact matrix, and link each alpha with closest atom
         """
         dist_matrix = cdist(filtered_alpha_xyz, binder_xyz)
 
@@ -457,16 +426,6 @@ def _tessellation_mp(universe, cpu=None):
 
     universe.receptor._data = AS_Data(data_list, universe)
 
-
-#
-# def combine_data(data_list):
-#     assert type(data_list[0]) == np.ndarray
-#     data_list.sort(key=lambda d: d[0, 1])
-#     data = np.concatenate(data_list)
-#     data[:, 0] = np.arange(0, len(data), dtype=int)
-#     return data
-
-
 def extractResidue(traj, residue_numbers=None, residue_names=None, clip=True):
     """
     This function is used to extract a residue from a trajectory, given a residue number or the residue name.
@@ -505,8 +464,8 @@ def extractResidue(traj, residue_numbers=None, residue_names=None, clip=True):
         traj.atom_slice(kept_atom_idx, inplace=True)
     return extracted_traj
 
-
-def cluster_by_overlap(vectors, total_index, overlap_cutoff, ):
+@jit
+def cluster_by_overlap(vectors, total_index, overlap_cutoff):
     """
     Cluster a list of binary vectors based on lining atom overlap
 
@@ -551,7 +510,6 @@ def cluster_by_overlap(vectors, total_index, overlap_cutoff, ):
 
     return cluster_list
 
-
 def best_probe_type(beta_atom):
     """
     Parameters
@@ -569,7 +527,7 @@ def best_probe_type(beta_atom):
 
     return ['C', 'Br', 'F', 'Cl', 'I', 'OA', 'SA', 'N', 'P'][_best_score_index]
 
-
+@jit(nopython = True)
 def is_pocket_connected(p1, p2):
     if set(p1.lining_atoms_idx).intersection(p2.lining_atoms_idx):
         pocket_vector1 = p1.lining_atoms_centroid - p1.centroid

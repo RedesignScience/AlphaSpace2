@@ -213,6 +213,28 @@ def pre_process_pdbqt(pdbqt_file, truncation_length=0):
     else:
         return prot_coord, prot_types, hp_type, acc_type, don_type
 
+def _NP_interp(r):
+    """
+    """
+    if r < 0.5:
+        x = 1.0
+    elif r > 1.5:
+        x = 0.0
+    else:
+        x = 1.5 - r
+    #        x=np.interp(r, [0.i5,1.5], [1,0])
+    return x
+
+
+def _P_interp(r):  ##step for polar
+    if r < -0.7:
+        x = 1.0
+    elif r >= 0:
+        x = 0.0
+    else:
+        x = -r / 0.7
+    return x
+
 
 def get_probe_score(prot_coord, prot_types, hp_type, don_type, acc_type, probe_coords):
     """
@@ -260,29 +282,12 @@ def get_probe_score(prot_coord, prot_types, hp_type, don_type, acc_type, probe_c
 
     """
 
-    def _NP_interp(r):
-        """
-        """
-        if r < 0.5:
-            x = 1.0
-        elif r > 1.5:
-            x = 0.0
-        else:
-            x = 1.5 - r
-        #        x=np.interp(r, [0.i5,1.5], [1,0])
-        return x
-
-    def _P_interp(r):  ##step for polar
-        if r < -0.7:
-            x = 1.0
-        elif r >= 0:
-            x = 0.0
-        else:
-            x = -r / 0.7
-        return x
-
     dist = spatial.distance.cdist(probe_coords, prot_coord)
-    prb_dict = {i: [] for i in PROBE_TYPE}
+
+    prb_dict = {}
+    for i in PROBE_TYPE:
+        prb_dict[i] = [[] for _ in range(len(probe_coords))]
+
 
     for px in range(len(probe_coords)):
         dist_bool = dist[px] <= 8.0
@@ -309,7 +314,7 @@ def get_probe_score(prot_coord, prot_types, hp_type, don_type, acc_type, probe_c
             elif prb in ['N', 'P']:
                 h1 = 0.0
                 h2 = np.sum([_P_interp(dd) for dd in proc_dist[Pacc_type]])
-            prb_dict[prb].append([_calc_score(g1, g2, rep, h1, h2, vina_weights_dict=ADV_PARM), g1, g2, rep, h1, h2])
+            prb_dict[prb][px]=[_calc_score(g1, g2, rep, h1, h2, vina_weights_dict=ADV_PARM), g1, g2, rep, h1, h2]
     return prb_dict
 
 

@@ -8,9 +8,9 @@ from itertools import combinations, chain
 from alphaspace.AS_Funct import combination_intersection_count, combination_union_count
 
 
-testProteins_bcl2 = ['/Users/haotian/Dropbox/pycharm_project/AlphaSpace/alphaspace/tests/bcl2/prot/{}.pdb'.format(i) for i in range(1, 1 + 10)]
+testProteins_bcl2 = ['/Users/haotian/Dropbox/pycharm_project/AlphaSpace/examples/test/bcl2/prot/{}.pdb'.format(i) for i in range(1, 1 + 10)]
 
-testLigand_bcl2 = ['/Users/haotian/Dropbox/pycharm_project/AlphaSpace/alphaspace/tests/bcl2/lig/{}.pdb'.format(i) for i in range(1, 1 + 10)]
+testLigand_bcl2 = ['/Users/haotian/Dropbox/pycharm_project/AlphaSpace/examples/test/bcl2/lig/{}.pdb'.format(i) for i in range(1, 1 + 10)]
 
 def custom_test(receptor_path, ligand_path):
     universe = AS_Universe(receptor=mdtraj.load(receptor_path), binder=mdtraj.load(ligand_path))
@@ -47,7 +47,7 @@ def bcl2_test():
     #     for beta in pocket.betas:
     #         print(beta.centroid)
 
-    universe._gen_d_pockets()
+    # universe._gen_d_pockets()
 
     # for atom in universe.binder.atoms:
     #     atom.linked_alpha = []
@@ -128,7 +128,24 @@ def generate_dtm_communities():
         if i not in core_d_pockets:
             print(len([True for p in pockets if p._connected]))
 
+def vina_score_test():
+    import alphaspace, mdtraj
+    pdbqt_file = "../mdm2_p53/mdm2_p53.pdbqt"
+    pdb_file = "../mdm2_p53/mdm2_p53.pdb"
+
+    u = alphaspace.AS_Universe(mdtraj.load(pdb_file), guess_receptor_binder=True, guess_by_order=True)
+    print(u)
+    u.set_pdbqt(pdbqt_file)
+
+    # remember to run alphaspace before the score calculation
+    u.run_alphaspace()
+    u.calculate_vina_score(snapshot_idx=0)
+
+    for pocket in u.pockets(snapshot_idx=0):
+        print("Pocket #{} Score is {}".format(pocket.index, pocket.score))
+
 
 if __name__ == '__main__':
     # generate_dtm_communities()
-    bcl2_test()
+    # bcl2_test()
+    vina_score_test()
