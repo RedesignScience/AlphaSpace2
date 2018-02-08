@@ -377,6 +377,28 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">prot_coord</span><span class="p">,</span> <span class="n">prot_types</span><span class="p">,</span> <span class="n">hp_type</span><span class="p">,</span> <span class="n">acc_type</span><span class="p">,</span> <span class="n">don_type</span></div>
 
+<span class="k">def</span> <span class="nf">_NP_interp</span><span class="p">(</span><span class="n">r</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">r</span> <span class="o">&lt;</span> <span class="mf">0.5</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="k">elif</span> <span class="n">r</span> <span class="o">&gt;</span> <span class="mf">1.5</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="mf">1.5</span> <span class="o">-</span> <span class="n">r</span>
+    <span class="c1">#        x=np.interp(r, [0.i5,1.5], [1,0])</span>
+    <span class="k">return</span> <span class="n">x</span>
+
+
+<span class="k">def</span> <span class="nf">_P_interp</span><span class="p">(</span><span class="n">r</span><span class="p">):</span>  <span class="c1">##step for polar</span>
+    <span class="k">if</span> <span class="n">r</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mf">0.7</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="k">elif</span> <span class="n">r</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="o">-</span><span class="n">r</span> <span class="o">/</span> <span class="mf">0.7</span>
+    <span class="k">return</span> <span class="n">x</span>
+
 
 <div class="viewcode-block" id="get_probe_score"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Vina.get_probe_score">[docs]</a><span class="k">def</span> <span class="nf">get_probe_score</span><span class="p">(</span><span class="n">prot_coord</span><span class="p">,</span> <span class="n">prot_types</span><span class="p">,</span> <span class="n">hp_type</span><span class="p">,</span> <span class="n">don_type</span><span class="p">,</span> <span class="n">acc_type</span><span class="p">,</span> <span class="n">probe_coords</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -424,29 +446,12 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">_NP_interp</span><span class="p">(</span><span class="n">r</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">r</span> <span class="o">&lt;</span> <span class="mf">0.5</span><span class="p">:</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="mf">1.0</span>
-        <span class="k">elif</span> <span class="n">r</span> <span class="o">&gt;</span> <span class="mf">1.5</span><span class="p">:</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="mf">0.0</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="mf">1.5</span> <span class="o">-</span> <span class="n">r</span>
-        <span class="c1">#        x=np.interp(r, [0.i5,1.5], [1,0])</span>
-        <span class="k">return</span> <span class="n">x</span>
-
-    <span class="k">def</span> <span class="nf">_P_interp</span><span class="p">(</span><span class="n">r</span><span class="p">):</span>  <span class="c1">##step for polar</span>
-        <span class="k">if</span> <span class="n">r</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mf">0.7</span><span class="p">:</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="mf">1.0</span>
-        <span class="k">elif</span> <span class="n">r</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="mf">0.0</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="o">-</span><span class="n">r</span> <span class="o">/</span> <span class="mf">0.7</span>
-        <span class="k">return</span> <span class="n">x</span>
-
     <span class="n">dist</span> <span class="o">=</span> <span class="n">spatial</span><span class="o">.</span><span class="n">distance</span><span class="o">.</span><span class="n">cdist</span><span class="p">(</span><span class="n">probe_coords</span><span class="p">,</span> <span class="n">prot_coord</span><span class="p">)</span>
-    <span class="n">prb_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">PROBE_TYPE</span><span class="p">}</span>
+
+    <span class="n">prb_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">PROBE_TYPE</span><span class="p">:</span>
+        <span class="n">prb_dict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">probe_coords</span><span class="p">))]</span>
+
 
     <span class="k">for</span> <span class="n">px</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">probe_coords</span><span class="p">)):</span>
         <span class="n">dist_bool</span> <span class="o">=</span> <span class="n">dist</span><span class="p">[</span><span class="n">px</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="mf">8.0</span>
@@ -473,7 +478,7 @@
             <span class="k">elif</span> <span class="n">prb</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">]:</span>
                 <span class="n">h1</span> <span class="o">=</span> <span class="mf">0.0</span>
                 <span class="n">h2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">_P_interp</span><span class="p">(</span><span class="n">dd</span><span class="p">)</span> <span class="k">for</span> <span class="n">dd</span> <span class="ow">in</span> <span class="n">proc_dist</span><span class="p">[</span><span class="n">Pacc_type</span><span class="p">]])</span>
-            <span class="n">prb_dict</span><span class="p">[</span><span class="n">prb</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">_calc_score</span><span class="p">(</span><span class="n">g1</span><span class="p">,</span> <span class="n">g2</span><span class="p">,</span> <span class="n">rep</span><span class="p">,</span> <span class="n">h1</span><span class="p">,</span> <span class="n">h2</span><span class="p">,</span> <span class="n">vina_weights_dict</span><span class="o">=</span><span class="n">ADV_PARM</span><span class="p">),</span> <span class="n">g1</span><span class="p">,</span> <span class="n">g2</span><span class="p">,</span> <span class="n">rep</span><span class="p">,</span> <span class="n">h1</span><span class="p">,</span> <span class="n">h2</span><span class="p">])</span>
+            <span class="n">prb_dict</span><span class="p">[</span><span class="n">prb</span><span class="p">][</span><span class="n">px</span><span class="p">]</span><span class="o">=</span><span class="p">[</span><span class="n">_calc_score</span><span class="p">(</span><span class="n">g1</span><span class="p">,</span> <span class="n">g2</span><span class="p">,</span> <span class="n">rep</span><span class="p">,</span> <span class="n">h1</span><span class="p">,</span> <span class="n">h2</span><span class="p">,</span> <span class="n">vina_weights_dict</span><span class="o">=</span><span class="n">ADV_PARM</span><span class="p">),</span> <span class="n">g1</span><span class="p">,</span> <span class="n">g2</span><span class="p">,</span> <span class="n">rep</span><span class="p">,</span> <span class="n">h1</span><span class="p">,</span> <span class="n">h2</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">prb_dict</span></div>
 
 
