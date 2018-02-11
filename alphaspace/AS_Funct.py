@@ -228,9 +228,7 @@ def getSASA(protein_snapshot, cover_atom_coords=None):
     Calculate the absolute solvent accessible surface area.
     First calculate the SASA of the receptor by itself, then subtract it with sasa with the AAC.
     AAC are set to resemble Carbon with a radii - 0.17
-    :param protein_snapshot: mdtraj object
-    :param cover_atom_coords: np.ndarray n*3
-    :return: np.ndarray n for each atom
+
     """
     probe_radius = 0.14
     n_sphere_points = 960
@@ -253,8 +251,7 @@ def getSASA(protein_snapshot, cover_atom_coords=None):
     atom_mapping = np.arange(xyz.shape[1], dtype=np.int32)
     out = np.zeros((1, xyz.shape[1]), dtype=np.float32)
     _geometry._sasa(xyz, radii, int(n_sphere_points), atom_mapping, out)
-    out = out[:, :protein_snapshot.xyz.shape[1]]
-    return out[0]
+    return out[:, :protein_snapshot.xyz.shape[1]][0]
 
 def screenContact(data, binder_xyz, threshold):
     """

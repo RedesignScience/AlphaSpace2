@@ -46,6 +46,8 @@ from .AS_Config import AS_Config
 from .AS_Funct import _tessellation_mp, getCosAngleBetween,combination_intersection_count, combination_union_count
 from .AS_Struct import AS_Structure
 
+import nglview as nv
+
 
 # noinspection PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit
 class AS_Universe(object):
@@ -617,54 +619,59 @@ class AS_Universe(object):
     Visualization methods
     """
 
-    def view_snapshot(self, snapshot_idx: int = 0) -> object:
-        self.view_receptor(snapshot_idx)
-        self.view_binder(snapshot_idx)
-        self.view_alphas(snapshot_idx, active_only=True)
-        self.view_pocket_centers(snapshot_idx)
-        self.view_pocket_surface(snapshot_idx)
+
+
+    def view(self, snapshot_idx: int = 0, show_binder = True, active_only = True) -> object:
+
+        self._view = nv.show_mdtraj(self.receptor.traj)
+
+        self._view.clear_representations()
+        self._view.add_trajectory(self.receptor.trajectory[snapshot_idx], gui=True)
+        self._view.add_surface(selection='protein', opacity=0.8, color='white')
+
+        if self.binder and show_binder:
+            self._view.add_trajectory(self.binder.traj)
+
+        self._view.frame = snapshot_idx
+
         return self._view
 
-    def view_binder(self, snapshot_idx=0):
-        assert self._view
-        self.binder_view = self._view.add_trajectory(self.binder.trajectory[snapshot_idx])
+
+
+
+
 
     def get_view(self):
         return self._view
 
-    def view_receptor(self, snapshot_idx=0):
-        try:
-            import nglview as nv
-        except:
-            raise Exception('nglview is needed for jupyter notebook visualization')
-        self._view = nv.show_mdtraj(self.receptor.trajectory[snapshot_idx], gui=True)
-        self.receptor_view = self._view.component_0
-        self.receptor_view.clear_representations()
-        self.receptor_view.add_surface(selection='protein', opacity=0.8, color='white')
-
-    # def show_pocket(self, snapshot_idx=0):
-    #     self.pocket_view = self._view.add_trajectory(self.receptor.cluster(snapshot_idx).traj)
-    #     self.pocket_view.clear_representations()
-    #     self.pocket_view.add_representation(repr_type='ball+stick', selection='all', color='residueindex')
-
     def view_alphas(self, snapshot_idx=0, active_only=True):
-        for pocket in self.pockets(snapshot_idx):
+        for pocket in self.pockets(snapshot_idx,active_only):
+            color = self.config.color(idx=pocket._idx)
+            for alpha in pocket.alphas:
+                self._view.shape.add_buffer("sphere", position=list(alpha.centroid * 10), color=color, radius=[0.5])
+
+    def view_betas(self, snapshot_idx=0, active_only=True):
+        for pocket in self.pockets(snapshot_idx,active_only=active_only):
             color = self.config.color(idx=pocket._idx)
             if (not active_only) or (active_only and pocket.is_active):
-                for alpha in pocket.alphas:
-                    self._view.shape.add_buffer("sphere", position=list(alpha.xyz * 10), color=color, radius=[0.5])
+                for beta in pocket.betas:
+                    self._view.shape.add_buffer("sphere", position=list(beta.centroid * 10), color=color, radius=[1.0])
+
+
+
+
 
     def view_pocket_centers(self, snapshot_idx=0, active_only=True):
         for pocket in self.pockets(snapshot_idx):
             color = self.config.color(idx=pocket._idx)
             if (not active_only) or (active_only and pocket.is_active):
-                self._view.shape.add_buffer("sphere", position=list(pocket.centoid * 10), color=color, radius=[0.5])
-                self._view.shape.add('text', list(pocket.centoid * 10), [0, 0, 0], 2.5, str(int(pocket._idx)))
+                self._view.shape.add_buffer("sphere", position=list(pocket.centroid * 10), color=color, radius=[0.5])
 
-    def view_pocket_surface(self, snapshot_idx=0):
-        for pocket in self.pockets(snapshot_idx):
-            self._view.add_surface(selection=list(pocket.lining_atoms_idx), opacity=1.0, color=pocket.color,
-                                   surfaceType='sas')
+    def clear_view(self):
+        self._view.clear_representations()
+
+
+
 
 
 if __name__ == '__main__':

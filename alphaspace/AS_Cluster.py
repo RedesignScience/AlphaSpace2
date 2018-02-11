@@ -318,6 +318,10 @@ class AS_AlphaAtom:
         return self._data.xyz(self._idx)
 
     @property
+    def centroid(self):
+        return self.xyz
+
+    @property
     def polar_space(self):
         """
 
@@ -600,7 +604,7 @@ class AS_Pocket:
 
         """
         for i in self.alpha_idx:
-            yield AS_AlphaAtom(i, self.parent_structure, self)
+            yield AS_AlphaAtom(i,snapshot_idx=self.snapshot_idx,parent_structure=self.parent_structure,parent_pocket=self)
 
     @property
     def alpha_idx(self):
