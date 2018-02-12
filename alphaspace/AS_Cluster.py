@@ -229,6 +229,8 @@ class AS_AlphaAtom:
     This object only contains reference of alpha atom id, and all info is stored in the array you can access by methods.
     """
 
+    _ngl_radius = 0.5
+
     def __init__(self, idx, snapshot_idx, parent_structure, parent_pocket=None):
         """
 
@@ -243,6 +245,8 @@ class AS_AlphaAtom:
         self._snapshot_idx = snapshot_idx
         self.parent_structure = parent_structure
         self.parent_pocket = parent_pocket
+
+        self._ngl_component_idx = None
 
     def __repr__(self):
         return "AlphaAtom #{} in Snapshot {}".format(self._idx, self.snapshot_idx)
@@ -452,7 +456,10 @@ class AS_Pocket:
     The pocket object is a mask container linked to AS_Data,
     you can use the build in methods to access the data such as contact, occupancy, space or geometric info.
 
+
     """
+
+    _ngl_radius = 2.0
 
     def __init__(self, alpha_idx, snapshot_idx, pocket_idx, parent_structure):
         self._idx = pocket_idx
@@ -465,6 +472,9 @@ class AS_Pocket:
         self._connected = False
         self._is_core_d = False
         self._betas = None
+
+        self._ngl_component_idx = None
+
 
     @property
     def snapshot_idx(self):
@@ -875,6 +885,10 @@ class AS_BetaAtom:
 
     It belongs to the AS_Pocket object.
     """
+
+    _ngl_radius = 1.0
+
+
     def __init__(self, alpha_idx_in_pocket, pocket: AS_Pocket):
         """
         AS_BetaAtom are automatically generated from 'AS_Pocket.betas' iterator.
@@ -890,6 +904,8 @@ class AS_BetaAtom:
 
         self.prb_element = []
         self._vina_score = None
+
+        self._ngl_component_idx = None
 
     def __repr__(self):
         return "Beta atom with {} space".format(self.space)
@@ -1032,6 +1048,8 @@ class AS_D_Pocket:
         self.index = -1  # index of d-pocket in all d-pocket
         self._active = True
         self._data = self.structure._data
+
+        self._ngl_component_idx = None
 
     @property
     def is_active(self):

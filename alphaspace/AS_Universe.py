@@ -85,6 +85,8 @@ class AS_Universe(object):
 
         self.label = label
 
+        self._ngl_added_component = []
+
     def __repr__(self):
         rec_res = self.receptor.n_residues if self.receptor else 0
         rec_atm = self.receptor.n_atoms if self.receptor else 0
@@ -621,7 +623,7 @@ class AS_Universe(object):
 
 
 
-    def view(self, snapshot_idx: int = 0, show_binder = True, active_only = True) -> object:
+    def view(self, snapshot_idx: int = 0, show_binder = True) -> object:
 
         self._view = nv.show_mdtraj(self.receptor.traj)
 
@@ -644,28 +646,50 @@ class AS_Universe(object):
     def get_view(self):
         return self._view
 
+    def _show_sphere(self, item, component_idx, color, opacity = 1.0):
+        self._view.shape.add_buffer("sphere", position=list(item.centroid * 10),color = color, radius= [item._ngl_radius])
+        item._ngl_component_idx = component_idx
+        self._view._remote_call('updateRepresentationForComponent', target='Widget', args=[0, component_idx], kwargs={'opacity': opacity})
+        return item._ngl_component_idx
+
+    def _show_cylinder(self,position1,position2,component_idx, color, radius, opacity = 1.0):
+        self._view.shape.add_buffer("cylinder", position1=position1, position2=position2, color=color, radius=radius)
+        self._view._remote_call('updateRepresentationForComponent', target='Widget', args=[0, component_idx],
+                                kwargs={'opacity': opacity})
+        return component_idx
+
+
+    def _hide_item(self,item):
+        self._view._remote_call('removeRepresentation', target='Widget', args=[item._ngl_component_idx, 0])
+
+
     def view_alphas(self, snapshot_idx=0, active_only=True):
+        component_idx = self._view.n_components
         for pocket in self.pockets(snapshot_idx,active_only):
             color = self.config.color(idx=pocket._idx)
             for alpha in pocket.alphas:
-                self._view.shape.add_buffer("sphere", position=list(alpha.centroid * 10), color=color, radius=[0.5])
+                self._show_sphere(alpha, component_idx = component_idx, color=color, opacity=1.0)
+                self._ngl_added_component.append(component_idx)
+                component_idx += 1
+
 
     def view_betas(self, snapshot_idx=0, active_only=True):
-        for pocket in self.pockets(snapshot_idx,active_only=active_only):
+        component_idx = self._view.n_components
+        for pocket in self.pockets(snapshot_idx, active_only):
             color = self.config.color(idx=pocket._idx)
-            if (not active_only) or (active_only and pocket.is_active):
-                for beta in pocket.betas:
-                    self._view.shape.add_buffer("sphere", position=list(beta.centroid * 10), color=color, radius=[1.0])
-
-
-
-
+            for beta in pocket.betas:
+                self._show_sphere(beta, component_idx=component_idx, color=color, opacity=.5)
+                self._ngl_added_component.append(component_idx)
+                component_idx += 1
 
     def view_pocket_centers(self, snapshot_idx=0, active_only=True):
-        for pocket in self.pockets(snapshot_idx):
+
+        component_idx = self._view.n_components
+        for pocket in self.pockets(snapshot_idx, active_only):
             color = self.config.color(idx=pocket._idx)
-            if (not active_only) or (active_only and pocket.is_active):
-                self._view.shape.add_buffer("sphere", position=list(pocket.centroid * 10), color=color, radius=[0.5])
+            self._show_sphere(pocket, component_idx=component_idx, color=color, opacity=.5)
+            self._ngl_added_component.append(component_idx)
+            component_idx += 1
 
     def clear_view(self):
         self._view.clear_representations()
