@@ -393,6 +393,8 @@
 <span class="sd">    This object only contains reference of alpha atom id, and all info is stored in the array you can access by methods.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
+    <span class="n">_ngl_radius</span> <span class="o">=</span> <span class="mf">0.5</span>
+
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="p">,</span> <span class="n">parent_structure</span><span class="p">,</span> <span class="n">parent_pocket</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 
@@ -407,6 +409,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_snapshot_idx</span> <span class="o">=</span> <span class="n">snapshot_idx</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">parent_structure</span> <span class="o">=</span> <span class="n">parent_structure</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">parent_pocket</span> <span class="o">=</span> <span class="n">parent_pocket</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ngl_component_idx</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;AlphaAtom #</span><span class="si">{}</span><span class="s2"> in Snapshot </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_idx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">snapshot_idx</span><span class="p">)</span>
@@ -480,6 +484,10 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">xyz</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_idx</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">centroid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">xyz</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">polar_space</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -612,7 +620,10 @@
 <span class="sd">    The pocket object is a mask container linked to AS_Data,</span>
 <span class="sd">    you can use the build in methods to access the data such as contact, occupancy, space or geometric info.</span>
 
+
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_ngl_radius</span> <span class="o">=</span> <span class="mf">2.0</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_idx</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="p">,</span> <span class="n">pocket_idx</span><span class="p">,</span> <span class="n">parent_structure</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_idx</span> <span class="o">=</span> <span class="n">pocket_idx</span>
@@ -625,6 +636,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_connected</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_is_core_d</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_betas</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ngl_component_idx</span> <span class="o">=</span> <span class="kc">None</span>
+
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">snapshot_idx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -764,7 +778,7 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha_idx</span><span class="p">:</span>
-            <span class="k">yield</span> <span class="n">AS_AlphaAtom</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_structure</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="n">AS_AlphaAtom</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">snapshot_idx</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">snapshot_idx</span><span class="p">,</span><span class="n">parent_structure</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">parent_structure</span><span class="p">,</span><span class="n">parent_pocket</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">alpha_idx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1035,6 +1049,10 @@
 
 <span class="sd">    It belongs to the AS_Pocket object.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_ngl_radius</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_idx_in_pocket</span><span class="p">,</span> <span class="n">pocket</span><span class="p">:</span> <span class="n">AS_Pocket</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        AS_BetaAtom are automatically generated from &#39;AS_Pocket.betas&#39; iterator.</span>
@@ -1050,6 +1068,8 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">prb_element</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_vina_score</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ngl_component_idx</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;Beta atom with </span><span class="si">{}</span><span class="s2"> space&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">space</span><span class="p">)</span>
@@ -1192,6 +1212,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>  <span class="c1"># index of d-pocket in all d-pocket</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_active</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">_data</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ngl_component_idx</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">is_active</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
