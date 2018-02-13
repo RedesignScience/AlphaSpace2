@@ -43,10 +43,14 @@ import numpy as np
 
 from .AS_Cluster import AS_D_Pocket
 from .AS_Config import AS_Config
-from .AS_Funct import _tessellation_mp, getCosAngleBetween,combination_intersection_count, combination_union_count
+from .AS_Funct import _tessellation_mp, getCosAngleBetween, combination_intersection_count, combination_union_count
 from .AS_Struct import AS_Structure
 
 import nglview as nv
+
+import networkx as nx
+from itertools import combinations
+from .AS_Funct import is_pocket_connected
 
 
 # noinspection PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit
@@ -78,7 +82,7 @@ class AS_Universe(object):
         self._pocket_list = {}
 
         self.others = None
-        self._view = None
+        self._ngl_view = None
 
         self._d_pockets = {}
         self._pocket_network = {}
@@ -257,7 +261,7 @@ class AS_Universe(object):
             structure.atom_slice(non_h_idx, inplace=True)
 
         if append and (self.binder is not None):
-            x = self.binder.trajectory.join(structure,check_topology=True)
+            x = self.binder.trajectory.join(structure, check_topology=True)
             self.binder.trajectory = x
         else:
             self.binder = AS_Structure(structure, structure_type=1, parent=self)
@@ -266,15 +270,12 @@ class AS_Universe(object):
         from mdtraj.core import element
 
         if self.receptor:
-
             non_h_idx = [a.index for a in self.receptor.topology.atoms if a.element != element.hydrogen]
             self.receptor.traj.atom_slice(non_h_idx, inplace=True)
 
         if self.binder:
-
             non_h_idx = [a.index for a in self.binder.topology.atoms if a.element != element.hydrogen]
             self.binder.traj.atom_slice(non_h_idx, inplace=True)
-
 
     def set_receptor(self, structure, append=False, keepH=False):
         """
@@ -293,7 +294,7 @@ class AS_Universe(object):
             structure.atom_slice(non_h_idx, inplace=True)
 
         if append and (self.receptor is not None):
-            x = self.receptor.trajectory.join(structure,check_topology=True)
+            x = self.receptor.trajectory.join(structure, check_topology=True)
             self.receptor.trajectory = x
         else:
             self.receptor = AS_Structure(structure, structure_type=0, parent=self)
@@ -339,7 +340,8 @@ class AS_Universe(object):
             for pi, pj in contact_pair:
                 p1 = self.pockets(snapshot_idx, active_only=False)[pi]
                 p2 = self.pockets(snapshot_idx, active_only=False)[pj]
-                if {p1.core_aux_minor, p2.core_aux_minor} in {{'core', 'aux'}, {'core'}, {'core', 'minor'},  {'aux', 'minor'}}:
+                if {p1.core_aux_minor, p2.core_aux_minor} in {{'core', 'aux'}, {'core'}, {'core', 'minor'},
+                                                              {'aux', 'minor'}}:
                     pocket_vector1 = p1.lining_atoms_centroid - p1.centroid
                     pocket_vector2 = p2.lining_atoms_centroid - p2.centroid
                     if getCosAngleBetween(pocket_vector1, pocket_vector2) > 0:  # pocket vector facing inwards
@@ -349,9 +351,6 @@ class AS_Universe(object):
             for cp in pocket_graph.nodes():
                 community = [cp].extend(pocket_graph[cp])
                 communities.append(community)
-
-
-
 
             # for community in core_aux_communities:
             #     linked_minor = set(chain.from_iterable([pocket_graph.neighbors(p) for p in community]))
@@ -389,6 +388,28 @@ class AS_Universe(object):
     #         self._communities[snapshot_idx] = communities
     #         self._pocket_network[snapshot_idx] = pocket_graph
 
+    def _connect_pockets(self, snapshot_idx=0):
+        """
+        Generate a networkx graph with nodes from pockets in the given snapshot.
+        Parameters
+        ----------
+        snapshot_idx
+        int
+
+        Returns
+        -------
+        pocket_graph
+            undirected graph
+
+        """
+        pocket_graph = nx.Graph()
+        pocket_graph.add_nodes_from(self.pockets(snapshot_idx, False))
+        for p1, p2 in combinations(pocket_graph.nodes(), 2):
+            if is_pocket_connected(p1, p2):
+                pocket_graph.add_edge(p1, p2)
+
+        return pocket_graph
+
     def _gen_community(self, core_cutoff=100):
         """
 
@@ -399,9 +420,6 @@ class AS_Universe(object):
 
         """
         from .AS_Cluster import AS_community
-        import networkx as nx
-        from itertools import combinations
-        from .AS_Funct import is_pocket_connected
 
         self._communities = {}
         for snapshot_idx in self.snapshots_indices:
@@ -431,7 +449,6 @@ class AS_Universe(object):
                             c.aux.append(p)
 
             self._communities[snapshot_idx] = communities
-
 
     def communities(self, snapshot_idx=0):
         """
@@ -498,7 +515,6 @@ class AS_Universe(object):
             for pocket in self.pockets(snapshot_idx):
                 if pocket.space > 100:
                     pockets_all.append(pocket)
-
 
         # extract lining atom into list
         lining_atom_indices = [pocket.lining_atoms_idx for pocket in pockets_all]
@@ -570,7 +586,7 @@ class AS_Universe(object):
         self.pdbqt_prot_coord, self.prot_types, self.hp_type, self.acc_type, self.don_type = pre_process_pdbqt(
             pdbqt_file, truncation_length=self.receptor.n_atoms)
 
-    def calculate_vina_score(self, snapshot_idx=0,active_only=False):
+    def calculate_vina_score(self, snapshot_idx=0, active_only=False):
         """
         Calculate the vina score for all beta atoms in the given snapshot.
         This action requires:
@@ -621,81 +637,116 @@ class AS_Universe(object):
     Visualization methods
     """
 
+    def draw(self, snapshot_idx: int = 0, show_binder=True):
+        """
+        Draw and view the current snapshot in jupyter notebook.
 
+        Parameters
+        ----------
+        snapshot_idx : int
+        show_binder : bool
 
-    def view(self, snapshot_idx: int = 0, show_binder = True) -> object:
+        Returns
+        -------
+        view
+            nglview widget object
+        """
 
-        self._view = nv.show_mdtraj(self.receptor.traj)
+        self._ngl_view = nv.show_mdtraj(self.receptor.traj)
 
-        self._view.clear_representations()
-        self._view.add_trajectory(self.receptor.trajectory[snapshot_idx], gui=True)
-        self._view.add_surface(selection='protein', opacity=0.8, color='white')
+        self._ngl_view.clear_representations()
+        self._ngl_view.add_trajectory(self.receptor.trajectory[snapshot_idx], gui=True)
+        self._ngl_view.add_surface(selection='protein', opacity=0.8, color='white')
 
         if self.binder and show_binder:
-            self._view.add_trajectory(self.binder.traj)
+            self._ngl_view.add_trajectory(self.binder.traj)
 
-        self._view.frame = snapshot_idx
+        self._ngl_view.frame = snapshot_idx
 
-        return self._view
+        self._ngl_added_component = []
+        return self._ngl_view
 
+    @property
+    def view(self):
+        """
+        Get the nglview object
 
+        Returns
+        -------
 
+        """
+        if self._ngl_view:
 
+            return self._ngl_view
 
+        else:
+            raise Exception("need to generate view first with .draw method")
 
-    def get_view(self):
-        return self._view
-
-    def _show_sphere(self, item, component_idx, color, opacity = 1.0):
-        self._view.shape.add_buffer("sphere", position=list(item.centroid * 10),color = color, radius= [item._ngl_radius])
-        item._ngl_component_idx = component_idx
-        self._view._remote_call('updateRepresentationForComponent', target='Widget', args=[0, component_idx], kwargs={'opacity': opacity})
+    def _draw_sphere(self, item, color, opacity=1.0):
+        if not self._ngl_added_component:
+            self._ngl_added_component = list(range(self._ngl_view.n_components))
+        self._ngl_view.shape.add_buffer("sphere", position=list(item.centroid * 10), color=color,
+                                        radius=[item._ngl_radius])
+        item._ngl_component_idx = self._ngl_added_component[-1] + 1
+        self._ngl_added_component.append(item._ngl_component_idx)
+        self._ngl_view._remote_call('updateRepresentationForComponent', target='Widget',
+                                    args=[0, item._ngl_component_idx], kwargs={'opacity': opacity})
         return item._ngl_component_idx
 
-    def _show_cylinder(self,position1,position2,component_idx, color, radius, opacity = 1.0):
-        self._view.shape.add_buffer("cylinder", position1=position1, position2=position2, color=color, radius=radius)
-        self._view._remote_call('updateRepresentationForComponent', target='Widget', args=[0, component_idx],
-                                kwargs={'opacity': opacity})
-        return component_idx
+    def _draw_cylinder(self, position1, position2, color, radius, opacity=1.0):
 
+        if not self._ngl_added_component:
+            self._ngl_added_component = list(range(self._ngl_view.n_components))
 
-    def _hide_item(self,item):
-        self._view._remote_call('removeRepresentation', target='Widget', args=[item._ngl_component_idx, 0])
+        _ngl_component_idx = self._ngl_added_component[-1] + 1
+        self._ngl_added_component.append(_ngl_component_idx)
 
+        self._ngl_view.shape.add_buffer("cylinder", position1=position1, position2=position2, color=color,
+                                        radius=radius)
+        self._ngl_view._remote_call('updateRepresentationForComponent', target='Widget', args=[0, _ngl_component_idx],
+                                    kwargs={'opacity': opacity})
+        return _ngl_component_idx
 
-    def view_alphas(self, snapshot_idx=0, active_only=True):
-        component_idx = self._view.n_components
-        for pocket in self.pockets(snapshot_idx,active_only):
+    def draw_pocket_graph(self, snapshot_idx=0, active_only=True):
+        pocket_graph = self._connect_pockets(snapshot_idx)
+        for p1, p2 in pocket_graph.edges_iter():
+            if active_only and (p1.is_active > 0 and p2.is_active > 0):
+                self._draw_cylinder(position1=list(p1.centroid * 10), position2=list(p2.centroid * 10),
+                                    color=[0, 0, 0], radius=[0.1])
+            else:
+                self._draw_cylinder(position1=list(p1.centroid * 10), position2=list(p2.centroid * 10),
+                                    color=[0, 0, 0], radius=[0.1])
+
+    def _hide_item(self, item):
+        if item is int:
+            self._ngl_view._remote_call('removeRepresentation', target='Widget', args=[item._ngl_component_idx, 0])
+        else:
+            try:
+                self._ngl_view._remote_call('removeRepresentation', target='Widget', args=[item, 0])
+            except:
+                raise TypeError('Item is of the wrong type')
+
+    def view_alphas(self, snapshot_idx=0, active_only=True, opacity=1):
+        for pocket in self.pockets(snapshot_idx, active_only):
             color = self.config.color(idx=pocket._idx)
             for alpha in pocket.alphas:
-                self._show_sphere(alpha, component_idx = component_idx, color=color, opacity=1.0)
-                self._ngl_added_component.append(component_idx)
-                component_idx += 1
+                self._draw_sphere(alpha, color=color, opacity=opacity)
 
+    def view_betas(self, snapshot_idx=0, active_only=True, opacity=1):
 
-    def view_betas(self, snapshot_idx=0, active_only=True):
-        component_idx = self._view.n_components
         for pocket in self.pockets(snapshot_idx, active_only):
             color = self.config.color(idx=pocket._idx)
             for beta in pocket.betas:
-                self._show_sphere(beta, component_idx=component_idx, color=color, opacity=.5)
-                self._ngl_added_component.append(component_idx)
-                component_idx += 1
+                self._draw_sphere(beta, color=color, opacity=opacity)
 
-    def view_pocket_centers(self, snapshot_idx=0, active_only=True):
+    def view_pocket_centers(self, snapshot_idx=0, active_only=True, opacity=1):
 
-        component_idx = self._view.n_components
         for pocket in self.pockets(snapshot_idx, active_only):
             color = self.config.color(idx=pocket._idx)
-            self._show_sphere(pocket, component_idx=component_idx, color=color, opacity=.5)
-            self._ngl_added_component.append(component_idx)
-            component_idx += 1
+            self._draw_sphere(pocket, color=color, opacity=opacity)
 
     def clear_view(self):
-        self._view.clear_representations()
-
-
-
+        self._ngl_view.clear_representations()
 
 
 if __name__ == '__main__':
