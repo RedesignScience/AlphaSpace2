@@ -372,6 +372,28 @@ class AS_Universe(object):
 
         return pocket_graph
 
+    def _connect_pockets(self, snapshot_idx=0):
+        """
+        Generate a networkx graph with nodes from pockets in the given snapshot.
+        Parameters
+        ----------
+        snapshot_idx
+        int
+
+        Returns
+        -------
+        pocket_graph
+            undirected graph
+
+        """
+        pocket_graph = nx.Graph()
+        pocket_graph.add_nodes_from(self.pockets(snapshot_idx, False))
+        for p1, p2 in combinations(pocket_graph.nodes(), 2):
+            if is_pocket_connected(p1, p2):
+                pocket_graph.add_edge(p1, p2)
+
+        return pocket_graph
+
     def _gen_community(self, core_cutoff=100):
         """
 
@@ -673,6 +695,7 @@ class AS_Universe(object):
         self._ngl_view._remote_call('updateRepresentationForComponent', target='Widget', args=[0, _ngl_component_idx],
                                     kwargs={'opacity': opacity})
         return _ngl_component_idx
+
 
     def draw_pocket_graph(self, snapshot_idx=0, active_only=True):
         pocket_graph = self._connect_pockets(snapshot_idx)
