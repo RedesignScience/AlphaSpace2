@@ -140,6 +140,9 @@ class AS_Data():
         self.parent_structure = parent_structure
         self.data_dict = data_dict
 
+    def update(self, data_dict):
+        self.data_dict.update(data_dict)
+
     def __getitem__(self, i):
         try:
             return self.data_dict[i]
@@ -677,6 +680,14 @@ class AS_Pocket:
         if self._lining_atoms_idx is None:
             self._lining_atoms_idx = np.unique(self._data.lining_atoms_idx(self.alpha_idx))
         return self._lining_atoms_idx
+
+    @property
+    def lining_atoms_vector(self):
+
+        vector = np.zeros(self.parent_structure.n_atoms)
+
+        np.put(vector, self.lining_atoms_idx, 1)
+        return vector
 
     @property
     def lining_atoms(self):

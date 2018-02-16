@@ -304,6 +304,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">parent_structure</span> <span class="o">=</span> <span class="n">parent_structure</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data_dict</span> <span class="o">=</span> <span class="n">data_dict</span>
 
+<div class="viewcode-block" id="AS_Data.update"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Data.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data_dict</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">data_dict</span><span class="p">)</span></div>
+
     <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_dict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
@@ -841,6 +844,14 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lining_atoms_idx</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_lining_atoms_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">lining_atoms_idx</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha_idx</span><span class="p">))</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lining_atoms_idx</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">lining_atoms_vector</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="n">vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent_structure</span><span class="o">.</span><span class="n">n_atoms</span><span class="p">)</span>
+
+        <span class="n">np</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">vector</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">lining_atoms_idx</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">vector</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">lining_atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

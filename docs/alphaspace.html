@@ -283,16 +283,23 @@ snapshot_idx</p>
 <dl class="method">
 <dt id="alphaspace.AS_Universe.AS_Universe.d_pocket">
 <code class="descname">d_pocket</code><span class="sig-paren">(</span><em>i</em><span class="sig-paren">)</span> &#x2192; alphaspace.AS_Cluster.AS_D_Pocket<a class="reference internal" href="_modules/alphaspace/AS_Universe.html#AS_Universe.d_pocket"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Universe.AS_Universe.d_pocket" title="Permalink to this definition">¶</a></dt>
-<dd><p>todo
-:param i:
-:return:</p>
+    <dd>
+        <table class="docutils field-list" frame="void" rules="none">
+            <col class="field-name"/>
+            <col class="field-body"/>
+            <tbody valign="top">
+            <tr class="field-odd field">
+                <th class="field-name">Parameters:</th>
+                <td class="field-body"><strong>i</strong></td>
+            </tr>
+            </tbody>
+        </table>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="alphaspace.AS_Universe.AS_Universe.d_pockets">
 <code class="descname">d_pockets</code><a class="headerlink" href="#alphaspace.AS_Universe.AS_Universe.d_pockets" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO
-calculate the d pockets and give a iterator os AS_D_Pocket
+    <dd><p>calculate the d pockets and give a iterator os AS_D_Pocket
 :return: object, AS_D_Pocket</p>
 </dd></dl>
 
@@ -303,7 +310,11 @@ calculate the d pockets and give a iterator os AS_D_Pocket
 
 <dl class="method">
 <dt id="alphaspace.AS_Universe.AS_Universe.draw">
-<code class="descname">draw</code><span class="sig-paren">(</span><em>snapshot_idx: int = 0</em>, <em>show_binder=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Universe.html#AS_Universe.draw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Universe.AS_Universe.draw" title="Permalink to this definition">¶</a></dt>
+    <code class="descname">draw</code><span class="sig-paren">(</span><em>snapshot_idx: int = 0</em>, <em>show_binder=True</em>,
+    <em>surface_opacity=1.0</em><span class="sig-paren">)</span><a class="reference internal"
+                                                                   href="_modules/alphaspace/AS_Universe.html#AS_Universe.draw"><span
+        class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Universe.AS_Universe.draw"
+                                                    title="Permalink to this definition">¶</a></dt>
 <dd><p>Draw and view the current snapshot in jupyter notebook.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -368,8 +379,17 @@ This process automatically removes water and other solvents
 <dl class="attribute">
 <dt id="alphaspace.AS_Universe.AS_Universe.n_atoms">
 <code class="descname">n_atoms</code><a class="headerlink" href="#alphaspace.AS_Universe.AS_Universe.n_atoms" title="Permalink to this definition">¶</a></dt>
-<dd><p>return the total number of atoms in receptor and binders
-:return: int</p>
+    <dd><p>return the total number of atoms in receptor and binders</p>
+        <table class="docutils field-list" frame="void" rules="none">
+            <col class="field-name"/>
+            <col class="field-body"/>
+            <tbody valign="top">
+            <tr class="field-odd field">
+                <th class="field-name">Returns:</th>
+                <td class="field-body">int</td>
+            </tr>
+            </tbody>
+        </table>
 </dd></dl>
 
 <dl class="attribute">
@@ -406,12 +426,22 @@ This process automatically removes water and other solvents
 
 <dl class="method">
 <dt id="alphaspace.AS_Universe.AS_Universe.run_alphaspace">
-<code class="descname">run_alphaspace</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Universe.html#AS_Universe.run_alphaspace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Universe.AS_Universe.run_alphaspace" title="Permalink to this definition">¶</a></dt>
+    <code class="descname">run_alphaspace</code><span class="sig-paren">(</span><em>frame_range=None</em><span
+        class="sig-paren">)</span><a class="reference internal"
+                                     href="_modules/alphaspace/AS_Universe.html#AS_Universe.run_alphaspace"><span
+        class="viewcode-link">[source]</span></a><a class="headerlink"
+                                                    href="#alphaspace.AS_Universe.AS_Universe.run_alphaspace"
+                                                    title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="alphaspace.AS_Universe.AS_Universe.run_alphaspace_mp">
-<code class="descname">run_alphaspace_mp</code><span class="sig-paren">(</span><em>cpu=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Universe.html#AS_Universe.run_alphaspace_mp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Universe.AS_Universe.run_alphaspace_mp" title="Permalink to this definition">¶</a></dt>
+    <code class="descname">run_alphaspace_mp</code><span class="sig-paren">(</span><em>frame_range=None</em>, <em>cpu=None</em><span
+        class="sig-paren">)</span><a class="reference internal"
+                                     href="_modules/alphaspace/AS_Universe.html#AS_Universe.run_alphaspace_mp"><span
+        class="viewcode-link">[source]</span></a><a class="headerlink"
+                                                    href="#alphaspace.AS_Universe.AS_Universe.run_alphaspace_mp"
+                                                    title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -482,6 +512,38 @@ This process automatically removes water and other solvents
 <dd></dd></dl>
 
 </dd></dl>
+
+    <dl class="function">
+        <dt id="alphaspace.AS_Universe.load">
+            <code class="descclassname">alphaspace.AS_Universe.</code><code class="descname">load</code><span
+                class="sig-paren">(</span><em>traj</em>, <em>top=None</em>, <em>label=None</em><span
+                class="sig-paren">)</span><a class="reference internal"
+                                             href="_modules/alphaspace/AS_Universe.html#load"><span
+                class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Universe.load"
+                                                            title="Permalink to this definition">¶</a></dt>
+        <dd><p>Load a file into alphaspace and return the AS_Universe object</p>
+            <table class="docutils field-list" frame="void" rules="none">
+                <col class="field-name"/>
+                <col class="field-body"/>
+                <tbody valign="top">
+                <tr class="field-odd field">
+                    <th class="field-name">Parameters:</th>
+                    <td class="field-body"><p class="first"><strong>file</strong> : str</p>
+                        <blockquote>
+                            <div><p>file path</p>
+                            </div>
+                        </blockquote>
+                    </td>
+                </tr>
+                <tr class="field-even field">
+                    <th class="field-name">Returns:</th>
+                    <td class="field-body"><p class="first last"><strong>universe</strong> : AS_Universe</p>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </dd>
+    </dl>
 
 </div>
 </div>
@@ -1188,7 +1250,18 @@ scores ={‘total’, “gauss_1”,”gauss_2”, “repulsion”, “hydrophob
 :return: np.ndarray</p>
 </dd></dl>
 
-<dl class="method">
+    <dl class="method">
+        <dt id="alphaspace.AS_Cluster.AS_Data.update">
+            <code class="descname">update</code><span class="sig-paren">(</span><em>data_dict</em><span
+                class="sig-paren">)</span><a class="reference internal"
+                                             href="_modules/alphaspace/AS_Cluster.html#AS_Data.update"><span
+                class="viewcode-link">[source]</span></a><a class="headerlink"
+                                                            href="#alphaspace.AS_Cluster.AS_Data.update"
+                                                            title="Permalink to this definition">¶</a></dt>
+        <dd></dd>
+    </dl>
+
+    <dl class="method">
 <dt id="alphaspace.AS_Cluster.AS_Data.xyz">
 <code class="descname">xyz</code><span class="sig-paren">(</span><em>alpha_idx</em>, <em>snapshot_idx</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Cluster.html#AS_Data.xyz"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Cluster.AS_Data.xyz" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the coordinate of an entry
@@ -1445,7 +1518,15 @@ false requires all alphas to be active.</p>
 <code class="descname">lining_atoms_idx</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_Pocket.lining_atoms_idx" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="attribute">
+    <dl class="attribute">
+        <dt id="alphaspace.AS_Cluster.AS_Pocket.lining_atoms_vector">
+            <code class="descname">lining_atoms_vector</code><a class="headerlink"
+                                                                href="#alphaspace.AS_Cluster.AS_Pocket.lining_atoms_vector"
+                                                                title="Permalink to this definition">¶</a></dt>
+        <dd></dd>
+    </dl>
+
+    <dl class="attribute">
 <dt id="alphaspace.AS_Cluster.AS_Pocket.lining_atoms_xyz">
 <code class="descname">lining_atoms_xyz</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_Pocket.lining_atoms_xyz" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -1943,11 +2024,6 @@ The total_index is maximum of all indices in the indices list.
 </dd></dl>
 
 <dl class="function">
-<dt id="alphaspace.AS_Funct.combination_union_count_jit">
-<code class="descclassname">alphaspace.AS_Funct.</code><code class="descname">combination_union_count_jit</code><span class="sig-paren">(</span><em>indices_list: list</em>, <em>total_index: int</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Funct.html#combination_union_count_jit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Funct.combination_union_count_jit" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
 <dt id="alphaspace.AS_Funct.count_intersect">
 <code class="descclassname">alphaspace.AS_Funct.</code><code class="descname">count_intersect</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Funct.html#count_intersect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Funct.count_intersect" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -2024,6 +2100,18 @@ AAC are set to resemble Carbon with a radii - 0.17</p>
 <dt id="alphaspace.AS_Funct.is_pocket_connected">
 <code class="descclassname">alphaspace.AS_Funct.</code><code class="descname">is_pocket_connected</code><span class="sig-paren">(</span><em>p1</em>, <em>p2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Funct.html#is_pocket_connected"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Funct.is_pocket_connected" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+    <dl class="function">
+        <dt id="alphaspace.AS_Funct.prune_dpockets">
+            <code class="descclassname">alphaspace.AS_Funct.</code><code class="descname">prune_dpockets</code><span
+                class="sig-paren">(</span><em>d_pocket_dict</em>, <em>sample_ratio=1</em><span
+                class="sig-paren">)</span><a class="reference internal"
+                                             href="_modules/alphaspace/AS_Funct.html#prune_dpockets"><span
+                class="viewcode-link">[source]</span></a><a class="headerlink"
+                                                            href="#alphaspace.AS_Funct.prune_dpockets"
+                                                            title="Permalink to this definition">¶</a></dt>
+        <dd></dd>
+    </dl>
 
 <dl class="function">
 <dt id="alphaspace.AS_Funct.screenContact">

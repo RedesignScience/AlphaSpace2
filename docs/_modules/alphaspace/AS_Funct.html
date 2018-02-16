@@ -344,43 +344,12 @@
     <span class="k">for</span> <span class="n">pocket_idx</span><span class="p">,</span> <span class="n">lining_atoms_idx</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">indices_list</span><span class="p">):</span>
         <span class="n">item_binary_vectors</span><span class="p">[</span><span class="n">pocket_idx</span><span class="p">]</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">lining_atoms_idx</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
-    <span class="c1">#</span>
-    <span class="c1"># abab = np.tile(item_binary_vectors,</span>
-    <span class="c1">#                [item_binary_vectors.shape[0], 1]</span>
-    <span class="c1">#                )</span>
-    <span class="c1"># aabb = np.tile(item_binary_vectors,</span>
-    <span class="c1">#                item_binary_vectors.shape[0]</span>
-    <span class="c1">#                ).reshape(</span>
-    <span class="c1">#     (item_binary_vectors.shape[0] ** 2, item_binary_vectors.shape[1])</span>
-    <span class="c1"># )</span>
-    <span class="c1"># intersection_matrix = ((abab + aabb) &gt; 0).sum(axis=1).reshape(</span>
-    <span class="c1">#     (item_binary_vectors.shape[0], item_binary_vectors.shape[0]))</span>
-
     <span class="n">intersection_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">item_binary_vectors</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">item_binary_vectors</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
     <span class="n">intersection_matrix</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">combinations_with_replacement</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">indices_list</span><span class="p">)),</span> <span class="mi">2</span><span class="p">):</span>
         <span class="n">intersection</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">item_binary_vectors</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">item_binary_vectors</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
         <span class="n">intersection_matrix</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">intersection_matrix</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">intersection</span>
 
-    <span class="k">return</span> <span class="n">intersection_matrix</span></div>
-
- 
-<div class="viewcode-block" id="combination_union_count_jit"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Funct.combination_union_count_jit">[docs]</a><span class="k">def</span> <span class="nf">combination_union_count_jit</span><span class="p">(</span><span class="n">indices_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">total_index</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
-
-
-    <span class="n">item_binary_vectors</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">total_index</span><span class="p">)]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">indices_list</span><span class="p">))]</span>
-
-    <span class="k">for</span> <span class="n">pocket_idx</span><span class="p">,</span> <span class="n">lining_atoms_idx</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">indices_list</span><span class="p">):</span>
-        <span class="n">item_binary_vectors</span><span class="p">[</span><span class="n">pocket_idx</span><span class="p">][</span><span class="n">lining_atoms_idx</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-
-    <span class="n">intersection_matrix</span> <span class="o">=</span> <span class="p">[[</span><span class="mi">0</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">item_binary_vectors</span><span class="p">))]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">item_binary_vectors</span><span class="p">))]</span>
-
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">combinations_with_replacement</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">indices_list</span><span class="p">)),</span> <span class="mi">2</span><span class="p">):</span>
-        <span class="n">intersection</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">for</span> <span class="n">k1</span><span class="p">,</span><span class="n">k2</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">item_binary_vectors</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">item_binary_vectors</span><span class="p">[</span><span class="n">j</span><span class="p">]):</span>
-            <span class="k">if</span> <span class="n">k1</span> <span class="ow">or</span> <span class="n">k2</span><span class="p">:</span>
-                <span class="n">intersection</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="n">intersection_matrix</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">intersection_matrix</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">intersection</span>
     <span class="k">return</span> <span class="n">intersection_matrix</span></div>
 
 
@@ -532,7 +501,7 @@
     <span class="k">return</span> <span class="n">data</span>
 
 
-<span class="k">def</span> <span class="nf">_tessellation_mp</span><span class="p">(</span><span class="n">universe</span><span class="p">,</span> <span class="n">cpu</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_tessellation_mp</span><span class="p">(</span><span class="n">universe</span><span class="p">,</span> <span class="n">frame_range</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span><span class="n">cpu</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="c1"># Establish communication queues</span>
     <span class="n">tasks</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">JoinableQueue</span><span class="p">()</span>
     <span class="n">results</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
@@ -549,7 +518,10 @@
     <span class="n">atom_radii</span> <span class="o">=</span> <span class="p">[</span><span class="n">_ATOMIC_RADII</span><span class="p">[</span><span class="n">atom</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">symbol</span><span class="p">]</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">universe</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">top</span><span class="o">.</span><span class="n">atoms</span><span class="p">]</span>
     <span class="n">is_polar</span> <span class="o">=</span> <span class="n">universe</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">is_polar</span>
 
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">universe</span><span class="o">.</span><span class="n">n_frames</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">frame_range</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">frame_range</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">universe</span><span class="o">.</span><span class="n">n_frames</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">frame_range</span><span class="p">:</span>
         <span class="n">receptor_xyz</span> <span class="o">=</span> <span class="n">universe</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">traj</span><span class="o">.</span><span class="n">xyz</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">universe</span><span class="o">.</span><span class="n">binder</span><span class="p">:</span>
             <span class="n">binder_xyz</span> <span class="o">=</span> <span class="n">universe</span><span class="o">.</span><span class="n">binder</span><span class="o">.</span><span class="n">traj</span><span class="o">.</span><span class="n">xyz</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
@@ -571,16 +543,19 @@
     <span class="c1"># Wait for all of the tasks to finish</span>
     <span class="n">tasks</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
 
-    <span class="n">num_jobs</span> <span class="o">=</span> <span class="n">universe</span><span class="o">.</span><span class="n">n_frames</span>
+    <span class="n">num_jobs</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">frame_range</span><span class="p">)))</span>
     <span class="c1"># Start printing results</span>
-    <span class="n">data_list</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">data_dict</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="k">while</span> <span class="n">num_jobs</span><span class="p">:</span>
         <span class="n">ss</span> <span class="o">=</span> <span class="n">AS_Snapshot</span><span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
-        <span class="n">data_list</span><span class="p">[</span><span class="n">ss</span><span class="o">.</span><span class="n">snapshot_idx</span><span class="p">()]</span> <span class="o">=</span> <span class="n">ss</span>
+        <span class="n">data_dict</span><span class="p">[</span><span class="n">ss</span><span class="o">.</span><span class="n">snapshot_idx</span><span class="p">()]</span> <span class="o">=</span> <span class="n">ss</span>
         <span class="n">num_jobs</span> <span class="o">-=</span> <span class="mi">1</span>
 
-    <span class="n">universe</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">AS_Data</span><span class="p">(</span><span class="n">data_list</span><span class="p">,</span> <span class="n">universe</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">universe</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">universe</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">AS_Data</span><span class="p">(</span><span class="n">data_dict</span><span class="p">,</span> <span class="n">universe</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">universe</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">data_dict</span><span class="p">)</span>
 
 <div class="viewcode-block" id="extractResidue"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Funct.extractResidue">[docs]</a><span class="k">def</span> <span class="nf">extractResidue</span><span class="p">(</span><span class="n">traj</span><span class="p">,</span> <span class="n">residue_numbers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">residue_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">clip</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -640,18 +615,7 @@
     <span class="c1"># calculate jaccard_diff_matrix</span>
     <span class="n">intersection_matrix</span> <span class="o">=</span> <span class="n">combination_intersection_count</span><span class="p">(</span><span class="n">vectors</span><span class="p">,</span> <span class="n">total_index</span><span class="p">)</span>
 
-
-    <span class="kn">from</span> <span class="nn">timeit</span> <span class="k">import</span> <span class="n">default_timer</span>
-
-    <span class="n">start</span> <span class="o">=</span> <span class="n">default_timer</span><span class="p">()</span>
     <span class="n">union_matrix</span> <span class="o">=</span> <span class="n">combination_union_count</span><span class="p">(</span><span class="n">vectors</span><span class="p">,</span> <span class="n">total_index</span><span class="p">)</span>
-    <span class="n">end</span> <span class="o">=</span> <span class="n">default_timer</span><span class="p">()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">end</span><span class="o">-</span><span class="n">start</span><span class="p">)</span>
-
-    <span class="n">start</span> <span class="o">=</span> <span class="n">default_timer</span><span class="p">()</span>
-    <span class="n">union_matrix</span> <span class="o">=</span> <span class="n">combination_union_count</span><span class="p">(</span><span class="n">vectors</span><span class="p">,</span> <span class="n">total_index</span><span class="p">)</span>
-    <span class="n">end</span> <span class="o">=</span> <span class="n">default_timer</span><span class="p">()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">end</span><span class="o">-</span><span class="n">start</span><span class="p">)</span>
 
     <span class="n">jaccard_diff_matrix</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">intersection_matrix</span> <span class="o">/</span> <span class="n">union_matrix</span>
 
@@ -690,6 +654,16 @@
         <span class="k">if</span> <span class="n">getCosAngleBetween</span><span class="p">(</span><span class="n">pocket_vector1</span><span class="p">,</span> <span class="n">pocket_vector2</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># pocket vector facing inwards</span>
             <span class="k">return</span> <span class="kc">True</span>
     <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="prune_dpockets"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Funct.prune_dpockets">[docs]</a><span class="k">def</span> <span class="nf">prune_dpockets</span><span class="p">(</span><span class="n">d_pocket_dict</span><span class="p">,</span> <span class="n">sample_ratio</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="n">leader</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">d_pocket_idx</span><span class="p">,</span> <span class="n">pockets</span> <span class="ow">in</span> <span class="n">d_pocket_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">n_leaders</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pockets</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">sample_ratio</span><span class="p">)))</span>
+        <span class="n">leader</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">pockets</span><span class="p">,</span> <span class="n">n_leaders</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+        <span class="n">labels</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">d_pocket_idx</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_leaders</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">leader</span><span class="p">,</span> <span class="n">labels</span></div>
 </pre></div>
 
            </div>
