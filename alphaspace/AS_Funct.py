@@ -180,43 +180,12 @@ def combination_union_count(indices_list, total_index: int) -> np.ndarray:
     for pocket_idx, lining_atoms_idx in enumerate(indices_list):
         item_binary_vectors[pocket_idx].put(lining_atoms_idx, 1)
 
-    #
-    # abab = np.tile(item_binary_vectors,
-    #                [item_binary_vectors.shape[0], 1]
-    #                )
-    # aabb = np.tile(item_binary_vectors,
-    #                item_binary_vectors.shape[0]
-    #                ).reshape(
-    #     (item_binary_vectors.shape[0] ** 2, item_binary_vectors.shape[1])
-    # )
-    # intersection_matrix = ((abab + aabb) > 0).sum(axis=1).reshape(
-    #     (item_binary_vectors.shape[0], item_binary_vectors.shape[0]))
-
     intersection_matrix = np.empty((item_binary_vectors.shape[0], item_binary_vectors.shape[0]))
     intersection_matrix.fill(0)
     for i, j in combinations_with_replacement(range(len(indices_list)), 2):
         intersection = np.count_nonzero(item_binary_vectors[i] + item_binary_vectors[j])
         intersection_matrix[i][j] = intersection_matrix[j][i] = intersection
 
-    return intersection_matrix
-
- 
-def combination_union_count_jit(indices_list: list, total_index: int):
-
-
-    item_binary_vectors = [[0 for i in range(total_index)] for i in range(len(indices_list))]
-
-    for pocket_idx, lining_atoms_idx in enumerate(indices_list):
-        item_binary_vectors[pocket_idx][lining_atoms_idx] = 1
-
-    intersection_matrix = [[0 for i in range(len(item_binary_vectors))] for i in range(len(item_binary_vectors))]
-
-    for i, j in combinations_with_replacement(range(len(indices_list)), 2):
-        intersection = 0
-        for k1,k2 in zip(item_binary_vectors[i],item_binary_vectors[j]):
-            if k1 or k2:
-                intersection += 1
-        intersection_matrix[i][j] = intersection_matrix[j][i] = intersection
     return intersection_matrix
 
 
@@ -368,7 +337,7 @@ def _tessellation(**kwargs):
     return data
 
 
-def _tessellation_mp(universe, cpu=None):
+def _tessellation_mp(universe, frame_range=None, cpu=None):
     # Establish communication queues
     tasks = mp.JoinableQueue()
     results = mp.Queue()
@@ -385,7 +354,10 @@ def _tessellation_mp(universe, cpu=None):
     atom_radii = [_ATOMIC_RADII[atom.element.symbol] for atom in universe.receptor.top.atoms]
     is_polar = universe.receptor.is_polar
 
-    for i in range(universe.n_frames):
+    if frame_range is None:
+        frame_range = range(universe.n_frames)
+
+    for i in frame_range:
         receptor_xyz = universe.receptor.traj.xyz[i]
         if universe.binder:
             binder_xyz = universe.binder.traj.xyz[i]
@@ -407,16 +379,19 @@ def _tessellation_mp(universe, cpu=None):
     # Wait for all of the tasks to finish
     tasks.join()
 
-    num_jobs = universe.n_frames
+    num_jobs = (len(list(frame_range)))
     # Start printing results
-    data_list = {}
+    data_dict = {}
 
     while num_jobs:
         ss = AS_Snapshot(results.get())
-        data_list[ss.snapshot_idx()] = ss
+        data_dict[ss.snapshot_idx()] = ss
         num_jobs -= 1
 
-    universe.receptor._data = AS_Data(data_list, universe)
+    if universe.receptor._data is None:
+        universe.receptor._data = AS_Data(data_dict, universe)
+    else:
+        universe.receptor._data.update(data_dict)
 
 def extractResidue(traj, residue_numbers=None, residue_names=None, clip=True):
     """
@@ -476,18 +451,7 @@ def cluster_by_overlap(vectors, total_index, overlap_cutoff):
     # calculate jaccard_diff_matrix
     intersection_matrix = combination_intersection_count(vectors, total_index)
 
-
-    from timeit import default_timer
-
-    start = default_timer()
     union_matrix = combination_union_count(vectors, total_index)
-    end = default_timer()
-    print(end-start)
-
-    start = default_timer()
-    union_matrix = combination_union_count(vectors, total_index)
-    end = default_timer()
-    print(end-start)
 
     jaccard_diff_matrix = 1 - intersection_matrix / union_matrix
 
@@ -526,3 +490,25 @@ def is_pocket_connected(p1, p2):
         if getCosAngleBetween(pocket_vector1, pocket_vector2) > 0:  # pocket vector facing inwards
             return True
     return False
+
+
+def _prune_dpockets(d_pocket_dict, sample_ratio=1):
+    """
+
+    Parameters
+    ----------
+    d_pocket_dict : dict
+    sample_ratio
+
+    Returns
+    -------
+
+    """
+
+    leader = []
+    labels = []
+    for d_pocket_idx, pockets in d_pocket_dict.items():
+        n_leaders = int(np.ceil(len(pockets) / float(sample_ratio)))
+        leader.extend(np.random.choice(pockets, n_leaders, replace=False))
+        labels.extend([d_pocket_idx] * n_leaders)
+    return leader, labels

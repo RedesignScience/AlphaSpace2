@@ -43,13 +43,13 @@ import numpy as np
 
 from .AS_Cluster import AS_D_Pocket
 from .AS_Config import AS_Config
-from .AS_Funct import _tessellation_mp, getCosAngleBetween, combination_intersection_count, combination_union_count
+from .AS_Funct import _tessellation_mp, getCosAngleBetween, combination_intersection_count
 from .AS_Struct import AS_Structure
 
 import nglview as nv
 
 import networkx as nx
-from itertools import combinations
+from itertools import combinations, combinations_with_replacement
 from .AS_Funct import is_pocket_connected
 
 
@@ -58,12 +58,20 @@ class AS_Universe(object):
     def __init__(self, receptor=None, binder=None, guess_receptor_binder=True, guess_by_order=True, config=None,
                  label="", keepH=False):
         """
-        Container for an AlphaSpace session, have child container receptor and binder
-        :param receptor: object
-        :param binder: object
-        :param guess_by_order: book
-        :param guess_receptor_binder: bool, guess is based on molecule size
-        :param config: object,AS_config
+
+        Parameters
+        ----------
+        receptor
+        binder
+        guess_receptor_binder
+        guess_by_order
+        config
+        label
+        keepH
+
+        Returns
+        -------
+        universe : AS_Universe
         """
 
         self.config = config if config is not None else AS_Config()
@@ -123,10 +131,19 @@ class AS_Universe(object):
             return self.receptor.trajectory.n_frames
 
     @property
-    def n_atoms(self) -> int:
+    def n_atoms(self):
         """
         return the total number of atoms in receptor and binders
-        :return: int
+
+        Returns
+        -------
+
+        int
+
+        """
+        """
+        
+        :return: 
         """
         return self.receptor.n_atoms + self.binder.n_atoms
 
@@ -153,7 +170,6 @@ class AS_Universe(object):
     @property
     def d_pockets(self) -> AS_D_Pocket:
         """
-        TODO
         calculate the d pockets and give a iterator os AS_D_Pocket
         :return: object, AS_D_Pocket
         """
@@ -226,9 +242,10 @@ class AS_Universe(object):
 
         if not by_order:
             molecule_list.sort(key=len, reverse=True)
+
         if len(molecule_list) > 1:
-            self.set_receptor(traj.atom_slice(np.sort(np.array([atom.index for atom in molecule_list[0]], dtype=int))))
-            self.set_binder(traj.atom_slice(np.sort(np.array([atom.index for atom in molecule_list[1]], dtype=int))))
+            self.set_receptor(traj.atom_slice(np.array([atom.index for atom in molecule_list[0]], dtype=int)))
+            self.set_binder(traj.atom_slice(np.array([atom.index for atom in molecule_list[1]], dtype=int)))
             return True
         elif len(molecule_list) == 1:
             self.set_receptor(traj.atom_slice([atom.index for atom in molecule_list[0]]))
@@ -294,11 +311,11 @@ class AS_Universe(object):
         else:
             self.receptor = AS_Structure(structure, structure_type=0, parent=self)
 
-    def run_alphaspace(self):
-        self.run_alphaspace_mp(cpu=1)
+    def run_alphaspace(self, frame_range=None):
+        self.run_alphaspace_mp(cpu=1, frame_range=frame_range)
 
-    def run_alphaspace_mp(self, cpu=None):
-        _tessellation_mp(self, cpu=cpu)
+    def run_alphaspace_mp(self, frame_range=None, cpu=None, ):
+        _tessellation_mp(self, cpu=cpu, frame_range=frame_range)
 
     def _get_face_atoms(self):
 
@@ -349,28 +366,6 @@ class AS_Universe(object):
             #     linked_minor = set(chain.from_iterable([pocket_graph.neighbors(p) for p in community]))
             #     communities.append(linked_minor.union(community))
             self._communities[snapshot_idx] = communities
-
-    def _connect_pockets(self, snapshot_idx=0):
-        """
-        Generate a networkx graph with nodes from pockets in the given snapshot.
-        Parameters
-        ----------
-        snapshot_idx
-        int
-
-        Returns
-        -------
-        pocket_graph
-            undirected graph
-
-        """
-        pocket_graph = nx.Graph()
-        pocket_graph.add_nodes_from(self.pockets(snapshot_idx, False))
-        for p1, p2 in combinations(pocket_graph.nodes(), 2):
-            if is_pocket_connected(p1, p2):
-                pocket_graph.add_edge(p1, p2)
-
-        return pocket_graph
 
     def _connect_pockets(self, snapshot_idx=0):
         """
@@ -486,9 +481,7 @@ class AS_Universe(object):
             a dict of d pockets, each is a list of child pocket indices
 
         """
-
         from alphaspace.AS_Funct import cluster_by_overlap
-        # check if alphaspace is run
 
         if self.data is None:
             raise Exception('No Data available ')
@@ -513,6 +506,129 @@ class AS_Universe(object):
 
         self._d_pockets = d_pockets
         return d_pockets
+
+    def _gen_d_pockets_iter(self, sample_frames=20, sample_ratio=1, pocket_space_cutoff=20):
+        """
+
+        Leader follower iterative generation of dpockets to save memory and improve speed.
+
+
+        Parameters
+        ----------
+        sample_frames : int
+            how many frames to sample for leaders
+        sample_ratio : float
+            the sampling fraction of pockets in leader d_pockets.
+            1 for keeping all, 10 for picking 1/10 of pockets in each dpocket
+        pocket_space_cutoff : int
+            cutoff for pocket because small pockets are not considered.
+
+        Returns
+        -------
+        d_pocket : dict
+            a dictionary of lists
+            each list contains pockets in the d_pocket.
+
+        """
+        from .AS_Funct import cluster_by_overlap, _prune_dpockets
+        from collections import defaultdict
+
+        # sample 20 snapshots from the universe
+        sampled_snapshot_idx = np.random.choice(self.n_frames, sample_frames, False)
+        leader_pockets = []
+        for ss_idx in sampled_snapshot_idx:
+            for pocket in self.pockets(ss_idx, active_only=False):
+                if pocket.space > pocket_space_cutoff:
+                    leader_pockets.append(pocket)
+
+        # first cluster these frames' pockets into d_pockets
+
+        d_pocket_p_idx = cluster_by_overlap([pocket.lining_atoms_idx for pocket in leader_pockets],
+                                            self.receptor.n_atoms,
+                                            self.config.dpocket_cluster_cutoff)
+
+        # Create leader pockets dictionary
+        leader_dpocket_dict = {}
+        for dp_idx, p_idx in d_pocket_p_idx.items():
+            leader_dpocket_dict[dp_idx] = [leader_pockets[i] for i in p_idx]
+
+        # sample and generate a pruned pocket list with labels of leader index.
+
+        leader_pockets, leader_label = _prune_dpockets(leader_dpocket_dict, sample_ratio)
+
+        # create array for all pockets' lining atoms
+        leader_pockets_atom_array = np.array([pocket.lining_atoms_vector for pocket in leader_pockets])
+
+        follower_dpocket_dict = defaultdict(lambda: [])
+
+        # iterate through snapshots
+
+        for ss_idx in self.snapshots_indices:
+            new_pocket_d_idx = []
+            current_pockets = (p for p in self.pockets(snapshot_idx=ss_idx, active_only=False) if
+                               p.space > pocket_space_cutoff)
+
+            for pocket in current_pockets:
+                pocket_lining_atom_array = pocket.lining_atoms_vector
+                overlap = np.dot(leader_pockets_atom_array, pocket_lining_atom_array)
+                union = np.count_nonzero(leader_pockets_atom_array + pocket_lining_atom_array, axis=1)
+                tanimoto = overlap / union
+
+                max_idx = np.argmax(tanimoto)
+
+                new_pocket_d_idx.append(leader_label[int(max_idx)])
+
+                follower_dpocket_dict[leader_label[int(max_idx)]].append(pocket)
+            print("clustering dpocket in {}".format(ss_idx))
+
+        self._d_pockets = follower_dpocket_dict
+
+        return follower_dpocket_dict
+
+    def _connect_d_pockets(self):
+        """
+        This graph is build on D-pockets detected in the snapshots.
+
+        Exchange_overlap = Union_overlap - (Time Overlap)
+
+        Union_overlap is overlap count for all lining atom set in dpocket
+
+        Time Overlap is the overlap of each pockets' lining atom in each snapshot.
+
+        Returns
+        -------
+        dpocket_graph
+            networkx graph for d-pockets
+
+        """
+        # calculate the lining atom matrix
+
+        d_pocket_lining_atom_matrices = []
+
+        for dp in self.d_pockets:
+            matrix = np.zeros((self.n_frames, self.receptor.n_atoms))
+            for p in dp:
+                np.put(matrix[p.snapshot_idx], p.lining_atoms_idx, 1)
+            d_pocket_lining_atom_matrices.append(matrix)
+
+        num_dp = len(d_pocket_lining_atom_matrices)
+
+        # calculate the union overlap
+        d_pocket_lining_atom_unions = [
+            np.sum(m, axis=0, dtype=bool) for m in d_pocket_lining_atom_matrices
+        ]
+
+        union_overlap = np.zeros((num_dp, num_dp), dtype=float)
+        time_overlap = np.zeros((num_dp, num_dp), dtype=float)
+        for i, j in combinations(range(num_dp), 2):
+            # calculate the union overlap
+            union_overlap_vector = np.logical_and(d_pocket_lining_atom_unions[i], d_pocket_lining_atom_unions[j])
+            union_overlap[i, j] = union_overlap[j, i] = np.count_nonzero(union_overlap_vector)
+            # calculate the time overlap
+            time_overlap_vector = np.logical_and(d_pocket_lining_atom_matrices[i], d_pocket_lining_atom_matrices[j])
+            time_overlap[i, j] = time_overlap[j, i] = np.average(np.sum(time_overlap_vector, axis=1, dtype=float))
+
+        return union_overlap, time_overlap
 
     def _gen_d_communities(self):
         if not self._d_pockets:
@@ -621,7 +737,7 @@ class AS_Universe(object):
     Visualization methods
     """
 
-    def draw(self, snapshot_idx: int = 0, show_binder=True):
+    def draw(self, snapshot_idx: int = 0, show_binder=True, surface_opacity=1.0):
         """
         Draw and view the current snapshot in jupyter notebook.
 
@@ -638,9 +754,8 @@ class AS_Universe(object):
 
         self._ngl_view = nv.show_mdtraj(self.receptor.traj)
 
-        self._ngl_view.clear_representations()
-        self._ngl_view.add_trajectory(self.receptor.trajectory[snapshot_idx], gui=True)
-        self._ngl_view.add_surface(selection='protein', opacity=0.8, color='white')
+        if surface_opacity > 0:
+            self._ngl_view.add_surface(selection='protein', opacity=surface_opacity, color='white')
 
         if self.binder and show_binder:
             self._ngl_view.add_trajectory(self.binder.traj)
@@ -667,10 +782,23 @@ class AS_Universe(object):
             raise Exception("need to generate view first with .draw method")
 
     def _draw_as_sphere(self, item, color, radius=None, opacity=1.0):
+        """
+
+        Parameters
+        ----------
+        item alpha_atom or xyz coordinates in Angstrom
+        color
+        radius
+        opacity
+
+        Returns
+        -------
+
+        """
         if not self._ngl_added_component:
             self._ngl_added_component = list(range(self._ngl_view.n_components))
 
-        if item is list:
+        if type(item) == list:
             self._ngl_view.shape.add_buffer("sphere", position=item, color=color, radius=[radius])
         else:
             _radius = radius if radius is not None else item._ngl_radius
@@ -696,10 +824,9 @@ class AS_Universe(object):
                                     kwargs={'opacity': opacity})
         return _ngl_component_idx
 
-
     def draw_pocket_graph(self, snapshot_idx=0, active_only=True):
         pocket_graph = self._connect_pockets(snapshot_idx)
-        for p1, p2 in pocket_graph.edges_iter():
+        for p1, p2 in pocket_graph.edges:
             if active_only and (p1.is_active > 0 and p2.is_active > 0):
                 self._draw_cylinder(position1=list(p1.centroid * 10), position2=list(p2.centroid * 10),
                                     color=[0, 0, 0], radius=[0.1])
@@ -737,6 +864,28 @@ class AS_Universe(object):
 
     def clear_view(self):
         self._ngl_view.clear_representations()
+
+
+def load(traj, top=None, label=None):
+    """
+    Load a file into alphaspace and return the AS_Universe object
+
+    Parameters
+    ----------
+
+    file : str
+        file path
+
+    Returns
+    -------
+    universe : AS_Universe
+
+    """
+    import mdtraj as md
+
+    traj = md.load(traj, top=top)
+
+    return AS_Universe(receptor=traj, guess_receptor_binder=True, guess_by_order=False, label=label)
 
 
 if __name__ == '__main__':
