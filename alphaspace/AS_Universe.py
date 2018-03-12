@@ -108,7 +108,11 @@ class AS_Universe(object):
         return "Receptor of {} residues {} atoms | Binder of {} residues {} atoms".format(rec_res,
                                                                                           rec_atm,
                                                                                           bind_res,
-                                                                                          bind_atm)
+                                                                      bind_atm)
+
+
+
+
 
     @property
     def data(self):
@@ -336,6 +340,8 @@ class AS_Universe(object):
 
         return sasa_diff > 0
 
+
+
     def _gen_communities_legacy(self):
         import networkx
         self._communities = {}
@@ -488,10 +494,13 @@ class AS_Universe(object):
 
         # list all pockets
         pockets_all = []
+        lining_atom_indices = []
         for snapshot_idx in self.snapshots_indices:
             for pocket in self.pockets(snapshot_idx):
-                if pocket.space > 100:
+                if pocket.space > 20:
                     pockets_all.append(pocket)
+                    lining_atom_indices.append(pocket.lining_atoms_idx)
+        print("Clustering pockets")
 
         # extract lining atom into list
         lining_atom_indices = [pocket.lining_atoms_idx for pocket in pockets_all]
@@ -743,6 +752,7 @@ class AS_Universe(object):
 
         Parameters
         ----------
+        surface_opacity
         snapshot_idx : int
         show_binder : bool
 

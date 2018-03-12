@@ -4,7 +4,7 @@ from mdtraj.geometry.sasa import _ATOMIC_RADII
 from scipy.cluster.hierarchy import linkage, fcluster
 from scipy.spatial import Voronoi, Delaunay
 from scipy.spatial.distance import cdist
-from itertools import combinations_with_replacement,combinations
+from itertools import combinations_with_replacement, combinations
 
 from alphaspace.AS_Cluster import AS_Data, AS_Snapshot
 
@@ -47,7 +47,7 @@ class Task(object):
         else:
             return self.function(**self.kwargs), self.info
 
- 
+
 def getTetrahedronVolume(coord_list: list):
     """
     Calculate the volume of a tetrahedron described by four 3-d points.
@@ -59,7 +59,7 @@ def getTetrahedronVolume(coord_list: list):
 
     return volume
 
- 
+
 def getContactMatrix(coord_list_1, coord_list_2, threshold):
     """
     For two sets of points A and B, generate the contact matrix M,
@@ -73,7 +73,7 @@ def getContactMatrix(coord_list_1, coord_list_2, threshold):
     distance_matrix = cdist(coord_list_1, coord_list_2)
     return (distance_matrix < threshold).astype(int)
 
- 
+
 def getIfContact(checked_coord_list, ref_coord_list, threshold):
     """
     Check which one in the coordinate list is in contact with the second coordinate
@@ -84,7 +84,7 @@ def getIfContact(checked_coord_list, ref_coord_list, threshold):
     """
     return np.where(getContactMatrix(checked_coord_list, ref_coord_list, threshold))
 
- 
+
 def getGridVolume(coord_list, threshold=1.6, resolution=0.05):
     """
     Calculate the volume of a point set using grid point approximation
@@ -102,7 +102,7 @@ def getGridVolume(coord_list, threshold=1.6, resolution=0.05):
     grid_count = len(getIfContact(grid_coords, coord_list, threshold=threshold)[0])
     return grid_count * (resolution ** 3)
 
- 
+
 def getCosAngleBetween(v1, v2):
     """
     Calculate the Cos of the angle be vector v1 and v2
@@ -121,7 +121,7 @@ def getCosAngleBetween(v1, v2):
     v2_u = unit_vector(v2)
     return np.clip(np.dot(v1_u, v2_u), -1.0, 1.0)
 
- 
+
 def combination_intersection_count(indices_list: list, total_index: int) -> np.ndarray:
     """
 
@@ -154,13 +154,15 @@ def combination_intersection_count(indices_list: list, total_index: int) -> np.n
 
     overlap_matrix = np.empty((item_binary_vectors.shape[0], item_binary_vectors.shape[0]))
     overlap_matrix.fill(0)
+    count = 0
     for i, j in combinations_with_replacement(range(len(indices_list)), 2):
+        print(count, len(overlap_matrix) ** 2 / 2)
         overlap = np.dot(item_binary_vectors[i], item_binary_vectors[j])
         overlap_matrix[i][j] = overlap_matrix[j][i] = overlap
 
     return overlap_matrix
 
- 
+
 def combination_union_count(indices_list, total_index: int) -> np.ndarray:
     """
     Given a list of indices list, such as [ [1,2,3], [4,5,6] , [2,3,4]]
@@ -192,6 +194,7 @@ def combination_union_count(indices_list, total_index: int) -> np.ndarray:
 def count_intersect(a, b):
     return np.count_nonzero(a + b)
 
+
 def getSASA(protein_snapshot, cover_atom_coords=None):
     """
     Calculate the absolute solvent accessible surface area.
@@ -222,6 +225,7 @@ def getSASA(protein_snapshot, cover_atom_coords=None):
     _geometry._sasa(xyz, radii, int(n_sphere_points), atom_mapping, out)
     return out[:, :protein_snapshot.xyz.shape[1]][0]
 
+
 def screenContact(data, binder_xyz, threshold):
     """
     Mark the contact in AS_Data as true for each frame.
@@ -235,6 +239,7 @@ def screenContact(data, binder_xyz, threshold):
     alpha_xyz = data.xyz()
     contact_matrix = getContactMatrix(alpha_xyz, binder_xyz[data.snapshot_idx()], threshold)
     data[:, 12] = contact_matrix.any(axis=1).astype(int)
+
 
 def _tessellation(**kwargs):
     """
@@ -393,6 +398,7 @@ def _tessellation_mp(universe, frame_range=None, cpu=None):
     else:
         universe.receptor._data.update(data_dict)
 
+
 def extractResidue(traj, residue_numbers=None, residue_names=None, clip=True):
     """
     This function is used to extract a residue from a trajectory, given a residue number or the residue name.
@@ -431,7 +437,7 @@ def extractResidue(traj, residue_numbers=None, residue_names=None, clip=True):
         traj.atom_slice(kept_atom_idx, inplace=True)
     return extracted_traj
 
- 
+
 def cluster_by_overlap(vectors, total_index, overlap_cutoff):
     """
     Cluster a list of binary vectors based on lining atom overlap
@@ -466,6 +472,7 @@ def cluster_by_overlap(vectors, total_index, overlap_cutoff):
 
     return cluster_list
 
+
 def best_probe_type(beta_atom):
     """
     Parameters
@@ -483,7 +490,21 @@ def best_probe_type(beta_atom):
 
     return ['C', 'Br', 'F', 'Cl', 'I', 'OA', 'SA', 'N', 'P'][_best_score_index]
 
+
 def is_pocket_connected(p1, p2):
+    """
+    Check if two pockets are connected
+
+    Parameters
+    ----------
+    p1 : AS_Pocket
+    p2 : AS_Pocket
+
+    Returns
+    -------
+    bool
+
+    """
     if set(p1.lining_atoms_idx).intersection(p2.lining_atoms_idx):
         pocket_vector1 = p1.lining_atoms_centroid - p1.centroid
         pocket_vector2 = p2.lining_atoms_centroid - p2.centroid
@@ -492,13 +513,15 @@ def is_pocket_connected(p1, p2):
     return False
 
 
-def _prune_dpockets(d_pocket_dict, sample_ratio=1):
+def _prune_dpockets(d_pocket_dict, sample_ratio=1.0):
     """
+
+    This is used in pruning pockets in dpockets and selecting a subset for leader follower clustering.
 
     Parameters
     ----------
     d_pocket_dict : dict
-    sample_ratio
+    sample_ratio: float
 
     Returns
     -------
@@ -507,8 +530,10 @@ def _prune_dpockets(d_pocket_dict, sample_ratio=1):
 
     leader = []
     labels = []
+    assert sample_ratio <= 1.0
     for d_pocket_idx, pockets in d_pocket_dict.items():
-        n_leaders = int(np.ceil(len(pockets) / float(sample_ratio)))
+        n_leaders = int(np.ceil(len(pockets) * float(sample_ratio)))
         leader.extend(np.random.choice(pockets, n_leaders, replace=False))
         labels.extend([d_pocket_idx] * n_leaders)
     return leader, labels
+

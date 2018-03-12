@@ -36,6 +36,6 @@ for si in u.snapshots_indices:
 
 
 #
-# exposed_index =  np.arange(covered_sasa.shape[0])[abs_sasa > 0]
+# exposed_index =  np.arrange(covered_sasa.shape[0])[abs_sasa > 0]
 #
 # print(exposed_index.shape)
