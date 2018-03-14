@@ -134,6 +134,8 @@ class AS_Config(object):
             self.use_asa = self.config.getboolean('options', 'use_asa')
             self.screen_out_subsurf = self.config.getboolean('options', 'screen_out_subsurf')
             self.max_desolv_perc = self.config.getfloat('options', 'max_desolv_perc')
+            self.cluster_method = self.config.get('options','cluster_method')
+
 
             self.min_r = self.config.getfloat('parameters', 'min_r')
             self.max_r = self.config.getfloat('parameters', 'max_r')
@@ -152,6 +154,8 @@ class AS_Config(object):
             self.probe_radius = self.config.getfloat('parameters', 'probe_radius')
             self.n_sphere_points = self.config.getfloat('parameters', 'n_sphere_points')
             self.dpocket_cluster_cutoff = self.config.getfloat('parameters', 'dpocket_cluster_cutoff')
+            self.hdbscan_min_samples = self.config.getfloat('parameters','hdbscan_min_samples')
+
             return True
         except:
             print(IOError("Cannot load config {}".format(path)))

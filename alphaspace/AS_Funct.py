@@ -9,7 +9,7 @@ from itertools import combinations_with_replacement, combinations
 from alphaspace.AS_Cluster import AS_Data, AS_Snapshot
 
 import multiprocessing as mp
-
+import hdbscan
 
 class Consumer(mp.Process):
     """
@@ -248,15 +248,19 @@ def _tessellation(**kwargs):
 
 
     """
-    assert len(kwargs) == 6
 
     receptor_xyz = kwargs['receptor_xyz']
     binder_xyz = kwargs['binder_xyz']
     atom_radii = kwargs['atom_radii']
-    is_polar = kwargs['is_polar']
 
     config = kwargs['config']
     snapshot_idx = kwargs['snapshot_idx']
+
+    try:
+        cluster_method = config.cluster_method
+    except:
+        cluster_method = 'average_linkage'
+
 
     # Generate Raw Tessellation simplexes
     raw_alpha_lining_idx = Delaunay(receptor_xyz).simplices
@@ -278,11 +282,24 @@ def _tessellation(**kwargs):
 
     filtered_alpha_xyz = np.take(raw_alpha_xyz, filtered_alpha_idx, axis=0)
 
-    # cluster the remaining vertices to assign index of belonging pockets
-    zmat = linkage(filtered_alpha_xyz, method='average')
 
-    alpha_pocket_index = fcluster(zmat, config.clust_dist / 10,
+    if cluster_method == 'average_linkage':
+        # cluster the remaining vertices to assign index of belonging pockets
+        zmat = linkage(filtered_alpha_xyz, method='average')
+
+        alpha_pocket_index = fcluster(zmat, config.clust_dist / 10,
                                   criterion='distance') - 1  # because cluster index start from 1
+    elif cluster_method == 'hdbscan':
+        import hdbscan
+        clusterer = hdbscan.HDBSCAN(metric='euclidean', min_samples=config.hdbscan_min_samples)
+        clusterer.fit(filtered_alpha_xyz)
+        alpha_pocket_index = clusterer.labels_
+
+    else:
+        raise Exception('Known Clustering Method: {}'.format(cluster_method))
+
+
+
 
     # Load trajectories
     filtered_lining_xyz = np.take(receptor_xyz, alpha_lining, axis=0)
@@ -342,6 +359,7 @@ def _tessellation(**kwargs):
     return data
 
 
+
 def _tessellation_mp(universe, frame_range=None, cpu=None):
     # Establish communication queues
     tasks = mp.JoinableQueue()
@@ -357,7 +375,6 @@ def _tessellation_mp(universe, frame_range=None, cpu=None):
     # Enqueue jobs
 
     atom_radii = [_ATOMIC_RADII[atom.element.symbol] for atom in universe.receptor.top.atoms]
-    is_polar = universe.receptor.is_polar
 
     if frame_range is None:
         frame_range = range(universe.n_frames)
@@ -374,8 +391,8 @@ def _tessellation_mp(universe, frame_range=None, cpu=None):
                        binder_xyz=binder_xyz,
                        atom_radii=atom_radii,
                        snapshot_idx=i,
-                       is_polar=is_polar,
-                       config=universe.config))
+                       config=universe.config,
+                       ))
 
     # Add a poison pill for each consumer
     for i in range(num_consumers):

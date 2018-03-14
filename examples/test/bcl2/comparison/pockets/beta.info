@@ -1,6 +1,0 @@
-beta-np-space	beta-pol-space	beta-total-space	#all_atm	#pol_atm	#chg_atm	#pos_atm	#neg_atm
-
-
-also: beta_atom resid is 1 (all-nonpolar), 2 (polar atom, does not include backbone), 3 (charged atom)
-
-beta.vol file (if exists) lists 1. full beta-cluster volume; 2. occupied beta-cluster volume

@@ -22,7 +22,7 @@ setup(name='alphaspace',
 
     },
 
-      install_requires={
+      install_requires=[
           'numpy',
           'scipy',
           'cython',
@@ -32,7 +32,7 @@ setup(name='alphaspace',
           'ipywidgets',
           'networkx',
 
-      },
+      ],
       include_package_data=True,
       zip_safe=False,
 
