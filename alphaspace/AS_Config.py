@@ -5,72 +5,83 @@ The AS_Config is loaded automatically when initializing AS_Universe, you can mod
 changing the attributes or loading from a new config.ini file.
 """
 
-
-
-
 import configparser
 import os
 
-_COLOR_DICT = dict(green=[0.0, 0.5019607843137255, 1.6718652606120004e-16], yellow=[1.0, 0.9999999999999998, 0.0],
-                   pink=[1.0, 0.7529411764705882, 0.7960784313725489], orange=[1.0, 0.6470588235294115, 0.0],
-                   blue=[0.0, 0.0, 1.0], purple=[0.5019607843137255, 0.0, 0.5019607843137254],
-                   tan=[0.8235294117647057, 0.7058823529411764, 0.5490196078431374],
-                   olive=[0.5019607843137255, 0.5019607843137254, 0.0], lime=[0.0, 1.0, 3.3306690738754696e-16],
-                   gold=[1.0, 0.8431372549019605, 0.0], aqua=[0.0, 0.9999999999999998, 1.0],
-                   rosybrown=[0.7372549019607844, 0.5607843137254902, 0.5607843137254902],
-                   coral=[0.9999999999999999, 0.49803921568627463, 0.31372549019607854])
-
-_COLOR_IDX = {0: "green",
-              1: "yellow",
-              2: "pink",
-              3: "orange",
-              4: "blue",
-              5: "purple",
-              6: "tan",
-              7: "olive",
-              8: "lime",
-              9: "gold",
-              10: "aqua",
-              11: "rosybrown",
-              12: "coral"}
+_COLOR_DICT = {'blue': [0.22265625, 0.44921875, 0.671875],
+               'coral': [0.99609375, 0.25, 0.25],
+               'coregreen': [0.3046875, 0.6328125, 0.3046875],
+               'dkpurple': [0.5390625, 0.39453125, 0.63671875],
+               'foam': [0.48828125, 0.7578125, 0.75],
+               'gold': [0.8984375, 0.7578125, 0.0],
+               'lime': [0.74609375, 0.99609375, 0.0],
+               'ltblue': [0.44140625, 0.671875, 0.8359375],
+               'ltgreen': [0.49609375, 0.7578125, 0.48828125],
+               'orange': [0.99609375, 0.5078125, 0.1015625],
+               'peach': [0.8671875, 0.59375, 0.4765625],
+               'peri': [0.48828125, 0.49609375, 0.7578125],
+               'pink': [0.8671875, 0.4765625, 0.5546875],
+               'rasp': [0.54296875, 0.0, 0.26953125],
+               'teal': [0.0, 0.64453125, 0.64453125]}
+_COLOR_IDX = {0: "teal",
+              1: "gold",
+              2: "coregreen",
+              3: "lime",
+              4: "peri",
+              5: "orange",
+              6: "dkpurple",
+              7: "ltgreen",
+              8: "coral",
+              9: "pink",
+              10: "blue",
+              11: "ltblue",
+              12: "peach", }
 
 _DEFAULT_CONFIG_FILE_PATH = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'config.ini')
 
 
 # noinspection PyAttributeOutsideInit
 class AS_Config(object):
-    _COLOR_DICT = dict(green=[0.0, 0.5019607843137255, 1.6718652606120004e-16], yellow=[1.0, 0.9999999999999998, 0.0],
-                       pink=[1.0, 0.7529411764705882, 0.7960784313725489], orange=[1.0, 0.6470588235294115, 0.0],
-                       blue=[0.0, 0.0, 1.0], purple=[0.5019607843137255, 0.0, 0.5019607843137254],
-                       tan=[0.8235294117647057, 0.7058823529411764, 0.5490196078431374],
-                       olive=[0.5019607843137255, 0.5019607843137254, 0.0], lime=[0.0, 1.0, 3.3306690738754696e-16],
-                       gold=[1.0, 0.8431372549019605, 0.0], aqua=[0.0, 0.9999999999999998, 1.0],
-                       rosybrown=[0.7372549019607844, 0.5607843137254902, 0.5607843137254902],
-                       coral=[0.9999999999999999, 0.49803921568627463, 0.31372549019607854])
-    _COLOR_IDX = {0: "green",
-                  1: "yellow",
-                  2: "pink",
-                  3: "orange",
-                  4: "blue",
-                  5: "purple",
-                  6: "tan",
-                  7: "olive",
-                  8: "lime",
-                  9: "gold",
-                  10: "aqua",
-                  11: "rosybrown",
-                  12: "coral"}
+    _COLOR_DICT = {'blue': [0.22265625, 0.44921875, 0.671875],
+                   'coral': [0.99609375, 0.25, 0.25],
+                   'coregreen': [0.3046875, 0.6328125, 0.3046875],
+                   'dkpurple': [0.5390625, 0.39453125, 0.63671875],
+                   'foam': [0.48828125, 0.7578125, 0.75],
+                   'gold': [0.8984375, 0.7578125, 0.0],
+                   'lime': [0.74609375, 0.99609375, 0.0],
+                   'ltblue': [0.44140625, 0.671875, 0.8359375],
+                   'ltgreen': [0.49609375, 0.7578125, 0.48828125],
+                   'orange': [0.99609375, 0.5078125, 0.1015625],
+                   'peach': [0.8671875, 0.59375, 0.4765625],
+                   'peri': [0.48828125, 0.49609375, 0.7578125],
+                   'pink': [0.8671875, 0.4765625, 0.5546875],
+                   'rasp': [0.54296875, 0.0, 0.26953125],
+                   'teal': [0.0, 0.64453125, 0.64453125]}
+
+    _COLOR_IDX = {0: "teal",
+                  1: "gold",
+                  2: "coregreen",
+                  3: "lime",
+                  4: "peri",
+                  5: "orange",
+                  6: "dkpurpl",
+                  7: "ltgreen",
+                  8: "coral",
+                  9: "pink",
+                  10: "blue",
+                  11: "ltblue",
+                  12: "peach", }
+
     # def __new__(cls, config_path=None):
     #     cls.config = configparser.ConfigParser()
     #     cls.config_path = config_path if config_path else _DEFAULT_CONFIG_FILE_PATH
     #     cls.load_config(cls, cls.config_path)
     #     return cls
 
-    def __init__(self,config_path=None):
+    def __init__(self, config_path=None):
         self.config = configparser.ConfigParser()
         self.config_path = config_path if config_path else _DEFAULT_CONFIG_FILE_PATH
         self.load_config(self.config_path)
-
 
     @staticmethod
     def color(idx):
@@ -134,8 +145,7 @@ class AS_Config(object):
             self.use_asa = self.config.getboolean('options', 'use_asa')
             self.screen_out_subsurf = self.config.getboolean('options', 'screen_out_subsurf')
             self.max_desolv_perc = self.config.getfloat('options', 'max_desolv_perc')
-            self.cluster_method = self.config.get('options','cluster_method')
-
+            self.max_desolv_perc = self.config.getfloat('options', 'max_desolv_perc')
 
             self.min_r = self.config.getfloat('parameters', 'min_r')
             self.max_r = self.config.getfloat('parameters', 'max_r')
@@ -154,7 +164,7 @@ class AS_Config(object):
             self.probe_radius = self.config.getfloat('parameters', 'probe_radius')
             self.n_sphere_points = self.config.getfloat('parameters', 'n_sphere_points')
             self.dpocket_cluster_cutoff = self.config.getfloat('parameters', 'dpocket_cluster_cutoff')
-            self.hdbscan_min_samples = self.config.getfloat('parameters','hdbscan_min_samples')
+            self.hdbscan_min_samples = self.config.getfloat('parameters', 'hdbscan_min_samples')
 
             return True
         except:
