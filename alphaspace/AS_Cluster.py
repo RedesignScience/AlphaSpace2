@@ -285,7 +285,8 @@ class AS_AlphaAtom:
         bool
 
         """
-        return bool(self._data.is_active(self.idx))
+
+        return bool(self._data.is_active(self.idx)) and self._data.pocket(self.idx) != -1
 
     @property
     def idx(self):
@@ -462,7 +463,8 @@ class AS_Pocket:
 
     """
 
-    _ngl_radius = 2.0
+    _ngl_radius = 1.4
+
 
     def __init__(self, alpha_idx, snapshot_idx, pocket_idx, parent_structure):
         self._idx = pocket_idx
@@ -654,10 +656,20 @@ class AS_Pocket:
         bool
 
         """
-        if anyone:
-            return self._data.is_active(self.alpha_idx).any()
+        if self.is_noise:
+            return False
         else:
-            return self._data.is_active(self.alpha_idx).all()
+            if anyone:
+                return self._data.is_active(self.alpha_idx).any()
+            else:
+                return self._data.is_active(self.alpha_idx).all()
+
+    @property
+    def is_noise(self):
+        if self._idx == -1:
+            return True
+        else:
+            return False
 
     @property
     def xyz(self) -> np.ndarray:
@@ -722,7 +734,19 @@ class AS_Pocket:
 
         color_name : str
         """
-        return self.parent_structure.config.color_name(self._idx)
+        if self.is_noise:
+            return [0.71, 0.71, 0.71]
+        else:
+            return self.parent_structure.config.color(self._idx)
+
+    @property
+    def color_name(self):
+        if self.is_noise:
+            return 'Grey'
+        else:
+            return self.parent_structure.config.color_name(self._idx)
+
+
 
     @property
     def is_contact(self):
@@ -897,7 +921,7 @@ class AS_BetaAtom:
     It belongs to the AS_Pocket object.
     """
 
-    _ngl_radius = 1.0
+    _ngl_radius = 0.5
 
 
     def __init__(self, alpha_idx_in_pocket, pocket: AS_Pocket):

@@ -198,8 +198,7 @@ class AS_Universe(object):
         return self._d_pockets[i]
 
     def pockets(self, snapshot_idx: int = 0, active_only: bool = False) -> list:
-        if snapshot_idx not in self._pocket_list:
-            self._pocket_list[snapshot_idx] = self.pocket_list(snapshot_idx, active_only)
+        self._pocket_list[snapshot_idx] = self.pocket_list(snapshot_idx, active_only)
         return self._pocket_list[snapshot_idx]
 
     def alphas(self, snapshot_idx=0):
@@ -838,7 +837,7 @@ class AS_Universe(object):
     def draw_pocket_graph(self, snapshot_idx=0, active_only=True):
         pocket_graph = self._connect_pockets(snapshot_idx)
         for p1, p2 in pocket_graph.edges:
-            if active_only and (p1.is_active > 0 and p2.is_active > 0):
+            if active_only and (p1.is_active and p2.is_active):
                 self._draw_cylinder(position1=list(p1.centroid * 10), position2=list(p2.centroid * 10),
                                     color=[0, 0, 0], radius=[0.1])
             else:
@@ -854,23 +853,29 @@ class AS_Universe(object):
             except:
                 raise TypeError('Item is of the wrong type')
 
-    def view_alphas(self, snapshot_idx=0, active_only=True, opacity=1):
+    def view_alphas(self, snapshot_idx=0, active_only=True, opacity=1, show_noise=False):
         for pocket in self.pockets(snapshot_idx, active_only):
-            color = self.config.color(idx=pocket._idx)
+            if not show_noise and pocket.is_noise:
+                continue
+            color = pocket.color
             for alpha in pocket.alphas:
                 self._draw_as_sphere(alpha, color=color, opacity=opacity)
 
-    def view_betas(self, snapshot_idx=0, active_only=True, opacity=1):
+    def view_betas(self, snapshot_idx=0, active_only=True, opacity=1, show_noise=False):
 
         for pocket in self.pockets(snapshot_idx, active_only):
-            color = self.config.color(idx=pocket._idx)
+            if not show_noise and pocket.is_noise:
+                continue
+            color = pocket.color
             for beta in pocket.betas:
                 self._draw_as_sphere(beta, color=color, opacity=opacity)
 
-    def view_pocket_centers(self, snapshot_idx=0, active_only=True, opacity=1):
+    def view_pocket_centers(self, snapshot_idx=0, active_only=True, opacity=1, show_noise=False):
 
         for pocket in self.pockets(snapshot_idx, active_only):
-            color = self.config.color(idx=pocket._idx)
+            if not show_noise and pocket.is_noise:
+                continue
+            color = pocket.color
             self._draw_as_sphere(pocket, color=color, opacity=opacity)
 
     def clear_view(self):

@@ -353,7 +353,6 @@ def _tessellation(**kwargs):
                            np.expand_dims(mins, axis=1),  # 16        closest atom dist
                            np.expand_dims(alpha_lining_asa, axis=1)  # 17 total lining atom asa
                            ), axis=-1)
-    assert data.shape[1] == 18
 
     print('{} snapshot processed'.format(snapshot_idx + 1))
     return data
