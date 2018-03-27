@@ -272,7 +272,11 @@
         <span class="k">return</span> <span class="s2">&quot;Receptor of </span><span class="si">{}</span><span class="s2"> residues </span><span class="si">{}</span><span class="s2"> atoms | Binder of </span><span class="si">{}</span><span class="s2"> residues </span><span class="si">{}</span><span class="s2"> atoms&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">rec_res</span><span class="p">,</span>
                                                                                           <span class="n">rec_atm</span><span class="p">,</span>
                                                                                           <span class="n">bind_res</span><span class="p">,</span>
-                                                                                          <span class="n">bind_atm</span><span class="p">)</span>
+                                                                      <span class="n">bind_atm</span><span class="p">)</span>
+
+
+
+
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -358,8 +362,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_d_pockets</span><span class="p">[</span><span class="n">i</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="AS_Universe.pockets"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe.pockets">[docs]</a>    <span class="k">def</span> <span class="nf">pockets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">active_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">snapshot_idx</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pocket_list</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_pocket_list</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pocket_list</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="p">,</span> <span class="n">active_only</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pocket_list</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pocket_list</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="p">,</span> <span class="n">active_only</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pocket_list</span><span class="p">[</span><span class="n">snapshot_idx</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="AS_Universe.alphas"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe.alphas">[docs]</a>    <span class="k">def</span> <span class="nf">alphas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
@@ -499,6 +502,8 @@
         <span class="n">sasa_diff</span> <span class="o">=</span> <span class="n">receptor_snapshot_sasa</span> <span class="o">-</span> <span class="n">complex_snapshot_sasa</span><span class="p">[:,</span> <span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">n_atoms</span><span class="p">]</span>
 
         <span class="k">return</span> <span class="n">sasa_diff</span> <span class="o">&gt;</span> <span class="mi">0</span>
+
+
 
     <span class="k">def</span> <span class="nf">_gen_communities_legacy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="kn">import</span> <span class="nn">networkx</span>
@@ -652,10 +657,13 @@
 
         <span class="c1"># list all pockets</span>
         <span class="n">pockets_all</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">lining_atom_indices</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">snapshot_idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">snapshots_indices</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">pocket</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pockets</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="p">):</span>
-                <span class="k">if</span> <span class="n">pocket</span><span class="o">.</span><span class="n">space</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">pocket</span><span class="o">.</span><span class="n">space</span> <span class="o">&gt;</span> <span class="mi">20</span><span class="p">:</span>
                     <span class="n">pockets_all</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pocket</span><span class="p">)</span>
+                    <span class="n">lining_atom_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pocket</span><span class="o">.</span><span class="n">lining_atoms_idx</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Clustering pockets&quot;</span><span class="p">)</span>
 
         <span class="c1"># extract lining atom into list</span>
         <span class="n">lining_atom_indices</span> <span class="o">=</span> <span class="p">[</span><span class="n">pocket</span><span class="o">.</span><span class="n">lining_atoms_idx</span> <span class="k">for</span> <span class="n">pocket</span> <span class="ow">in</span> <span class="n">pockets_all</span><span class="p">]</span>
@@ -671,7 +679,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_d_pockets</span> <span class="o">=</span> <span class="n">d_pockets</span>
         <span class="k">return</span> <span class="n">d_pockets</span>
 
-    <span class="k">def</span> <span class="nf">_gen_d_pockets_iter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_frames</span> <span class="o">=</span> <span class="mi">20</span><span class="p">,</span> <span class="n">sample_ratio</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span><span class="n">pocket_space_cutoff</span> <span class="o">=</span> <span class="mi">20</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_gen_d_pockets_iter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample_frames</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">sample_ratio</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">pocket_space_cutoff</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="sd">        Leader follower iterative generation of dpockets to save memory and improve speed.</span>
@@ -694,7 +702,7 @@
 <span class="sd">            each list contains pockets in the d_pocket.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">from</span> <span class="nn">.AS_Funct</span> <span class="k">import</span> <span class="n">cluster_by_overlap</span><span class="p">,</span> <span class="n">prune_dpockets</span>
+        <span class="kn">from</span> <span class="nn">.AS_Funct</span> <span class="k">import</span> <span class="n">cluster_by_overlap</span><span class="p">,</span> <span class="n">_prune_dpockets</span>
         <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">defaultdict</span>
 
         <span class="c1"># sample 20 snapshots from the universe</span>
@@ -718,7 +726,7 @@
 
         <span class="c1"># sample and generate a pruned pocket list with labels of leader index.</span>
 
-        <span class="n">leader_pockets</span><span class="p">,</span> <span class="n">leader_label</span> <span class="o">=</span> <span class="n">prune_dpockets</span><span class="p">(</span><span class="n">leader_dpocket_dict</span><span class="p">,</span> <span class="n">sample_ratio</span><span class="p">)</span>
+        <span class="n">leader_pockets</span><span class="p">,</span> <span class="n">leader_label</span> <span class="o">=</span> <span class="n">_prune_dpockets</span><span class="p">(</span><span class="n">leader_dpocket_dict</span><span class="p">,</span> <span class="n">sample_ratio</span><span class="p">)</span>
 
         <span class="c1"># create array for all pockets&#39; lining atoms</span>
         <span class="n">leader_pockets_atom_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">pocket</span><span class="o">.</span><span class="n">lining_atoms_vector</span> <span class="k">for</span> <span class="n">pocket</span> <span class="ow">in</span> <span class="n">leader_pockets</span><span class="p">])</span>
@@ -729,7 +737,8 @@
 
         <span class="k">for</span> <span class="n">ss_idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">snapshots_indices</span><span class="p">:</span>
             <span class="n">new_pocket_d_idx</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">current_pockets</span> <span class="o">=</span> <span class="p">(</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pockets</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="o">=</span><span class="n">ss_idx</span><span class="p">,</span> <span class="n">active_only</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">space</span> <span class="o">&gt;</span> <span class="n">pocket_space_cutoff</span><span class="p">)</span>
+            <span class="n">current_pockets</span> <span class="o">=</span> <span class="p">(</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pockets</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="o">=</span><span class="n">ss_idx</span><span class="p">,</span> <span class="n">active_only</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">if</span>
+                               <span class="n">p</span><span class="o">.</span><span class="n">space</span> <span class="o">&gt;</span> <span class="n">pocket_space_cutoff</span><span class="p">)</span>
 
             <span class="k">for</span> <span class="n">pocket</span> <span class="ow">in</span> <span class="n">current_pockets</span><span class="p">:</span>
                 <span class="n">pocket_lining_atom_array</span> <span class="o">=</span> <span class="n">pocket</span><span class="o">.</span><span class="n">lining_atoms_vector</span>
@@ -906,6 +915,7 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
+<span class="sd">        surface_opacity</span>
 <span class="sd">        snapshot_idx : int</span>
 <span class="sd">        show_binder : bool</span>
 
@@ -987,10 +997,11 @@
                                     <span class="n">kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;opacity&#39;</span><span class="p">:</span> <span class="n">opacity</span><span class="p">})</span>
         <span class="k">return</span> <span class="n">_ngl_component_idx</span>
 
+
 <div class="viewcode-block" id="AS_Universe.draw_pocket_graph"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe.draw_pocket_graph">[docs]</a>    <span class="k">def</span> <span class="nf">draw_pocket_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">active_only</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="n">pocket_graph</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_connect_pockets</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">p1</span><span class="p">,</span> <span class="n">p2</span> <span class="ow">in</span> <span class="n">pocket_graph</span><span class="o">.</span><span class="n">edges</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">active_only</span> <span class="ow">and</span> <span class="p">(</span><span class="n">p1</span><span class="o">.</span><span class="n">is_active</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">p2</span><span class="o">.</span><span class="n">is_active</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">active_only</span> <span class="ow">and</span> <span class="p">(</span><span class="n">p1</span><span class="o">.</span><span class="n">is_active</span> <span class="ow">and</span> <span class="n">p2</span><span class="o">.</span><span class="n">is_active</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_draw_cylinder</span><span class="p">(</span><span class="n">position1</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">p1</span><span class="o">.</span><span class="n">centroid</span> <span class="o">*</span> <span class="mi">10</span><span class="p">),</span> <span class="n">position2</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">p2</span><span class="o">.</span><span class="n">centroid</span> <span class="o">*</span> <span class="mi">10</span><span class="p">),</span>
                                     <span class="n">color</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">radius</span><span class="o">=</span><span class="p">[</span><span class="mf">0.1</span><span class="p">])</span>
             <span class="k">else</span><span class="p">:</span>
@@ -1006,23 +1017,29 @@
             <span class="k">except</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Item is of the wrong type&#39;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="AS_Universe.view_alphas"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe.view_alphas">[docs]</a>    <span class="k">def</span> <span class="nf">view_alphas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">active_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<div class="viewcode-block" id="AS_Universe.view_alphas"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe.view_alphas">[docs]</a>    <span class="k">def</span> <span class="nf">view_alphas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">active_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">show_noise</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">pocket</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pockets</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="p">,</span> <span class="n">active_only</span><span class="p">):</span>
-            <span class="n">color</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">color</span><span class="p">(</span><span class="n">idx</span><span class="o">=</span><span class="n">pocket</span><span class="o">.</span><span class="n">_idx</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">show_noise</span> <span class="ow">and</span> <span class="n">pocket</span><span class="o">.</span><span class="n">is_noise</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">color</span> <span class="o">=</span> <span class="n">pocket</span><span class="o">.</span><span class="n">color</span>
             <span class="k">for</span> <span class="n">alpha</span> <span class="ow">in</span> <span class="n">pocket</span><span class="o">.</span><span class="n">alphas</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_draw_as_sphere</span><span class="p">(</span><span class="n">alpha</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="n">opacity</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="AS_Universe.view_betas"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe.view_betas">[docs]</a>    <span class="k">def</span> <span class="nf">view_betas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">active_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<div class="viewcode-block" id="AS_Universe.view_betas"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe.view_betas">[docs]</a>    <span class="k">def</span> <span class="nf">view_betas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">active_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">show_noise</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 
         <span class="k">for</span> <span class="n">pocket</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pockets</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="p">,</span> <span class="n">active_only</span><span class="p">):</span>
-            <span class="n">color</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">color</span><span class="p">(</span><span class="n">idx</span><span class="o">=</span><span class="n">pocket</span><span class="o">.</span><span class="n">_idx</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">show_noise</span> <span class="ow">and</span> <span class="n">pocket</span><span class="o">.</span><span class="n">is_noise</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">color</span> <span class="o">=</span> <span class="n">pocket</span><span class="o">.</span><span class="n">color</span>
             <span class="k">for</span> <span class="n">beta</span> <span class="ow">in</span> <span class="n">pocket</span><span class="o">.</span><span class="n">betas</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_draw_as_sphere</span><span class="p">(</span><span class="n">beta</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="n">opacity</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="AS_Universe.view_pocket_centers"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe.view_pocket_centers">[docs]</a>    <span class="k">def</span> <span class="nf">view_pocket_centers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">active_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<div class="viewcode-block" id="AS_Universe.view_pocket_centers"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe.view_pocket_centers">[docs]</a>    <span class="k">def</span> <span class="nf">view_pocket_centers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">active_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">show_noise</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 
         <span class="k">for</span> <span class="n">pocket</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pockets</span><span class="p">(</span><span class="n">snapshot_idx</span><span class="p">,</span> <span class="n">active_only</span><span class="p">):</span>
-            <span class="n">color</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">color</span><span class="p">(</span><span class="n">idx</span><span class="o">=</span><span class="n">pocket</span><span class="o">.</span><span class="n">_idx</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">show_noise</span> <span class="ow">and</span> <span class="n">pocket</span><span class="o">.</span><span class="n">is_noise</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">color</span> <span class="o">=</span> <span class="n">pocket</span><span class="o">.</span><span class="n">color</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_draw_as_sphere</span><span class="p">(</span><span class="n">pocket</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">opacity</span><span class="o">=</span><span class="n">opacity</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="AS_Universe.clear_view"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Universe.AS_Universe.clear_view">[docs]</a>    <span class="k">def</span> <span class="nf">clear_view</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

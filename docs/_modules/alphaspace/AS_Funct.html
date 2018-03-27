@@ -168,12 +168,12 @@
 <span class="kn">from</span> <span class="nn">scipy.cluster.hierarchy</span> <span class="k">import</span> <span class="n">linkage</span><span class="p">,</span> <span class="n">fcluster</span>
 <span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="k">import</span> <span class="n">Voronoi</span><span class="p">,</span> <span class="n">Delaunay</span>
 <span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="k">import</span> <span class="n">cdist</span>
-<span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">combinations_with_replacement</span><span class="p">,</span><span class="n">combinations</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">combinations_with_replacement</span><span class="p">,</span> <span class="n">combinations</span>
 
 <span class="kn">from</span> <span class="nn">alphaspace.AS_Cluster</span> <span class="k">import</span> <span class="n">AS_Data</span><span class="p">,</span> <span class="n">AS_Snapshot</span>
 
 <span class="kn">import</span> <span class="nn">multiprocessing</span> <span class="k">as</span> <span class="nn">mp</span>
-
+<span class="kn">import</span> <span class="nn">hdbscan</span>
 
 <div class="viewcode-block" id="Consumer"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Funct.Consumer">[docs]</a><span class="k">class</span> <span class="nc">Consumer</span><span class="p">(</span><span class="n">mp</span><span class="o">.</span><span class="n">Process</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -211,7 +211,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">function</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">info</span></div>
 
- 
+
 <div class="viewcode-block" id="getTetrahedronVolume"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Funct.getTetrahedronVolume">[docs]</a><span class="k">def</span> <span class="nf">getTetrahedronVolume</span><span class="p">(</span><span class="n">coord_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculate the volume of a tetrahedron described by four 3-d points.</span>
@@ -223,7 +223,7 @@
 
     <span class="k">return</span> <span class="n">volume</span></div>
 
- 
+
 <div class="viewcode-block" id="getContactMatrix"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Funct.getContactMatrix">[docs]</a><span class="k">def</span> <span class="nf">getContactMatrix</span><span class="p">(</span><span class="n">coord_list_1</span><span class="p">,</span> <span class="n">coord_list_2</span><span class="p">,</span> <span class="n">threshold</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    For two sets of points A and B, generate the contact matrix M,</span>
@@ -237,7 +237,7 @@
     <span class="n">distance_matrix</span> <span class="o">=</span> <span class="n">cdist</span><span class="p">(</span><span class="n">coord_list_1</span><span class="p">,</span> <span class="n">coord_list_2</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">(</span><span class="n">distance_matrix</span> <span class="o">&lt;</span> <span class="n">threshold</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span></div>
 
- 
+
 <div class="viewcode-block" id="getIfContact"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Funct.getIfContact">[docs]</a><span class="k">def</span> <span class="nf">getIfContact</span><span class="p">(</span><span class="n">checked_coord_list</span><span class="p">,</span> <span class="n">ref_coord_list</span><span class="p">,</span> <span class="n">threshold</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Check which one in the coordinate list is in contact with the second coordinate</span>
@@ -248,7 +248,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">getContactMatrix</span><span class="p">(</span><span class="n">checked_coord_list</span><span class="p">,</span> <span class="n">ref_coord_list</span><span class="p">,</span> <span class="n">threshold</span><span class="p">))</span></div>
 
- 
+
 <div class="viewcode-block" id="getGridVolume"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Funct.getGridVolume">[docs]</a><span class="k">def</span> <span class="nf">getGridVolume</span><span class="p">(</span><span class="n">coord_list</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">1.6</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="mf">0.05</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculate the volume of a point set using grid point approximation</span>
@@ -266,7 +266,7 @@
     <span class="n">grid_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">getIfContact</span><span class="p">(</span><span class="n">grid_coords</span><span class="p">,</span> <span class="n">coord_list</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
     <span class="k">return</span> <span class="n">grid_count</span> <span class="o">*</span> <span class="p">(</span><span class="n">resolution</span> <span class="o">**</span> <span class="mi">3</span><span class="p">)</span></div>
 
- 
+
 <div class="viewcode-block" id="getCosAngleBetween"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Funct.getCosAngleBetween">[docs]</a><span class="k">def</span> <span class="nf">getCosAngleBetween</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculate the Cos of the angle be vector v1 and v2</span>
@@ -285,7 +285,7 @@
     <span class="n">v2_u</span> <span class="o">=</span> <span class="n">unit_vector</span><span class="p">(</span><span class="n">v2</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">v1_u</span><span class="p">,</span> <span class="n">v2_u</span><span class="p">),</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span></div>
 
- 
+
 <div class="viewcode-block" id="combination_intersection_count"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Funct.combination_intersection_count">[docs]</a><span class="k">def</span> <span class="nf">combination_intersection_count</span><span class="p">(</span><span class="n">indices_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">total_index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 
@@ -318,13 +318,15 @@
 
     <span class="n">overlap_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">item_binary_vectors</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">item_binary_vectors</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
     <span class="n">overlap_matrix</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">combinations_with_replacement</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">indices_list</span><span class="p">)),</span> <span class="mi">2</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">overlap_matrix</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
         <span class="n">overlap</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">item_binary_vectors</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">item_binary_vectors</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
         <span class="n">overlap_matrix</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">overlap_matrix</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">overlap</span>
 
     <span class="k">return</span> <span class="n">overlap_matrix</span></div>
 
- 
+
 <div class="viewcode-block" id="combination_union_count"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Funct.combination_union_count">[docs]</a><span class="k">def</span> <span class="nf">combination_union_count</span><span class="p">(</span><span class="n">indices_list</span><span class="p">,</span> <span class="n">total_index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Given a list of indices list, such as [ [1,2,3], [4,5,6] , [2,3,4]]</span>
@@ -356,6 +358,7 @@
 <div class="viewcode-block" id="count_intersect"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Funct.count_intersect">[docs]</a><span class="k">def</span> <span class="nf">count_intersect</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">)</span></div>
 
+
 <div class="viewcode-block" id="getSASA"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Funct.getSASA">[docs]</a><span class="k">def</span> <span class="nf">getSASA</span><span class="p">(</span><span class="n">protein_snapshot</span><span class="p">,</span> <span class="n">cover_atom_coords</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculate the absolute solvent accessible surface area.</span>
@@ -386,6 +389,7 @@
     <span class="n">_geometry</span><span class="o">.</span><span class="n">_sasa</span><span class="p">(</span><span class="n">xyz</span><span class="p">,</span> <span class="n">radii</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_sphere_points</span><span class="p">),</span> <span class="n">atom_mapping</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">out</span><span class="p">[:,</span> <span class="p">:</span><span class="n">protein_snapshot</span><span class="o">.</span><span class="n">xyz</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]][</span><span class="mi">0</span><span class="p">]</span></div>
 
+
 <div class="viewcode-block" id="screenContact"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Funct.screenContact">[docs]</a><span class="k">def</span> <span class="nf">screenContact</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">binder_xyz</span><span class="p">,</span> <span class="n">threshold</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Mark the contact in AS_Data as true for each frame.</span>
@@ -400,6 +404,7 @@
     <span class="n">contact_matrix</span> <span class="o">=</span> <span class="n">getContactMatrix</span><span class="p">(</span><span class="n">alpha_xyz</span><span class="p">,</span> <span class="n">binder_xyz</span><span class="p">[</span><span class="n">data</span><span class="o">.</span><span class="n">snapshot_idx</span><span class="p">()],</span> <span class="n">threshold</span><span class="p">)</span>
     <span class="n">data</span><span class="p">[:,</span> <span class="mi">12</span><span class="p">]</span> <span class="o">=</span> <span class="n">contact_matrix</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span></div>
 
+
 <span class="k">def</span> <span class="nf">_tessellation</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This is the main AlphaSpace function, it&#39;s self contained so you can run it in</span>
@@ -407,15 +412,19 @@
 
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">6</span>
 
     <span class="n">receptor_xyz</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;receptor_xyz&#39;</span><span class="p">]</span>
     <span class="n">binder_xyz</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;binder_xyz&#39;</span><span class="p">]</span>
     <span class="n">atom_radii</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;atom_radii&#39;</span><span class="p">]</span>
-    <span class="n">is_polar</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;is_polar&#39;</span><span class="p">]</span>
 
     <span class="n">config</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;config&#39;</span><span class="p">]</span>
     <span class="n">snapshot_idx</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;snapshot_idx&#39;</span><span class="p">]</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">cluster_method</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">cluster_method</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">cluster_method</span> <span class="o">=</span> <span class="s1">&#39;average_linkage&#39;</span>
+
 
     <span class="c1"># Generate Raw Tessellation simplexes</span>
     <span class="n">raw_alpha_lining_idx</span> <span class="o">=</span> <span class="n">Delaunay</span><span class="p">(</span><span class="n">receptor_xyz</span><span class="p">)</span><span class="o">.</span><span class="n">simplices</span>
@@ -437,11 +446,24 @@
 
     <span class="n">filtered_alpha_xyz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">raw_alpha_xyz</span><span class="p">,</span> <span class="n">filtered_alpha_idx</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
-    <span class="c1"># cluster the remaining vertices to assign index of belonging pockets</span>
-    <span class="n">zmat</span> <span class="o">=</span> <span class="n">linkage</span><span class="p">(</span><span class="n">filtered_alpha_xyz</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;average&#39;</span><span class="p">)</span>
 
-    <span class="n">alpha_pocket_index</span> <span class="o">=</span> <span class="n">fcluster</span><span class="p">(</span><span class="n">zmat</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">clust_dist</span> <span class="o">/</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="k">if</span> <span class="n">cluster_method</span> <span class="o">==</span> <span class="s1">&#39;average_linkage&#39;</span><span class="p">:</span>
+        <span class="c1"># cluster the remaining vertices to assign index of belonging pockets</span>
+        <span class="n">zmat</span> <span class="o">=</span> <span class="n">linkage</span><span class="p">(</span><span class="n">filtered_alpha_xyz</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;average&#39;</span><span class="p">)</span>
+
+        <span class="n">alpha_pocket_index</span> <span class="o">=</span> <span class="n">fcluster</span><span class="p">(</span><span class="n">zmat</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">clust_dist</span> <span class="o">/</span> <span class="mi">10</span><span class="p">,</span>
                                   <span class="n">criterion</span><span class="o">=</span><span class="s1">&#39;distance&#39;</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>  <span class="c1"># because cluster index start from 1</span>
+    <span class="k">elif</span> <span class="n">cluster_method</span> <span class="o">==</span> <span class="s1">&#39;hdbscan&#39;</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">hdbscan</span>
+        <span class="n">clusterer</span> <span class="o">=</span> <span class="n">hdbscan</span><span class="o">.</span><span class="n">HDBSCAN</span><span class="p">(</span><span class="n">metric</span><span class="o">=</span><span class="s1">&#39;euclidean&#39;</span><span class="p">,</span> <span class="n">min_samples</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">hdbscan_min_samples</span><span class="p">)</span>
+        <span class="n">clusterer</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">filtered_alpha_xyz</span><span class="p">)</span>
+        <span class="n">alpha_pocket_index</span> <span class="o">=</span> <span class="n">clusterer</span><span class="o">.</span><span class="n">labels_</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Known Clustering Method: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cluster_method</span><span class="p">))</span>
+
+
+
 
     <span class="c1"># Load trajectories</span>
     <span class="n">filtered_lining_xyz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">receptor_xyz</span><span class="p">,</span> <span class="n">alpha_lining</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
@@ -495,13 +517,13 @@
                            <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">mins</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>  <span class="c1"># 16        closest atom dist</span>
                            <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">alpha_lining_asa</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># 17 total lining atom asa</span>
                            <span class="p">),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
-    <span class="k">assert</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">18</span>
 
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> snapshot processed&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">snapshot_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">data</span>
 
 
-<span class="k">def</span> <span class="nf">_tessellation_mp</span><span class="p">(</span><span class="n">universe</span><span class="p">,</span> <span class="n">frame_range</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span><span class="n">cpu</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<span class="k">def</span> <span class="nf">_tessellation_mp</span><span class="p">(</span><span class="n">universe</span><span class="p">,</span> <span class="n">frame_range</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cpu</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="c1"># Establish communication queues</span>
     <span class="n">tasks</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">JoinableQueue</span><span class="p">()</span>
     <span class="n">results</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span>
@@ -516,7 +538,6 @@
     <span class="c1"># Enqueue jobs</span>
 
     <span class="n">atom_radii</span> <span class="o">=</span> <span class="p">[</span><span class="n">_ATOMIC_RADII</span><span class="p">[</span><span class="n">atom</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">symbol</span><span class="p">]</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">universe</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">top</span><span class="o">.</span><span class="n">atoms</span><span class="p">]</span>
-    <span class="n">is_polar</span> <span class="o">=</span> <span class="n">universe</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">is_polar</span>
 
     <span class="k">if</span> <span class="n">frame_range</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">frame_range</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">universe</span><span class="o">.</span><span class="n">n_frames</span><span class="p">)</span>
@@ -533,8 +554,8 @@
                        <span class="n">binder_xyz</span><span class="o">=</span><span class="n">binder_xyz</span><span class="p">,</span>
                        <span class="n">atom_radii</span><span class="o">=</span><span class="n">atom_radii</span><span class="p">,</span>
                        <span class="n">snapshot_idx</span><span class="o">=</span><span class="n">i</span><span class="p">,</span>
-                       <span class="n">is_polar</span><span class="o">=</span><span class="n">is_polar</span><span class="p">,</span>
-                       <span class="n">config</span><span class="o">=</span><span class="n">universe</span><span class="o">.</span><span class="n">config</span><span class="p">))</span>
+                       <span class="n">config</span><span class="o">=</span><span class="n">universe</span><span class="o">.</span><span class="n">config</span><span class="p">,</span>
+                       <span class="p">))</span>
 
     <span class="c1"># Add a poison pill for each consumer</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_consumers</span><span class="p">):</span>
@@ -556,6 +577,7 @@
         <span class="n">universe</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">AS_Data</span><span class="p">(</span><span class="n">data_dict</span><span class="p">,</span> <span class="n">universe</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">universe</span><span class="o">.</span><span class="n">receptor</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">data_dict</span><span class="p">)</span>
+
 
 <div class="viewcode-block" id="extractResidue"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Funct.extractResidue">[docs]</a><span class="k">def</span> <span class="nf">extractResidue</span><span class="p">(</span><span class="n">traj</span><span class="p">,</span> <span class="n">residue_numbers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">residue_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">clip</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -595,7 +617,7 @@
         <span class="n">traj</span><span class="o">.</span><span class="n">atom_slice</span><span class="p">(</span><span class="n">kept_atom_idx</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">extracted_traj</span></div>
 
- 
+
 <div class="viewcode-block" id="cluster_by_overlap"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Funct.cluster_by_overlap">[docs]</a><span class="k">def</span> <span class="nf">cluster_by_overlap</span><span class="p">(</span><span class="n">vectors</span><span class="p">,</span> <span class="n">total_index</span><span class="p">,</span> <span class="n">overlap_cutoff</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Cluster a list of binary vectors based on lining atom overlap</span>
@@ -630,6 +652,7 @@
 
     <span class="k">return</span> <span class="n">cluster_list</span></div>
 
+
 <div class="viewcode-block" id="best_probe_type"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Funct.best_probe_type">[docs]</a><span class="k">def</span> <span class="nf">best_probe_type</span><span class="p">(</span><span class="n">beta_atom</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Parameters</span>
@@ -647,7 +670,21 @@
 
     <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="s1">&#39;Br&#39;</span><span class="p">,</span> <span class="s1">&#39;F&#39;</span><span class="p">,</span> <span class="s1">&#39;Cl&#39;</span><span class="p">,</span> <span class="s1">&#39;I&#39;</span><span class="p">,</span> <span class="s1">&#39;OA&#39;</span><span class="p">,</span> <span class="s1">&#39;SA&#39;</span><span class="p">,</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">][</span><span class="n">_best_score_index</span><span class="p">]</span></div>
 
+
 <div class="viewcode-block" id="is_pocket_connected"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Funct.is_pocket_connected">[docs]</a><span class="k">def</span> <span class="nf">is_pocket_connected</span><span class="p">(</span><span class="n">p1</span><span class="p">,</span> <span class="n">p2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check if two pockets are connected</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    p1 : AS_Pocket</span>
+<span class="sd">    p2 : AS_Pocket</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bool</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">set</span><span class="p">(</span><span class="n">p1</span><span class="o">.</span><span class="n">lining_atoms_idx</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">p2</span><span class="o">.</span><span class="n">lining_atoms_idx</span><span class="p">):</span>
         <span class="n">pocket_vector1</span> <span class="o">=</span> <span class="n">p1</span><span class="o">.</span><span class="n">lining_atoms_centroid</span> <span class="o">-</span> <span class="n">p1</span><span class="o">.</span><span class="n">centroid</span>
         <span class="n">pocket_vector2</span> <span class="o">=</span> <span class="n">p2</span><span class="o">.</span><span class="n">lining_atoms_centroid</span> <span class="o">-</span> <span class="n">p2</span><span class="o">.</span><span class="n">centroid</span>
@@ -656,14 +693,30 @@
     <span class="k">return</span> <span class="kc">False</span></div>
 
 
-<div class="viewcode-block" id="prune_dpockets"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Funct.prune_dpockets">[docs]</a><span class="k">def</span> <span class="nf">prune_dpockets</span><span class="p">(</span><span class="n">d_pocket_dict</span><span class="p">,</span> <span class="n">sample_ratio</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_prune_dpockets</span><span class="p">(</span><span class="n">d_pocket_dict</span><span class="p">,</span> <span class="n">sample_ratio</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    This is used in pruning pockets in dpockets and selecting a subset for leader follower clustering.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    d_pocket_dict : dict</span>
+<span class="sd">    sample_ratio: float</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">leader</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">labels</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">assert</span> <span class="n">sample_ratio</span> <span class="o">&lt;=</span> <span class="mf">1.0</span>
     <span class="k">for</span> <span class="n">d_pocket_idx</span><span class="p">,</span> <span class="n">pockets</span> <span class="ow">in</span> <span class="n">d_pocket_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">n_leaders</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pockets</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">sample_ratio</span><span class="p">)))</span>
+        <span class="n">n_leaders</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pockets</span><span class="p">)</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">sample_ratio</span><span class="p">)))</span>
         <span class="n">leader</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">pockets</span><span class="p">,</span> <span class="n">n_leaders</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
         <span class="n">labels</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">d_pocket_idx</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_leaders</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">leader</span><span class="p">,</span> <span class="n">labels</span></div>
+    <span class="k">return</span> <span class="n">leader</span><span class="p">,</span> <span class="n">labels</span>
+
 </pre></div>
 
            </div>

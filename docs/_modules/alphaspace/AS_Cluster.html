@@ -304,7 +304,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">parent_structure</span> <span class="o">=</span> <span class="n">parent_structure</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data_dict</span> <span class="o">=</span> <span class="n">data_dict</span>
 
-<div class="viewcode-block" id="AS_Data.update"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Data.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">data_dict</span><span class="p">):</span>
+<div class="viewcode-block" id="AS_Data.update"><a class="viewcode-back" href="../../alphaspace.html#alphaspace.AS_Cluster.AS_Data.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_dict</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">data_dict</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
@@ -449,7 +449,8 @@
 <span class="sd">        bool</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">is_active</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">idx</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">is_active</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">idx</span><span class="p">))</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">pocket</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">idx</span><span class="p">)</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">idx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -626,7 +627,8 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">_ngl_radius</span> <span class="o">=</span> <span class="mf">2.0</span>
+    <span class="n">_ngl_radius</span> <span class="o">=</span> <span class="mf">1.4</span>
+
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_idx</span><span class="p">,</span> <span class="n">snapshot_idx</span><span class="p">,</span> <span class="n">pocket_idx</span><span class="p">,</span> <span class="n">parent_structure</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_idx</span> <span class="o">=</span> <span class="n">pocket_idx</span>
@@ -818,10 +820,20 @@
 <span class="sd">        bool</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">anyone</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">is_active</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha_idx</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_noise</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">is_active</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha_idx</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">anyone</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">is_active</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha_idx</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="o">.</span><span class="n">is_active</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha_idx</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_noise</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_idx</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">xyz</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
@@ -850,7 +862,7 @@
 
         <span class="n">vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent_structure</span><span class="o">.</span><span class="n">n_atoms</span><span class="p">)</span>
 
-        <span class="n">np</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">vector</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">lining_atoms_idx</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">vector</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lining_atoms_idx</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">vector</span>
 
     <span class="nd">@property</span>
@@ -886,7 +898,19 @@
 
 <span class="sd">        color_name : str</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_structure</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">color_name</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_idx</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_noise</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="mf">0.71</span><span class="p">,</span> <span class="mf">0.71</span><span class="p">,</span> <span class="mf">0.71</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_structure</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">color</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_idx</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">color_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_noise</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;Grey&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_structure</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">color_name</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_idx</span><span class="p">)</span>
+
+
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">is_contact</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1061,7 +1085,7 @@
 <span class="sd">    It belongs to the AS_Pocket object.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">_ngl_radius</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="n">_ngl_radius</span> <span class="o">=</span> <span class="mf">0.5</span>
 
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_idx_in_pocket</span><span class="p">,</span> <span class="n">pocket</span><span class="p">:</span> <span class="n">AS_Pocket</span><span class="p">):</span>

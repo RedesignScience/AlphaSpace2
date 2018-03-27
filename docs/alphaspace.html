@@ -220,7 +220,9 @@ You can set the receptor and binder after you have initialized the universe.</p>
 <dl class="class">
 <dt id="alphaspace.AS_Universe.AS_Universe">
 <em class="property">class </em><code class="descclassname">alphaspace.AS_Universe.</code><code class="descname">AS_Universe</code><span class="sig-paren">(</span><em>receptor=None</em>, <em>binder=None</em>, <em>guess_receptor_binder=True</em>, <em>guess_by_order=True</em>, <em>config=None</em>, <em>label=''</em>, <em>keepH=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Universe.html#AS_Universe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Universe.AS_Universe" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+    <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object"
+                     title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span
+            class="pre">object</span></code></a></p>
 <dl class="method">
 <dt id="alphaspace.AS_Universe.AS_Universe.alphas">
 <code class="descname">alphas</code><span class="sig-paren">(</span><em>snapshot_idx=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Universe.html#AS_Universe.alphas"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Universe.AS_Universe.alphas" title="Permalink to this definition">¶</a></dt>
@@ -320,7 +322,10 @@ snapshot_idx</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>snapshot_idx</strong> : int</p>
+<tr class="field-odd field">
+    <th class="field-name">Parameters:</th>
+    <td class="field-body"><p class="first"><strong>surface_opacity</strong></p>
+        <p><strong>snapshot_idx</strong> : int</p>
 <p><strong>show_binder</strong> : bool</p>
 </td>
 </tr>
@@ -498,17 +503,32 @@ This process automatically removes water and other solvents
 
 <dl class="method">
 <dt id="alphaspace.AS_Universe.AS_Universe.view_alphas">
-<code class="descname">view_alphas</code><span class="sig-paren">(</span><em>snapshot_idx=0</em>, <em>active_only=True</em>, <em>opacity=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Universe.html#AS_Universe.view_alphas"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Universe.AS_Universe.view_alphas" title="Permalink to this definition">¶</a></dt>
+    <code class="descname">view_alphas</code><span class="sig-paren">(</span><em>snapshot_idx=0</em>, <em>active_only=True</em>,
+    <em>opacity=1</em>, <em>show_noise=False</em><span class="sig-paren">)</span><a class="reference internal"
+                                                                                    href="_modules/alphaspace/AS_Universe.html#AS_Universe.view_alphas"><span
+        class="viewcode-link">[source]</span></a><a class="headerlink"
+                                                    href="#alphaspace.AS_Universe.AS_Universe.view_alphas"
+                                                    title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="alphaspace.AS_Universe.AS_Universe.view_betas">
-<code class="descname">view_betas</code><span class="sig-paren">(</span><em>snapshot_idx=0</em>, <em>active_only=True</em>, <em>opacity=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Universe.html#AS_Universe.view_betas"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Universe.AS_Universe.view_betas" title="Permalink to this definition">¶</a></dt>
+    <code class="descname">view_betas</code><span class="sig-paren">(</span><em>snapshot_idx=0</em>, <em>active_only=True</em>,
+    <em>opacity=1</em>, <em>show_noise=False</em><span class="sig-paren">)</span><a class="reference internal"
+                                                                                    href="_modules/alphaspace/AS_Universe.html#AS_Universe.view_betas"><span
+        class="viewcode-link">[source]</span></a><a class="headerlink"
+                                                    href="#alphaspace.AS_Universe.AS_Universe.view_betas"
+                                                    title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="alphaspace.AS_Universe.AS_Universe.view_pocket_centers">
-<code class="descname">view_pocket_centers</code><span class="sig-paren">(</span><em>snapshot_idx=0</em>, <em>active_only=True</em>, <em>opacity=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Universe.html#AS_Universe.view_pocket_centers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Universe.AS_Universe.view_pocket_centers" title="Permalink to this definition">¶</a></dt>
+    <code class="descname">view_pocket_centers</code><span class="sig-paren">(</span><em>snapshot_idx=0</em>, <em>active_only=True</em>,
+    <em>opacity=1</em>, <em>show_noise=False</em><span class="sig-paren">)</span><a class="reference internal"
+                                                                                    href="_modules/alphaspace/AS_Universe.html#AS_Universe.view_pocket_centers"><span
+        class="viewcode-link">[source]</span></a><a class="headerlink"
+                                                    href="#alphaspace.AS_Universe.AS_Universe.view_pocket_centers"
+                                                    title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -560,7 +580,9 @@ This process automatically removes water and other solvents
 <dl class="class">
 <dt id="alphaspace.AS_Struct.AS_Structure">
 <em class="property">class </em><code class="descclassname">alphaspace.AS_Struct.</code><code class="descname">AS_Structure</code><span class="sig-paren">(</span><em>trajectory</em>, <em>structure_type: int = 2</em>, <em>parent=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Struct.html#AS_Structure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Struct.AS_Structure" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+    <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object"
+                     title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span
+            class="pre">object</span></code></a></p>
 <dl class="method">
 <dt id="alphaspace.AS_Struct.AS_Structure.atom">
 <code class="descname">atom</code><span class="sig-paren">(</span><em>idx</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Struct.html#AS_Structure.atom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Struct.AS_Structure.atom" title="Permalink to this definition">¶</a></dt>
@@ -729,7 +751,9 @@ snapshot_idx : int</p>
 <dl class="class">
 <dt id="alphaspace.AS_Cluster.AS_AlphaAtom">
 <em class="property">class </em><code class="descclassname">alphaspace.AS_Cluster.</code><code class="descname">AS_AlphaAtom</code><span class="sig-paren">(</span><em>idx</em>, <em>snapshot_idx</em>, <em>parent_structure</em>, <em>parent_pocket=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Cluster.html#AS_AlphaAtom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Cluster.AS_AlphaAtom" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+    <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object"
+                     title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span
+            class="pre">object</span></code></a></p>
 <p>This is the alpha atom container, which is the constituents of the pocket object.</p>
 <p>This object only contains reference of alpha atom id, and all info is stored in the array you can access by methods.</p>
 <dl class="attribute">
@@ -927,7 +951,9 @@ True if lining_atom_asa &gt; 0</p>
 <dl class="class">
 <dt id="alphaspace.AS_Cluster.AS_BetaAtom">
 <em class="property">class </em><code class="descclassname">alphaspace.AS_Cluster.</code><code class="descname">AS_BetaAtom</code><span class="sig-paren">(</span><em>alpha_idx_in_pocket</em>, <em>pocket: alphaspace.AS_Cluster.AS_Pocket</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Cluster.html#AS_BetaAtom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Cluster.AS_BetaAtom" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+    <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object"
+                     title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span
+            class="pre">object</span></code></a></p>
 <p>This is the container for Beta atom, which is simply a collection of alpha atoms.</p>
 <p>It belongs to the AS_Pocket object.</p>
 <dl class="attribute">
@@ -1069,7 +1095,9 @@ scores ={‘total’, “gauss_1”,”gauss_2”, “repulsion”, “hydrophob
 <dl class="class">
 <dt id="alphaspace.AS_Cluster.AS_D_Pocket">
 <em class="property">class </em><code class="descclassname">alphaspace.AS_Cluster.</code><code class="descname">AS_D_Pocket</code><span class="sig-paren">(</span><em>parent_structure</em>, <em>pocket_indices=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Cluster.html#AS_D_Pocket"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Cluster.AS_D_Pocket" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+    <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object"
+                     title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span
+            class="pre">object</span></code></a></p>
 <dl class="method">
 <dt id="alphaspace.AS_Cluster.AS_D_Pocket.activate">
 <code class="descname">activate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Cluster.html#AS_D_Pocket.activate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Cluster.AS_D_Pocket.activate" title="Permalink to this definition">¶</a></dt>
@@ -1160,7 +1188,9 @@ scores ={‘total’, “gauss_1”,”gauss_2”, “repulsion”, “hydrophob
 <dl class="class">
 <dt id="alphaspace.AS_Cluster.AS_Data">
 <em class="property">class </em><code class="descclassname">alphaspace.AS_Cluster.</code><code class="descname">AS_Data</code><span class="sig-paren">(</span><em>data_dict</em>, <em>parent_structure=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Cluster.html#AS_Data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Cluster.AS_Data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+    <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object"
+                     title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span
+            class="pre">object</span></code></a></p>
 <dl class="method">
 <dt id="alphaspace.AS_Cluster.AS_Data.activate">
 <code class="descname">activate</code><span class="sig-paren">(</span><em>alpha_idx</em>, <em>snapshot_idx</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Cluster.html#AS_Data.activate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Cluster.AS_Data.activate" title="Permalink to this definition">¶</a></dt>
@@ -1250,18 +1280,18 @@ scores ={‘total’, “gauss_1”,”gauss_2”, “repulsion”, “hydrophob
 :return: np.ndarray</p>
 </dd></dl>
 
-    <dl class="method">
-        <dt id="alphaspace.AS_Cluster.AS_Data.update">
-            <code class="descname">update</code><span class="sig-paren">(</span><em>data_dict</em><span
-                class="sig-paren">)</span><a class="reference internal"
-                                             href="_modules/alphaspace/AS_Cluster.html#AS_Data.update"><span
-                class="viewcode-link">[source]</span></a><a class="headerlink"
-                                                            href="#alphaspace.AS_Cluster.AS_Data.update"
-                                                            title="Permalink to this definition">¶</a></dt>
-        <dd></dd>
-    </dl>
+        <dl class="method">
+            <dt id="alphaspace.AS_Cluster.AS_Data.update">
+                <code class="descname">update</code><span class="sig-paren">(</span><em>data_dict</em><span
+                    class="sig-paren">)</span><a class="reference internal"
+                                                 href="_modules/alphaspace/AS_Cluster.html#AS_Data.update"><span
+                    class="viewcode-link">[source]</span></a><a class="headerlink"
+                                                                href="#alphaspace.AS_Cluster.AS_Data.update"
+                                                                title="Permalink to this definition">¶</a></dt>
+            <dd></dd>
+        </dl>
 
-    <dl class="method">
+        <dl class="method">
 <dt id="alphaspace.AS_Cluster.AS_Data.xyz">
 <code class="descname">xyz</code><span class="sig-paren">(</span><em>alpha_idx</em>, <em>snapshot_idx</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Cluster.html#AS_Data.xyz"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Cluster.AS_Data.xyz" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the coordinate of an entry
@@ -1274,7 +1304,9 @@ scores ={‘total’, “gauss_1”,”gauss_2”, “repulsion”, “hydrophob
 <dl class="class">
 <dt id="alphaspace.AS_Cluster.AS_Pocket">
 <em class="property">class </em><code class="descclassname">alphaspace.AS_Cluster.</code><code class="descname">AS_Pocket</code><span class="sig-paren">(</span><em>alpha_idx</em>, <em>snapshot_idx</em>, <em>pocket_idx</em>, <em>parent_structure</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Cluster.html#AS_Pocket"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Cluster.AS_Pocket" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+    <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object"
+                     title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span
+            class="pre">object</span></code></a></p>
 <p>This is the pocket container for the topological information of a pocket
 A pocket is a collection of alpha atoms clustered by average linkage</p>
 <p>Initialize pocket object by calling .pockets or .pocket method in AS_Universe.</p>
@@ -1368,7 +1400,15 @@ you can use the build in methods to access the data such as contact, occupancy, 
 </table>
 </dd></dl>
 
-<dl class="attribute">
+        <dl class="attribute">
+            <dt id="alphaspace.AS_Cluster.AS_Pocket.color_name">
+                <code class="descname">color_name</code><a class="headerlink"
+                                                           href="#alphaspace.AS_Cluster.AS_Pocket.color_name"
+                                                           title="Permalink to this definition">¶</a></dt>
+            <dd></dd>
+        </dl>
+
+        <dl class="attribute">
 <dt id="alphaspace.AS_Cluster.AS_Pocket.config">
 <code class="descname">config</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_Pocket.config" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the configuration container</p>
@@ -1493,7 +1533,15 @@ false requires all alphas to be active.</p>
 </table>
 </dd></dl>
 
-<dl class="method">
+        <dl class="attribute">
+            <dt id="alphaspace.AS_Cluster.AS_Pocket.is_noise">
+                <code class="descname">is_noise</code><a class="headerlink"
+                                                         href="#alphaspace.AS_Cluster.AS_Pocket.is_noise"
+                                                         title="Permalink to this definition">¶</a></dt>
+            <dd></dd>
+        </dl>
+
+        <dl class="method">
 <dt id="alphaspace.AS_Cluster.AS_Pocket.jaccard_similarity">
 <code class="descname">jaccard_similarity</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span> &#x2192; float<a class="reference internal" href="_modules/alphaspace/AS_Cluster.html#AS_Pocket.jaccard_similarity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Cluster.AS_Pocket.jaccard_similarity" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -1518,15 +1566,15 @@ false requires all alphas to be active.</p>
 <code class="descname">lining_atoms_idx</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_Pocket.lining_atoms_idx" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-    <dl class="attribute">
-        <dt id="alphaspace.AS_Cluster.AS_Pocket.lining_atoms_vector">
-            <code class="descname">lining_atoms_vector</code><a class="headerlink"
-                                                                href="#alphaspace.AS_Cluster.AS_Pocket.lining_atoms_vector"
-                                                                title="Permalink to this definition">¶</a></dt>
-        <dd></dd>
-    </dl>
+        <dl class="attribute">
+            <dt id="alphaspace.AS_Cluster.AS_Pocket.lining_atoms_vector">
+                <code class="descname">lining_atoms_vector</code><a class="headerlink"
+                                                                    href="#alphaspace.AS_Cluster.AS_Pocket.lining_atoms_vector"
+                                                                    title="Permalink to this definition">¶</a></dt>
+            <dd></dd>
+        </dl>
 
-    <dl class="attribute">
+        <dl class="attribute">
 <dt id="alphaspace.AS_Cluster.AS_Pocket.lining_atoms_xyz">
 <code class="descname">lining_atoms_xyz</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_Pocket.lining_atoms_xyz" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -1828,7 +1876,9 @@ Most of AS_Data runs under the hood so you can safely ignore this part until nee
 <dl class="class">
 <dt id="alphaspace.AS_Cluster.AS_community">
 <em class="property">class </em><code class="descclassname">alphaspace.AS_Cluster.</code><code class="descname">AS_community</code><span class="sig-paren">(</span><em>core=None</em>, <em>aux=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Cluster.html#AS_community"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Cluster.AS_community" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+    <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object"
+                     title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span
+            class="pre">object</span></code></a></p>
 <dl class="attribute">
 <dt id="alphaspace.AS_Cluster.AS_community.aux">
 <code class="descname">aux</code><a class="headerlink" href="#alphaspace.AS_Cluster.AS_community.aux" title="Permalink to this definition">¶</a></dt>
@@ -1875,7 +1925,9 @@ changing the attributes or loading from a new config.ini file.</p>
 <dl class="class">
 <dt id="alphaspace.AS_Config.AS_Config">
 <em class="property">class </em><code class="descclassname">alphaspace.AS_Config.</code><code class="descname">AS_Config</code><span class="sig-paren">(</span><em>config_path=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Config.html#AS_Config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Config.AS_Config" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+    <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object"
+                     title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span
+            class="pre">object</span></code></a></p>
 <dl class="staticmethod">
 <dt id="alphaspace.AS_Config.AS_Config.color">
 <em class="property">static </em><code class="descname">color</code><span class="sig-paren">(</span><em>idx</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Config.html#AS_Config.color"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Config.AS_Config.color" title="Permalink to this definition">¶</a></dt>
@@ -1938,7 +1990,9 @@ changing the attributes or loading from a new config.ini file.</p>
 <dl class="class">
 <dt id="alphaspace.AS_Funct.Task">
 <em class="property">class </em><code class="descclassname">alphaspace.AS_Funct.</code><code class="descname">Task</code><span class="sig-paren">(</span><em>*args</em>, <em>info=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Funct.html#Task"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Funct.Task" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+    <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object"
+                     title="(in Python v3.6)"><code class="xref py py-class docutils literal"><span
+            class="pre">object</span></code></a></p>
 </dd></dl>
 
 <dl class="function">
@@ -2099,19 +2153,26 @@ AAC are set to resemble Carbon with a radii - 0.17</p>
 <dl class="function">
 <dt id="alphaspace.AS_Funct.is_pocket_connected">
 <code class="descclassname">alphaspace.AS_Funct.</code><code class="descname">is_pocket_connected</code><span class="sig-paren">(</span><em>p1</em>, <em>p2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/alphaspace/AS_Funct.html#is_pocket_connected"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#alphaspace.AS_Funct.is_pocket_connected" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-    <dl class="function">
-        <dt id="alphaspace.AS_Funct.prune_dpockets">
-            <code class="descclassname">alphaspace.AS_Funct.</code><code class="descname">prune_dpockets</code><span
-                class="sig-paren">(</span><em>d_pocket_dict</em>, <em>sample_ratio=1</em><span
-                class="sig-paren">)</span><a class="reference internal"
-                                             href="_modules/alphaspace/AS_Funct.html#prune_dpockets"><span
-                class="viewcode-link">[source]</span></a><a class="headerlink"
-                                                            href="#alphaspace.AS_Funct.prune_dpockets"
-                                                            title="Permalink to this definition">¶</a></dt>
-        <dd></dd>
-    </dl>
+    <dd><p>Check if two pockets are connected</p>
+        <table class="docutils field-list" frame="void" rules="none">
+            <col class="field-name"/>
+            <col class="field-body"/>
+            <tbody valign="top">
+            <tr class="field-odd field">
+                <th class="field-name">Parameters:</th>
+                <td class="field-body"><p class="first"><strong>p1</strong> : AS_Pocket</p>
+                    <p><strong>p2</strong> : AS_Pocket</p>
+                </td>
+            </tr>
+            <tr class="field-even field">
+                <th class="field-name">Returns:</th>
+                <td class="field-body"><p class="first last">bool</p>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </dd>
+</dl>
 
 <dl class="function">
 <dt id="alphaspace.AS_Funct.screenContact">
