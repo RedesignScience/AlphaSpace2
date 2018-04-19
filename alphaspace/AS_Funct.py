@@ -11,6 +11,7 @@ from alphaspace.AS_Cluster import AS_Data, AS_Snapshot
 import multiprocessing as mp
 import hdbscan
 
+
 class Consumer(mp.Process):
     """
     Consumer for multiprocessing
@@ -261,7 +262,6 @@ def _tessellation(**kwargs):
     except:
         cluster_method = 'average_linkage'
 
-
     # Generate Raw Tessellation simplexes
     raw_alpha_lining_idx = Delaunay(receptor_xyz).simplices
     # Take coordinates from xyz file
@@ -282,13 +282,12 @@ def _tessellation(**kwargs):
 
     filtered_alpha_xyz = np.take(raw_alpha_xyz, filtered_alpha_idx, axis=0)
 
-
     if cluster_method == 'average_linkage':
         # cluster the remaining vertices to assign index of belonging pockets
         zmat = linkage(filtered_alpha_xyz, method='average')
 
         alpha_pocket_index = fcluster(zmat, config.clust_dist / 10,
-                                  criterion='distance') - 1  # because cluster index start from 1
+                                      criterion='distance') - 1  # because cluster index start from 1
     elif cluster_method == 'hdbscan':
         import hdbscan
         clusterer = hdbscan.HDBSCAN(metric='euclidean', min_samples=config.hdbscan_min_samples)
@@ -297,9 +296,6 @@ def _tessellation(**kwargs):
 
     else:
         raise Exception('Known Clustering Method: {}'.format(cluster_method))
-
-
-
 
     # Load trajectories
     filtered_lining_xyz = np.take(receptor_xyz, alpha_lining, axis=0)
@@ -356,7 +352,6 @@ def _tessellation(**kwargs):
 
     print('{} snapshot processed'.format(snapshot_idx + 1))
     return data
-
 
 
 def _tessellation_mp(universe, frame_range=None, cpu=None):
@@ -552,4 +547,3 @@ def _prune_dpockets(d_pocket_dict, sample_ratio=1.0):
         leader.extend(np.random.choice(pockets, n_leaders, replace=False))
         labels.extend([d_pocket_idx] * n_leaders)
     return leader, labels
-

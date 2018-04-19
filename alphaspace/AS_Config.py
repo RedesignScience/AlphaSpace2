@@ -3,6 +3,8 @@ This is the default configuration container for AlphaSpace.
 
 The AS_Config is loaded automatically when initializing AS_Universe, you can modify the content by
 changing the attributes or loading from a new config.ini file.
+
+
 """
 
 import configparser
@@ -145,7 +147,7 @@ class AS_Config(object):
             self.use_asa = self.config.getboolean('options', 'use_asa')
             self.screen_out_subsurf = self.config.getboolean('options', 'screen_out_subsurf')
             self.max_desolv_perc = self.config.getfloat('options', 'max_desolv_perc')
-            self.max_desolv_perc = self.config.getfloat('options', 'max_desolv_perc')
+            self.cluster_method = self.config.get('options', 'cluster_method')
 
             self.min_r = self.config.getfloat('parameters', 'min_r')
             self.max_r = self.config.getfloat('parameters', 'max_r')
