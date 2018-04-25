@@ -108,11 +108,7 @@ class AS_Universe(object):
         return "Receptor of {} residues {} atoms | Binder of {} residues {} atoms".format(rec_res,
                                                                                           rec_atm,
                                                                                           bind_res,
-                                                                      bind_atm)
-
-
-
-
+                                                                                          bind_atm)
 
     @property
     def data(self):
@@ -198,7 +194,8 @@ class AS_Universe(object):
         return self._d_pockets[i]
 
     def pockets(self, snapshot_idx: int = 0, active_only: bool = False) -> list:
-        self._pocket_list[snapshot_idx] = self.pocket_list(snapshot_idx, active_only)
+        self._pocket_list[snapshot_idx] = self.pocket_list(
+            snapshot_idx, active_only)
         return self._pocket_list[snapshot_idx]
 
     def alphas(self, snapshot_idx=0):
@@ -234,7 +231,8 @@ class AS_Universe(object):
         :return: bool, if any macro molecule were found.
         """
         if traj is None:
-            raise Exception("Cannot guess receptor and binder, no structure detected")
+            raise Exception(
+                "Cannot guess receptor and binder, no structure detected")
         molecule_list = []
         # remove solvent and divide into molecules. This will guess which one is the
         for molecule in traj.topology.find_molecules():
@@ -247,18 +245,20 @@ class AS_Universe(object):
             molecule_list.sort(key=len, reverse=True)
 
         if len(molecule_list) > 1:
-            self.set_receptor(traj.atom_slice(np.array([atom.index for atom in molecule_list[0]], dtype=int)))
-            self.set_binder(traj.atom_slice(np.array([atom.index for atom in molecule_list[1]], dtype=int)))
+            self.set_receptor(traj.atom_slice(
+                np.array([atom.index for atom in molecule_list[0]], dtype=int)))
+            self.set_binder(traj.atom_slice(
+                np.array([atom.index for atom in molecule_list[1]], dtype=int)))
             return True
         elif len(molecule_list) == 1:
-            self.set_receptor(traj.atom_slice([atom.index for atom in molecule_list[0]]))
+            self.set_receptor(traj.atom_slice(
+                [atom.index for atom in molecule_list[0]]))
             self.binder = None
             return False
         else:
             return False
 
     def set_binder(self, structure, append=False, keepH=False):
-
         """
         set binder (ligand) in session
         :param structure: object, trajectory
@@ -272,24 +272,28 @@ class AS_Universe(object):
             return
 
         if not keepH:
-            non_h_idx = [a.index for a in structure.topology.atoms if a.element != element.hydrogen]
+            non_h_idx = [
+                a.index for a in structure.topology.atoms if a.element != element.hydrogen]
             structure.atom_slice(non_h_idx, inplace=True)
 
         if append and (self.binder is not None):
             x = self.binder.trajectory.join(structure, check_topology=True)
             self.binder.trajectory = x
         else:
-            self.binder = AS_Structure(structure, structure_type=1, parent=self)
+            self.binder = AS_Structure(
+                structure, structure_type=1, parent=self)
 
     def remove_h(self):
         from mdtraj.core import element
 
         if self.receptor:
-            non_h_idx = [a.index for a in self.receptor.topology.atoms if a.element != element.hydrogen]
+            non_h_idx = [
+                a.index for a in self.receptor.topology.atoms if a.element != element.hydrogen]
             self.receptor.traj.atom_slice(non_h_idx, inplace=True)
 
         if self.binder:
-            non_h_idx = [a.index for a in self.binder.topology.atoms if a.element != element.hydrogen]
+            non_h_idx = [
+                a.index for a in self.binder.topology.atoms if a.element != element.hydrogen]
             self.binder.traj.atom_slice(non_h_idx, inplace=True)
 
     def set_receptor(self, structure, append=False, keepH=False):
@@ -305,23 +309,24 @@ class AS_Universe(object):
             return False
 
         if not keepH:
-            non_h_idx = structure.topology.select_atom_indices(selection='heavy')
+            non_h_idx = structure.topology.select_atom_indices(
+                selection='heavy')
             structure.atom_slice(non_h_idx, inplace=True)
 
         if append and (self.receptor is not None):
             x = self.receptor.trajectory.join(structure, check_topology=True)
             self.receptor.trajectory = x
         else:
-            self.receptor = AS_Structure(structure, structure_type=0, parent=self)
+            self.receptor = AS_Structure(
+                structure, structure_type=0, parent=self)
 
     def run_alphaspace(self, frame_range=None):
         self.run_alphaspace_mp(cpu=1, frame_range=frame_range)
 
-    def run_alphaspace_mp(self, frame_range=None, cpu=None, ):
+    def run_alphaspace_mp(self, frame_range=None, cpu=None):
         _tessellation_mp(self, cpu=cpu, frame_range=frame_range)
 
     def _get_face_atoms(self):
-
         """
         Calculate the snapshot interface atom.
         The interface atom is defined as whose ASA is reduced with introduction of ligand.
@@ -335,21 +340,22 @@ class AS_Universe(object):
 
         complex_snapshot_sasa = mdtraj.shrake_rupley(complex_snapshot)
 
-        sasa_diff = receptor_snapshot_sasa - complex_snapshot_sasa[:, :self.receptor.n_atoms]
+        sasa_diff = receptor_snapshot_sasa - \
+                    complex_snapshot_sasa[:, :self.receptor.n_atoms]
 
         return sasa_diff > 0
-
-
 
     def _gen_communities_legacy(self):
         import networkx
         self._communities = {}
         for snapshot_idx in range(self.n_frames):
             pocket_graph = networkx.Graph()
-            pocket_graph.add_nodes_from(self.pockets(snapshot_idx, active_only=False))
+            pocket_graph.add_nodes_from(
+                self.pockets(snapshot_idx, active_only=False))
 
             contact_pair = np.array(np.where(combination_intersection_count(
-                [pocket.lining_atoms_idx for pocket in self.pockets(snapshot_idx, active_only=False)],
+                [pocket.lining_atoms_idx for pocket in self.pockets(
+                    snapshot_idx, active_only=False)],
                 self.receptor.n_atoms) > 0)).transpose()
 
             for pi, pj in contact_pair:
@@ -359,7 +365,8 @@ class AS_Universe(object):
                                                               {'aux', 'minor'}}:
                     pocket_vector1 = p1.lining_atoms_centroid - p1.centroid
                     pocket_vector2 = p2.lining_atoms_centroid - p2.centroid
-                    if getCosAngleBetween(pocket_vector1, pocket_vector2) > 0:  # pocket vector facing inwards
+                    # pocket vector facing inwards
+                    if getCosAngleBetween(pocket_vector1, pocket_vector2) > 0:
                         pocket_graph.add_edge(p1, p2)
 
             communities = []
@@ -407,14 +414,16 @@ class AS_Universe(object):
 
         self._communities = {}
         for snapshot_idx in self.snapshots_indices:
-            pockets = sorted(self.pockets(snapshot_idx), reverse=True, key=lambda p: p.space)
+            pockets = sorted(self.pockets(snapshot_idx),
+                             reverse=True, key=lambda p: p.space)
 
             communities = []
 
             if pockets[0].space < 100:
                 cores = [pockets[0]]
             else:
-                cores = [pocket for pocket in pockets if pocket.space > core_cutoff]
+                cores = [
+                    pocket for pocket in pockets if pocket.space > core_cutoff]
 
             if len(cores) > 1:
                 core_graph = nx.Graph()
@@ -458,7 +467,8 @@ class AS_Universe(object):
             interface_atom_idx = np.sort(self._get_face_atoms())
             for snapshot_idx in range(self.n_frames):
                 for pocket in self.pockets(snapshot_idx):
-                    atom_list = np.concatenate([pocket.lining_atoms_idx, interface_atom_idx])
+                    atom_list = np.concatenate(
+                        [pocket.lining_atoms_idx, interface_atom_idx])
                     if len(np.unique(atom_list)) == len(atom_list):
                         self.data[pocket.alpha_idx, 11] = 0
 
@@ -502,12 +512,14 @@ class AS_Universe(object):
         print("Clustering pockets")
 
         # extract lining atom into list
-        lining_atom_indices = [pocket.lining_atoms_idx for pocket in pockets_all]
+        lining_atom_indices = [
+            pocket.lining_atoms_idx for pocket in pockets_all]
 
         d_pocket_p_idx = cluster_by_overlap(lining_atom_indices, self.receptor.n_atoms,
                                             self.config.dpocket_cluster_cutoff)
 
-        d_pockets = dict(list(enumerate(sorted(d_pocket_p_idx.values(), reverse=True, key=len))))
+        d_pockets = dict(
+            list(enumerate(sorted(d_pocket_p_idx.values(), reverse=True, key=len))))
         # fill pocket list
         for key, idx in d_pockets.items():
             d_pockets[key] = [pockets_all[i] for i in idx]
@@ -542,7 +554,8 @@ class AS_Universe(object):
         from collections import defaultdict
 
         # sample 20 snapshots from the universe
-        sampled_snapshot_idx = np.random.choice(self.n_frames, sample_frames, False)
+        sampled_snapshot_idx = np.random.choice(
+            self.n_frames, sample_frames, False)
         leader_pockets = []
         for ss_idx in sampled_snapshot_idx:
             for pocket in self.pockets(ss_idx, active_only=False):
@@ -562,10 +575,12 @@ class AS_Universe(object):
 
         # sample and generate a pruned pocket list with labels of leader index.
 
-        leader_pockets, leader_label = _prune_dpockets(leader_dpocket_dict, sample_ratio)
+        leader_pockets, leader_label = _prune_dpockets(
+            leader_dpocket_dict, sample_ratio)
 
         # create array for all pockets' lining atoms
-        leader_pockets_atom_array = np.array([pocket.lining_atoms_vector for pocket in leader_pockets])
+        leader_pockets_atom_array = np.array(
+            [pocket.lining_atoms_vector for pocket in leader_pockets])
 
         follower_dpocket_dict = defaultdict(lambda: [])
 
@@ -578,15 +593,18 @@ class AS_Universe(object):
 
             for pocket in current_pockets:
                 pocket_lining_atom_array = pocket.lining_atoms_vector
-                overlap = np.dot(leader_pockets_atom_array, pocket_lining_atom_array)
-                union = np.count_nonzero(leader_pockets_atom_array + pocket_lining_atom_array, axis=1)
+                overlap = np.dot(leader_pockets_atom_array,
+                                 pocket_lining_atom_array)
+                union = np.count_nonzero(
+                    leader_pockets_atom_array + pocket_lining_atom_array, axis=1)
                 tanimoto = overlap / union
 
                 max_idx = np.argmax(tanimoto)
 
                 new_pocket_d_idx.append(leader_label[int(max_idx)])
 
-                follower_dpocket_dict[leader_label[int(max_idx)]].append(pocket)
+                follower_dpocket_dict[leader_label[int(max_idx)]].append(
+                    pocket)
             print("clustering dpocket in {}".format(ss_idx))
 
         self._d_pockets = follower_dpocket_dict
@@ -630,11 +648,15 @@ class AS_Universe(object):
         time_overlap = np.zeros((num_dp, num_dp), dtype=float)
         for i, j in combinations(range(num_dp), 2):
             # calculate the union overlap
-            union_overlap_vector = np.logical_and(d_pocket_lining_atom_unions[i], d_pocket_lining_atom_unions[j])
-            union_overlap[i, j] = union_overlap[j, i] = np.count_nonzero(union_overlap_vector)
+            union_overlap_vector = np.logical_and(
+                d_pocket_lining_atom_unions[i], d_pocket_lining_atom_unions[j])
+            union_overlap[i, j] = union_overlap[j,
+                                                i] = np.count_nonzero(union_overlap_vector)
             # calculate the time overlap
-            time_overlap_vector = np.logical_and(d_pocket_lining_atom_matrices[i], d_pocket_lining_atom_matrices[j])
-            time_overlap[i, j] = time_overlap[j, i] = np.average(np.sum(time_overlap_vector, axis=1, dtype=float))
+            time_overlap_vector = np.logical_and(
+                d_pocket_lining_atom_matrices[i], d_pocket_lining_atom_matrices[j])
+            time_overlap[i, j] = time_overlap[j, i] = np.average(
+                np.sum(time_overlap_vector, axis=1, dtype=float))
 
         return union_overlap, time_overlap
 
@@ -695,6 +717,8 @@ class AS_Universe(object):
             pdbqt_file, truncation_length=self.receptor.n_atoms)
 
     def calculate_vina_score(self, snapshot_idx=0, active_only=False):
+        # TODO
+
         """
         Calculate the vina score for all beta atoms in the given snapshot.
         This action requires:
@@ -764,7 +788,8 @@ class AS_Universe(object):
         self._ngl_view = nv.show_mdtraj(self.receptor.traj)
 
         if surface_opacity > 0:
-            self._ngl_view.add_surface(selection='protein', opacity=surface_opacity, color='white')
+            self._ngl_view.add_surface(
+                selection='protein', opacity=surface_opacity, color='white')
 
         if self.binder and show_binder:
             self._ngl_view.add_trajectory(self.binder.traj)
@@ -805,10 +830,12 @@ class AS_Universe(object):
 
         """
         if not self._ngl_added_component:
-            self._ngl_added_component = list(range(self._ngl_view.n_components))
+            self._ngl_added_component = list(
+                range(self._ngl_view.n_components))
 
         if type(item) == list:
-            self._ngl_view.shape.add_buffer("sphere", position=item, color=color, radius=[radius])
+            self._ngl_view.shape.add_buffer(
+                "sphere", position=item, color=color, radius=[radius])
         else:
             _radius = radius if radius is not None else item._ngl_radius
             self._ngl_view.shape.add_buffer("sphere", position=list(item.centroid * 10), color=color,
@@ -822,7 +849,8 @@ class AS_Universe(object):
     def _draw_cylinder(self, position1, position2, color, radius, opacity=1.0):
 
         if not self._ngl_added_component:
-            self._ngl_added_component = list(range(self._ngl_view.n_components))
+            self._ngl_added_component = list(
+                range(self._ngl_view.n_components))
 
         _ngl_component_idx = self._ngl_added_component[-1] + 1
         self._ngl_added_component.append(_ngl_component_idx)
@@ -832,7 +860,6 @@ class AS_Universe(object):
         self._ngl_view._remote_call('updateRepresentationForComponent', target='Widget', args=[0, _ngl_component_idx],
                                     kwargs={'opacity': opacity})
         return _ngl_component_idx
-
 
     def draw_pocket_graph(self, snapshot_idx=0, active_only=True):
         pocket_graph = self._connect_pockets(snapshot_idx)
@@ -846,10 +873,12 @@ class AS_Universe(object):
 
     def _hide_item(self, item):
         if item is int:
-            self._ngl_view._remote_call('removeRepresentation', target='Widget', args=[item._ngl_component_idx, 0])
+            self._ngl_view._remote_call('removeRepresentation', target='Widget', args=[
+                item._ngl_component_idx, 0])
         else:
             try:
-                self._ngl_view._remote_call('removeRepresentation', target='Widget', args=[item, 0])
+                self._ngl_view._remote_call(
+                    'removeRepresentation', target='Widget', args=[item, 0])
             except:
                 raise TypeError('Item is of the wrong type')
 
@@ -862,6 +891,8 @@ class AS_Universe(object):
                 self._draw_as_sphere(alpha, color=color, opacity=opacity)
 
     def view_betas(self, snapshot_idx=0, active_only=True, opacity=1, show_noise=False):
+
+        # TODO 
 
         for pocket in self.pockets(snapshot_idx, active_only):
             if not show_noise and pocket.is_noise:
