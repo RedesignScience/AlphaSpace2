@@ -6,7 +6,9 @@ except:
     print("nglview not found, jupyter notebook visualization will be disabled")
 
 from .AS_Config import _DEFAULT_CONFIG_FILE_PATH, AS_Config
-from .AS_Universe import AS_Universe, load
+from .AS_Universe import AS_Universe
+
+from .AS_IO import load_from_file, _load
 
 from .AS_Vina import *
 

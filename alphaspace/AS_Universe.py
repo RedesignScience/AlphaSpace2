@@ -39,22 +39,23 @@ You can checkout more on how to load and select molecular object in the receptor
 
 """
 
-import numpy as np
+from itertools import combinations
+
+import networkx as nx
+import nglview as nv
 
 from .AS_Cluster import AS_D_Pocket
 from .AS_Config import AS_Config
-from .AS_Funct import _tessellation_mp, getCosAngleBetween, combination_intersection_count
 from .AS_Struct import AS_Structure
-
-import nglview as nv
-
-import networkx as nx
-from itertools import combinations, combinations_with_replacement
+from .AS_Funct import _tessellation_mp, getCosAngleBetween, combination_intersection_count
 from .AS_Funct import is_pocket_connected
+from alphaspace.AS_Snapshot import *
+from collections import OrderedDict
+from mdtraj.geometry.sasa import shrake_rupley
 
 
 # noinspection PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit,PyAttributeOutsideInit
-class AS_Universe(object):
+class AS_Universe_BK(object):
     def __init__(self, receptor=None, binder=None, guess_receptor_binder=True, guess_by_order=True, config=None,
                  label="", keepH=False):
         """
@@ -108,11 +109,7 @@ class AS_Universe(object):
         return "Receptor of {} residues {} atoms | Binder of {} residues {} atoms".format(rec_res,
                                                                                           rec_atm,
                                                                                           bind_res,
-                                                                      bind_atm)
-
-
-
-
+                                                                                          bind_atm)
 
     @property
     def data(self):
@@ -331,15 +328,13 @@ class AS_Universe(object):
 
         complex_snapshot = receptor_snapshot.stack(self.binder.traj)
 
-        receptor_snapshot_sasa = mdtraj.shrake_rupley(receptor_snapshot)
+        receptor_snapshot_sasa = shrake_rupley(receptor_snapshot)
 
-        complex_snapshot_sasa = mdtraj.shrake_rupley(complex_snapshot)
+        complex_snapshot_sasa = shrake_rupley(complex_snapshot)
 
         sasa_diff = receptor_snapshot_sasa - complex_snapshot_sasa[:, :self.receptor.n_atoms]
 
         return sasa_diff > 0
-
-
 
     def _gen_communities_legacy(self):
         import networkx
@@ -681,66 +676,6 @@ class AS_Universe(object):
         with open(as_file, 'wb') as handle:
             pickle.dump(self, handle)
 
-    def set_pdbqt(self, pdbqt_file):
-        """
-        Load pdbqt file of the receptor protein.
-
-        Parameters
-        ----------
-        pdbqt_file : str
-            path of pdbqt file
-        """
-        from .AS_Vina import pre_process_pdbqt
-        self.pdbqt_prot_coord, self.prot_types, self.hp_type, self.acc_type, self.don_type = pre_process_pdbqt(
-            pdbqt_file, truncation_length=self.receptor.n_atoms)
-
-    def calculate_vina_score(self, snapshot_idx=0, active_only=False):
-        """
-        Calculate the vina score for all beta atoms in the given snapshot.
-        This action requires:
-
-        1. Main tessellation was performed on the given snapshot, so beta atoms can be generated.
-        2. Protein atom types must be specified by assigning pdbqt file in `.load_pdbqt()`
-
-        After finishing this calculation, you can access the score through beta atom or pocket via method:
-        'beta.score' or 'pocket.score'
-
-        See Also
-        --------
-        load_pdbqt : load atom type from pdbqt file.
-
-
-        Parameters
-        ----------
-        snapshot_idx : int
-            index of snapshot you wish to calculate
-        """
-        from .AS_Vina import get_probe_score
-
-        betas = []
-        probe_coords = []
-        for pocket in self.pockets(snapshot_idx, active_only):
-            for beta in pocket.betas:
-                betas.append(beta)
-                probe_coords.append(beta.centroid)
-
-        prb_dict = get_probe_score(self.receptor.traj.xyz[snapshot_idx] * 10, self.prot_types, self.hp_type,
-                                   self.acc_type, self.don_type,
-                                   probe_coords=np.array(probe_coords) * 10)
-
-        prb_score = []
-        prb_element = []
-
-        for i in prb_dict:
-            prb_element.append(i)
-            prb_score.append(prb_dict[i])
-
-        prb_score = np.array(prb_score).transpose((1, 0, 2))
-
-        for i, beta in enumerate(betas):
-            # beta.prb_element = prb_element
-            beta._vina_score = prb_score[i]
-
     """
     Visualization methods
     """
@@ -833,7 +768,6 @@ class AS_Universe(object):
                                     kwargs={'opacity': opacity})
         return _ngl_component_idx
 
-
     def draw_pocket_graph(self, snapshot_idx=0, active_only=True):
         pocket_graph = self._connect_pockets(snapshot_idx)
         for p1, p2 in pocket_graph.edges:
@@ -882,38 +816,68 @@ class AS_Universe(object):
         self._ngl_view.clear_representations()
 
 
-def load(traj, top=None, label=None):
+class AS_Universe:
+    beta_cluster_dist = AS_Snapshot.beta_cluster_dist
+    pocket_cluster_dist = AS_Snapshot.pocket_cluster_dist
+
+    def __init__(self, snapshots_dict=None):
+        self.snapshots = OrderedDict()
+        if snapshots_dict is not None:
+            self.update(snapshots_dict)
+
+    def __iter__(self):
+        return self.snapshots.__iter__()
+
+    def __getitem__(self, item):
+        return self.snapshots.__getitem__(item)
+
+    def update(self, snapshots_dict):
+        self.snapshots.update(snapshots_dict)
+
+    def sort(self, reverse=False):
+        self.snapshots = OrderedDict(sorted(self.snapshots.items(), key=lambda x: x[0], reverse=reverse))
+
+    def beta_xyz(self):
+        """
+        First Generate a mapping of beta atom to snapshot index and per snapshot beta index,
+        then
+
+        Returns
+        -------
+
+        """
+
+        self.sort()
+        beta_mapping = []
+        beta_xyz = []
+        for i, snapshot in self.snapshots.items():
+            # print(snapshot)
+            beta_mapping.extend([[i, beta_idx] for beta_idx in range(len(snapshot.beta_xyz))])
+            beta_xyz.extend(snapshot.beta_xyz)
+            # print(beta_xyz)
+        self.beta_mapping = np.array(beta_mapping)
+
+        return np.array(beta_xyz)
+
+    def map_beta(self, beta_index):
+
+        return self.beta_mapping[beta_index]
+
+        #
+        #
+        # beta_dist_mat = pairwise_distances(beta_xyz,n_jobs=-1)
+        #
+        # zmat = average(beta_dist_mat)
+        #
+        # clust_dist = self.beta_cluster_dist if clust_dist is None else clust_dist
+        #
+        # d_pocket_labels = fcluster(zmat, clust_dist/10, criterion='distance') - 1
+        #
+        # d_pocket_content = group(d_pocket_labels)
+        #
+        # print(d_pocket_content)
+
     """
-    Load a file into alphaspace and return the AS_Universe object
-
-    Parameters
-    ----------
-
-    file : str
-        file path
-
-    Returns
-    -------
-    universe : AS_Universe
-
+    
+    Visualization methods
     """
-    import mdtraj as md
-
-    traj = md.load(traj, top=top)
-
-    return AS_Universe(receptor=traj, guess_receptor_binder=True, guess_by_order=False, label=label)
-
-
-if __name__ == '__main__':
-    import mdtraj
-    import sys
-
-    test_receptor_path = sys.argv[1]
-    test_binder_path = sys.argv[2]
-
-    lig_traj = mdtraj.load(test_binder_path)
-    prot_traj = mdtraj.load(test_receptor_path)
-
-    complex = AS_Universe()
-    complex.set_receptor(prot_traj)
-    complex.set_binder(lig_traj)

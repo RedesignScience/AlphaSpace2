@@ -1,15 +1,17 @@
+import itertools
+import multiprocessing as mp
+from itertools import combinations_with_replacement
+
+import numba as nb
 import numpy as np
+from alphaspace.AS_Cluster import AS_Data, AS_Snapshot
 from mdtraj.geometry import _geometry
 from mdtraj.geometry.sasa import _ATOMIC_RADII
 from scipy.cluster.hierarchy import linkage, fcluster
-from scipy.spatial import Voronoi, Delaunay
+from scipy.spatial import Voronoi, Delaunay, cKDTree
 from scipy.spatial.distance import cdist
-from itertools import combinations_with_replacement, combinations
+from scipy.spatial.distance import squareform
 
-from alphaspace.AS_Cluster import AS_Data, AS_Snapshot
-
-import multiprocessing as mp
-import hdbscan
 
 class Consumer(mp.Process):
     """
@@ -468,8 +470,6 @@ def cluster_by_overlap(vectors, total_index, overlap_cutoff):
     -------
 
     """
-    from scipy.spatial.distance import squareform
-
     # calculate jaccard_diff_matrix
     intersection_matrix = combination_intersection_count(vectors, total_index)
 
@@ -553,3 +553,59 @@ def _prune_dpockets(d_pocket_dict, sample_ratio=1.0):
         labels.extend([d_pocket_idx] * n_leaders)
     return leader, labels
 
+
+@nb.jit(nopython=True)
+def getTetrahedronVolume(coord_list):
+    """
+    Calculate the volume of a tetrahedron described by four 3-d points.
+
+    Parameters
+    ----------
+    coord_list
+
+    """
+
+    coord_matrix = np.concatenate((coord_list, np.ones((4, 1)).astype(coord_list.dtype)), axis=1)
+    volume = np.abs(np.linalg.det(coord_matrix) / 6)
+
+    return volume
+
+
+@nb.jit(nopython=True, parallel=True)
+def getTetrahedronVolumes(coord_group_list):
+    volumes = np.empty((len(coord_group_list)), dtype=coord_group_list.dtype)
+
+    for i in range(len(coord_group_list)):
+        volumes[i] = getTetrahedronVolume(coord_group_list[i])
+
+    return volumes
+
+
+def group(label_list):
+    d = [[] for i in range(max(label_list) + 1)]
+    for i, item in enumerate(label_list):
+        d[item].append(i)
+    return d
+
+
+def find_in_range(query_points, ref_points, cutoff):
+    """
+    Find the index of query points in range of cutoff from any refpoint
+    Used to calculate the contact pockets etc.
+
+    Parameters
+    ----------
+    query_points: np.array
+    ref_points: np.array
+    cutoff: float
+
+    Returns
+    -------
+    indices: np.array of int
+
+    """
+    # build the KDTree using the *larger* points array
+    tree = cKDTree(query_points)
+    groups = tree.query_ball_point(ref_points, cutoff)
+    indices = np.unique(np.fromiter(itertools.chain.from_iterable(groups), dtype=int))
+    return indices

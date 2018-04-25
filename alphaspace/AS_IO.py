@@ -1,4 +1,100 @@
+from __future__ import print_function, division
+
 import pickle
+from multiprocessing import Pool
+
+import numpy as np
+import mdtraj as md
+from alphaspace.AS_Snapshot import AS_Snapshot
+from alphaspace.AS_Universe import AS_Universe
+from alphaspace.AS_Vina import gen_vina_type, get_probe_score
+
+
+def _load(files):
+    """
+
+    Parameters
+    ----------
+    files: list
+
+    Returns
+    -------
+
+    """
+    if type(files) is not list:
+        files = [files]
+    u = AS_Universe()
+
+    with Pool() as pool:
+        results = pool.map(_load_and_run, enumerate(files), 1)
+
+    print(results)
+    # print(results)
+    u.update(dict(results))
+
+    return u
+
+
+def _load_and_run(i_item):
+    i, item = i_item
+
+    if isinstance(item, str):
+        traj = md.load(item)
+    else:
+        traj = item
+    # remove hydrogen
+    # print("loading", i_item)
+
+    traj = traj.atom_slice(atom_indices=[atom.index for atom in traj.top.atoms if atom.element.atomic_number != 1])
+    # print("loading_", i_item)
+    ss = AS_Snapshot()
+    ss.tessellation(traj, 0)
+    ss._gen_beta()
+    ss._gen_pocket()
+
+    prot_types, hp_type, acc_type, don_type, autodock_types_dict = gen_vina_type(ss.atom_names,
+                                                                                 ss.residue_names,
+                                                                                 ss.elements)
+
+    ss.beta_scores = get_probe_score(probe_coords=ss.beta_xyz * 10, prot_coord=traj.xyz[0] * 10, prot_types=prot_types,
+                                     hp_type=hp_type,
+                                     acc_type=acc_type, don_type=don_type)
+    return i, ss
+
+
+def load_from_file(path_file):
+    with open(path_file, 'r') as handle:
+        lines = handle.read().splitlines()
+    return _load([line for line in lines if (not line.startswith('#')) and len(line) > 1])
+
+
+def load_pdbqt(filename, stride=None, atom_indices=None, frame=None, no_boxchk=False, standard_names=True):
+    traj = md.load_pdb(filename, stride, atom_indices, frame,
+                       no_boxchk, standard_names)
+    traj.atom_slice([atom.index for atom in traj.top.atoms if atom.element.atomic_number != 1], inplace=True)
+    charges = []
+    pdbqt_atom_name = []
+    with open(filename, 'r') as f:
+        for line in f.read().splitlines():
+            row = line.split()
+            if len(row) == 13:
+                pdbqt_name = str(row[12]).strip()
+                charge = float(str(row[11]).strip())
+                if pdbqt_name not in {'H', 'HD', 'HS'}:
+                    charges.append(charge)
+                    pdbqt_atom_name.append(pdbqt_name)
+
+    assert len(charges) == traj.n_atoms
+
+    for atom in traj.atoms:
+        atom.charge = charges[atom.index]
+        atom.pdbqt_name = pdbqt_atom_name[atom.index]
+    return traj
+
+
+
+
+
 
 
 def get_pdb_line(atom='ATOM', atomnum=0, atomname=' ', resname=' ', chain_idx=' ', resnum=0, x=0.0, y=0.0, z=0.0,
@@ -20,8 +116,6 @@ def get_pdb_line(atom='ATOM', atomnum=0, atomname=' ', resname=' ', chain_idx=' 
     j[11] = j[11].rjust(12)  # elname
     line = ("{}{} {} {} {}{}    {}{}{}{}{}{}".format(
         j[0], j[1], j[2], j[3], j[4], j[5], j[6], j[7], j[8], j[9], j[10], j[11]))
-
-
 
     return line
 

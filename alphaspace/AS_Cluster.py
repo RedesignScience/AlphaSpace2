@@ -17,6 +17,7 @@ from scipy.cluster.hierarchy import linkage, fcluster
 
 import alphaspace
 
+
 class AS_Snapshot(np.ndarray):
     """
     Container object inherited from numpy array object, you can access information directly here.
@@ -465,7 +466,6 @@ class AS_Pocket:
 
     _ngl_radius = 1.4
 
-
     def __init__(self, alpha_idx, snapshot_idx, pocket_idx, parent_structure):
         self._idx = pocket_idx
         self._snapshot_idx = snapshot_idx
@@ -479,7 +479,6 @@ class AS_Pocket:
         self._betas = None
 
         self._ngl_component_idx = None
-
 
     @property
     def snapshot_idx(self):
@@ -619,7 +618,8 @@ class AS_Pocket:
 
         """
         for i in self.alpha_idx:
-            yield AS_AlphaAtom(i,snapshot_idx=self.snapshot_idx,parent_structure=self.parent_structure,parent_pocket=self)
+            yield AS_AlphaAtom(i, snapshot_idx=self.snapshot_idx, parent_structure=self.parent_structure,
+                               parent_pocket=self)
 
     @property
     def alpha_idx(self):
@@ -746,8 +746,6 @@ class AS_Pocket:
         else:
             return self.parent_structure.config.color_name(self._idx)
 
-
-
     @property
     def is_contact(self):
         """
@@ -858,7 +856,6 @@ class AS_Pocket:
                 self._betas = [AS_BetaAtom([0], self)]
         return iter(self._betas)
 
-
     @property
     def score(self):
         """
@@ -923,7 +920,6 @@ class AS_BetaAtom:
 
     _ngl_radius = 0.5
 
-
     def __init__(self, alpha_idx_in_pocket, pocket: AS_Pocket):
         """
         AS_BetaAtom are automatically generated from 'AS_Pocket.betas' iterator.
@@ -985,7 +981,8 @@ class AS_BetaAtom:
 
         """
         for alpha_idx in self.alpha_idx:
-            yield AS_AlphaAtom(idx=alpha_idx, snapshot_idx=self._pocket.snapshot_idx ,parent_structure=self.pocket.parent_structure, parent_pocket=self.pocket)
+            yield AS_AlphaAtom(idx=alpha_idx, snapshot_idx=self._pocket.snapshot_idx,
+                               parent_structure=self.pocket.parent_structure, parent_pocket=self.pocket)
 
     @property
     def pocket(self):
@@ -1029,7 +1026,6 @@ class AS_BetaAtom:
 
         """
 
-
         if self._vina_score is None:
             raise Exception('No Vina Score Calculated')
         else:
@@ -1053,8 +1049,6 @@ class AS_BetaAtom:
 
         return alphaspace.best_probe_type(self)
 
-
-
     @property
     def score(self):
         """
@@ -1065,7 +1059,7 @@ class AS_BetaAtom:
         float
 
         """
-        return np.min(self.vina_scores[:,0])
+        return np.min(self.vina_scores[:, 0])
 
 
 class AS_D_Pocket:
@@ -1202,7 +1196,7 @@ class AS_D_Pocket:
 
 
 class AS_community:
-    def __init__(self, core = None, aux = None):
+    def __init__(self, core=None, aux=None):
         self._core = core if core is not None else []
         self._aux = aux if aux is not None else []
         self._lining_atoms = None
@@ -1224,6 +1218,7 @@ class AS_community:
     @property
     def core(self):
         return self._core
+
     @property
     def aux(self):
         return self._aux
@@ -1235,13 +1230,11 @@ class AS_community:
             self._lining_atoms = np.unique(lining_atoms)
         return self._lining_atoms
 
+    def similarity(self, community):
 
-    def similarity(self,community):
-
-        return len(np.intersect1d(self.lining_atoms,community.lining_atoms,assume_unique=True))/len(
+        return len(np.intersect1d(self.lining_atoms, community.lining_atoms, assume_unique=True)) / len(
             np.unique(np.hstack([self.lining_atoms, community.lining_atoms])))
 
-    def similarity_atoms(self,lining_atoms):
+    def similarity_atoms(self, lining_atoms):
         return len(np.intersect1d(self.lining_atoms, np.array(lining_atoms), assume_unique=True)) / len(
             np.unique(np.hstack([self.lining_atoms, np.array(lining_atoms)])))
-

@@ -1,11 +1,13 @@
 from setuptools import setup
 
+
 def readme():
     with open('README.md') as f:
         return f.read()
 
-setup(name='alphaspace',
-      version='2.0',
+
+setup(name='alphaspace_lit',
+      version='2.5',
       description='Protein topographical mapping tool',
       url='http://github.com/lenhsherr/alphaspace',
       author='Haotian Li',
@@ -14,13 +16,13 @@ setup(name='alphaspace',
       packages=['alphaspace'],
 
       package_data={
-      	'': ['*.txt', '*.md'],
-        # And include any *.msg files found in the 'hello' package, too:
-        'alphaspace.tests.bcl2.lig': ['*.pdb'],
-        'alphaspace.tests.bcl2.prot': ['*.pdb'],
+          '': ['*.txt', '*.md'],
+          # And include any *.msg files found in the 'hello' package, too:
+          'alphaspace.tests.bcl2.lig': ['*.pdb'],
+          'alphaspace.tests.bcl2.prot': ['*.pdb'],
           'Examples.mdm2_p53': ['*.pdb'],
 
-    },
+      },
 
       install_requires=[
           'numpy',
@@ -31,13 +33,13 @@ setup(name='alphaspace',
           'mdtraj',
           'ipywidgets',
           'networkx',
+          'numba',
+          'scikit-learn'
 
       ],
       include_package_data=True,
       zip_safe=False,
 
       scripts=['scripts/run_alphaspace.py'],
-
-
 
       )

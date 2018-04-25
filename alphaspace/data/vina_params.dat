@@ -1,0 +1,6 @@
+term, weight, label
+weight_gauss1 ,-0.035579,                  gauss_1 weight
+weight_gauss2 ,-0.005156,                  gauss_2 weight
+weight_repulsion ,0.84024500000000002,     repulsion weight
+weight_hydrophobic ,-0.035069000000000003, hydrophobic weight
+weight_hydrogen ,-0.58743900000000004,     Hydrogen bond weight
