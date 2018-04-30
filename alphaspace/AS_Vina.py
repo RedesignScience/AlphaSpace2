@@ -155,7 +155,7 @@ def pre_process_pdbqt(traj, truncation_length=0):
         tree = cKDTree(prot_coord) if tree is None else tree
 
         for ix in np.where(hp_type == 'UNK')[0]:
-            indx = np.array(tree.query_ball_point(prot_coord[ix], 2.0))
+            indx = np.array(tree.query_ball_point(prot_coord[ix], 2.0 / 10))
             if prot_types[ix] not in POLAR_ATOM_TYPE:
                 if np.any(np.in1d(prot_types[indx[indx != ix]], POLAR_ATOM_TYPE)):
                     hp_type[ix] = 'NNP'
@@ -188,7 +188,7 @@ def pre_process_pdbqt(traj, truncation_length=0):
     def _assign_don(prot_coord, prot_types, hp_type, tree=None):
         tree = cKDTree(prot_coord) if tree is None else tree
         for ix in np.where(hp_type == 'UNK')[0]:
-            indx = np.array(tree.query_ball_point(prot_coord[ix], 2.0))
+            indx = np.array(tree.query_ball_point(prot_coord[ix], 2.0 / 10))
             if prot_types[ix] in ['N', 'NS', 'NA']:
                 if len(indx[indx != ix]) > 2:
                     hp_type[ix] = 'NPP'
@@ -238,10 +238,11 @@ def pre_process_pdbqt(traj, truncation_length=0):
         _assign_acc(prot_types, acc_type)
 
     if truncation_length != 0:
-        return prot_coord[:truncation_length], prot_types[:truncation_length], hp_type[:truncation_length], \
+        return prot_types[:truncation_length], hp_type[:truncation_length], \
                acc_type[:truncation_length], don_type[:truncation_length]
     else:
-        return prot_coord, prot_types, hp_type, acc_type, don_type
+        return prot_types, hp_type, acc_type, don_type
+
 
 def gen_vina_type(atom_names, residue_names, elements,
                   # types_dict_typing_pdb_dict_cofactor_match_dict_autodock_types_dict
@@ -254,7 +255,7 @@ def gen_vina_type(atom_names, residue_names, elements,
 
     Returns
     -------
-    prot_types, hp_type, acc_type, don_type, autodock_types_dict
+    prot_types, hp_type, acc_type, don_type
     """
 
     this_dir, this_filename = os.path.split(__file__)
@@ -308,7 +309,7 @@ def gen_vina_type(atom_names, residue_names, elements,
     acc_type = np.array(acc_type)
     don_type = np.array(don_type)
 
-    return prot_types, hp_type, acc_type, don_type, autodock_types_dict
+    return prot_types, hp_type, acc_type, don_type
 
 
 def bin_cluster(coords, bin_size, bin_buffer_ratio=0.01, distance=5.4):
@@ -380,12 +381,9 @@ def bin_cluster(coords, bin_size, bin_buffer_ratio=0.01, distance=5.4):
 
     pocket_label = label[ind]
 
-    print(label)
-
     return pocket_label
 
 
-@jit(nopython=True, cache=True)
 def _NP_interp(r):
     """
     """
@@ -398,8 +396,6 @@ def _NP_interp(r):
     #        x=np.interp(r, [0.i5,1.5], [1,0])
     return x
 
-
-@jit(nopython=True, cache=True)
 def _P_interp(r):  ##step for polar
     if r < -0.7:
         x = 1.0
@@ -478,5 +474,7 @@ def get_probe_score(prot_coord, prot_types, hp_type, don_type, acc_type, probe_c
             else:
                 raise Exception()
 
-            probe_scores[probe_idx][element_idx] = np.sum(np.hstack((g1, g2, rep, h1, h2)) * ADV_score_terms)
+            probe_scores[probe_idx][element_idx] = np.sum(np.array([g1, g2, rep, h1, h2]) * ADV_score_terms)
+
+
     return probe_scores

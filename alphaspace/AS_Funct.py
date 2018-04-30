@@ -4,7 +4,6 @@ from itertools import combinations_with_replacement
 
 import numba as nb
 import numpy as np
-from alphaspace.AS_Cluster import AS_Data, AS_Snapshot
 from mdtraj.geometry import _geometry
 from mdtraj.geometry.sasa import _ATOMIC_RADII
 from scipy.cluster.hierarchy import linkage, fcluster
@@ -263,7 +262,6 @@ def _tessellation(**kwargs):
     except:
         cluster_method = 'average_linkage'
 
-
     # Generate Raw Tessellation simplexes
     raw_alpha_lining_idx = Delaunay(receptor_xyz).simplices
     # Take coordinates from xyz file
@@ -284,13 +282,12 @@ def _tessellation(**kwargs):
 
     filtered_alpha_xyz = np.take(raw_alpha_xyz, filtered_alpha_idx, axis=0)
 
-
     if cluster_method == 'average_linkage':
         # cluster the remaining vertices to assign index of belonging pockets
         zmat = linkage(filtered_alpha_xyz, method='average')
 
         alpha_pocket_index = fcluster(zmat, config.clust_dist / 10,
-                                  criterion='distance') - 1  # because cluster index start from 1
+                                      criterion='distance') - 1  # because cluster index start from 1
     elif cluster_method == 'hdbscan':
         import hdbscan
         clusterer = hdbscan.HDBSCAN(metric='euclidean', min_samples=config.hdbscan_min_samples)
@@ -299,9 +296,6 @@ def _tessellation(**kwargs):
 
     else:
         raise Exception('Known Clustering Method: {}'.format(cluster_method))
-
-
-
 
     # Load trajectories
     filtered_lining_xyz = np.take(receptor_xyz, alpha_lining, axis=0)
@@ -360,61 +354,61 @@ def _tessellation(**kwargs):
     return data
 
 
-
-def _tessellation_mp(universe, frame_range=None, cpu=None):
-    # Establish communication queues
-    tasks = mp.JoinableQueue()
-    results = mp.Queue()
-
-    # Start consumers
-    num_consumers = cpu if cpu is not None else mp.cpu_count()
-    consumers = [Consumer(tasks, results) for _ in range(num_consumers)]
-
-    for w in consumers:
-        w.start()
-
-    # Enqueue jobs
-
-    atom_radii = [_ATOMIC_RADII[atom.element.symbol] for atom in universe.receptor.top.atoms]
-
-    if frame_range is None:
-        frame_range = range(universe.n_frames)
-
-    for i in frame_range:
-        receptor_xyz = universe.receptor.traj.xyz[i]
-        if universe.binder:
-            binder_xyz = universe.binder.traj.xyz[i]
-        else:
-            binder_xyz = None
-
-        tasks.put(Task(_tessellation,
-                       receptor_xyz=receptor_xyz,
-                       binder_xyz=binder_xyz,
-                       atom_radii=atom_radii,
-                       snapshot_idx=i,
-                       config=universe.config,
-                       ))
-
-    # Add a poison pill for each consumer
-    for i in range(num_consumers):
-        tasks.put(None)
-
-    # Wait for all of the tasks to finish
-    tasks.join()
-
-    num_jobs = (len(list(frame_range)))
-    # Start printing results
-    data_dict = {}
-
-    while num_jobs:
-        ss = AS_Snapshot(results.get())
-        data_dict[ss.snapshot_idx()] = ss
-        num_jobs -= 1
-
-    if universe.receptor._data is None:
-        universe.receptor._data = AS_Data(data_dict, universe)
-    else:
-        universe.receptor._data.update(data_dict)
+#
+# def _tessellation_mp(universe, frame_range=None, cpu=None):
+#     # Establish communication queues
+#     tasks = mp.JoinableQueue()
+#     results = mp.Queue()
+#
+#     # Start consumers
+#     num_consumers = cpu if cpu is not None else mp.cpu_count()
+#     consumers = [Consumer(tasks, results) for _ in range(num_consumers)]
+#
+#     for w in consumers:
+#         w.start()
+#
+#     # Enqueue jobs
+#
+#     atom_radii = [_ATOMIC_RADII[atom.element.symbol] for atom in universe.receptor.top.atoms]
+#
+#     if frame_range is None:
+#         frame_range = range(universe.n_frames)
+#
+#     for i in frame_range:
+#         receptor_xyz = universe.receptor.traj.xyz[i]
+#         if universe.binder:
+#             binder_xyz = universe.binder.traj.xyz[i]
+#         else:
+#             binder_xyz = None
+#
+#         tasks.put(Task(_tessellation,
+#                        receptor_xyz=receptor_xyz,
+#                        binder_xyz=binder_xyz,
+#                        atom_radii=atom_radii,
+#                        snapshot_idx=i,
+#                        config=universe.config,
+#                        ))
+#
+#     # Add a poison pill for each consumer
+#     for i in range(num_consumers):
+#         tasks.put(None)
+#
+#     # Wait for all of the tasks to finish
+#     tasks.join()
+#
+#     num_jobs = (len(list(frame_range)))
+#     # Start printing results
+#     data_dict = {}
+#
+#     while num_jobs:
+#         ss = AS_Snapshot(results.get())
+#         data_dict[ss.snapshot_idx()] = ss
+#         num_jobs -= 1
+#
+#     if universe.receptor._data is None:
+#         universe.receptor._data = AS_Data(data_dict, universe)
+#     else:
+#         universe.receptor._data.update(data_dict)
 
 
 def extractResidue(traj, residue_numbers=None, residue_names=None, clip=True):
@@ -502,7 +496,7 @@ def best_probe_type(beta_atom):
     probe_type : str
             ['C', 'Br', 'F', 'Cl', 'I', 'OA', 'SA', 'N', 'P']
     """
-    _best_score_index = min(range(9), key=lambda i: beta_atom.vina_scores[i, 0])
+    _best_score_index = min(range(9), key=lambda i: beta_atom.score)
 
     return ['C', 'Br', 'F', 'Cl', 'I', 'OA', 'SA', 'N', 'P'][_best_score_index]
 
@@ -588,24 +582,37 @@ def group(label_list):
     return d
 
 
+# def find_in_range(query_points, ref_points, cutoff):
+#     """
+#     Find the index of query points in range of cutoff from any refpoint
+#     Used to calculate the contact pockets etc.
+#
+#     Parameters
+#     ----------
+#     query_points: np.array
+#     ref_points: np.array
+#     cutoff: float
+#
+#     Returns
+#     -------
+#     indices: np.array of int
+#
+#     """
+#     # build the KDTree using the *larger* points array
+#     query_tree = cKDTree(query_points)
+#     dd, ii = query_tree.query_ball_point(ref_points, cutoff, n_jobs = -1)
+#     indices = np.unique(ii)
+#     return indices
+
+
 def find_in_range(query_points, ref_points, cutoff):
-    """
-    Find the index of query points in range of cutoff from any refpoint
-    Used to calculate the contact pockets etc.
-
-    Parameters
-    ----------
-    query_points: np.array
-    ref_points: np.array
-    cutoff: float
-
-    Returns
-    -------
-    indices: np.array of int
-
-    """
-    # build the KDTree using the *larger* points array
-    tree = cKDTree(query_points)
-    groups = tree.query_ball_point(ref_points, cutoff)
-    indices = np.unique(np.fromiter(itertools.chain.from_iterable(groups), dtype=int))
+    indices = np.where(cdist(query_points, ref_points) <= cutoff)[0]
+    indices = np.unique(indices)
     return indices
+
+
+def mark_in_range(query_points, ref_points, cutoff):
+    indices = find_in_range(query_points, ref_points, cutoff)
+    query_bool = np.zeros(len(query_points), dtype=np.bool)
+    query_bool[indices] = 1
+    return query_bool

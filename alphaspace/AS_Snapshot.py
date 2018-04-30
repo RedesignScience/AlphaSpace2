@@ -1,14 +1,15 @@
+import numpy as np
+from .AS_Funct import group, getTetrahedronVolumes, mark_in_range
 from scipy.cluster.hierarchy import fcluster, linkage
 from scipy.spatial import Delaunay, Voronoi
-import numpy as np
-from alphaspace.AS_Funct import group, getTetrahedronVolumes, find_in_range
+from .AS_Cluster import Alpha, Beta, Pocket
 
 
 class AS_Snapshot:
     min_r = 3.2
     max_r = 5.4
 
-    beta_cluster_dist = 1.8
+    beta_cluster_dist = 1.6
 
     pocket_cluster_dist = 4.7
 
@@ -19,21 +20,22 @@ class AS_Snapshot:
 
         self.alpha_xyz = None
         self.alpha_space = None
-        self.contact_alpha = []
+        self._alpha_contact = None
 
         self.beta_xyz = None
         self.beta_space = None
-        self.contact_beta = []
+        self._beta_contact = None
 
         self.pocket_xyz = None
         self.pocket_space = None
-        self.contact_pocket = []
+        self._pocket_contact = None
 
         self.alpha_lining = None
-        self.alpha_xyz = None
+        self.pocket_xyz = None
         self.alpha_radii = None
 
         self.beta_alpha_index_list = None
+        self.pocket_beta_index_list = None
 
         self.beta_scores = None
 
@@ -54,7 +56,7 @@ class AS_Snapshot:
         alpha _lining
         alpha_radii
         """
-        self.residue_names = [atom.element.number for atom in traj.top.atoms]
+        self.residue_names = [atom.residue.name for atom in traj.top.atoms]
 
         self.elements = [atom.element.symbol for atom in traj.top.atoms]
 
@@ -120,3 +122,47 @@ class AS_Snapshot:
         for i, indices in enumerate(self.pocket_beta_index_list):
             self.pocket_xyz[i] = np.mean(self.beta_xyz[indices], axis=0)
             self.pocket_space[i] = np.sum(self.beta_space[indices], axis=0)
+
+    def screen_by_contact(self, ref_points, cutoff=3.6):
+        """
+        Mark alpha/beta/pocket atoms as contact with in cutoff of ref points.
+
+        Beta atom and pocket atoms are counted as contact if any of their child alpha atoms is in contact.
+
+        Parameters
+        ----------
+        ref_points: np.array shape = (n,3)
+        cutoff: float
+
+        Returns
+        -------
+        """
+
+        self._alpha_contact = mark_in_range(self.alpha_xyz, ref_points=ref_points, cutoff=cutoff / 10)
+        self._pocket_contact = None
+        self._beta_contact = None
+
+    @property
+    def alpha_contact(self):
+        if self._alpha_contact is None:
+            raise Exception("No contact has been set yet, use screen_by_contact method")
+        return self.alpha_contact
+
+    @property
+    def beta_contact(self):
+        if self._beta_contact is None:
+            self._beta_contact = np.array(
+                [np.any(self._alpha_contact[alpha_indices]) for alpha_indices in self.beta_alpha_index_list])
+        return self._beta_contact
+
+    @property
+    def pocket_contact(self):
+        if self._pocket_contact is None:
+            self._pocket_contact = np.array(
+                [np.any(self.beta_contact[beta_indices]) for beta_indices in self.pocket_beta_index_list])
+        return self._pocket_contact
+
+    @property
+    def pockets(self):
+        for i in range(len(self.pocket_xyz)):
+            yield Pocket(self, i)
