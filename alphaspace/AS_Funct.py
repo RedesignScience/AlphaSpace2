@@ -616,3 +616,75 @@ def mark_in_range(query_points, ref_points, cutoff):
     query_bool = np.zeros(len(query_points), dtype=np.bool)
     query_bool[indices] = 1
     return query_bool
+
+
+def bin_cluster(coords, bin_size, bin_buffer_ratio=0.01, distance=5.4):
+    """
+    Bin the coordinates first and cluster based on bin centroids
+
+    Parameters
+    ----------
+    coords:
+            np.array shape = (n,3)
+
+    bin_size: [x_bin_size,y_bin_size,z_bin_size]
+            list
+
+    bin_buffer_ratio: float
+
+    Returns
+    -------
+
+    labels : label for all points
+            np.array shape = (n)
+
+    """
+    # find bin border with buffer ratio
+    xyz_max = np.max(coords, 0)
+    xyz_min = np.min(coords, 0)
+
+    buffer_size = (xyz_max - xyz_min) * bin_buffer_ratio
+
+    xyz_max += buffer_size
+    xyz_min -= buffer_size
+
+    # create bin arrays
+    xyz_bins = []
+    binned_idx = []
+    bin_number = [None, None, None]
+    for dim in range(3):
+        bin_number[dim] = int((xyz_max[dim] - xyz_min[dim]) / float(bin_size[dim])) + 1
+
+        xyz_bins.append(np.linspace(xyz_min[dim], xyz_max[dim], bin_number[dim] + 1))
+        val = coords[:, dim]
+        ind = np.digitize(val, xyz_bins[dim]) - 1
+
+        binned_idx.append(ind)
+
+    binned_idx = np.array(binned_idx)
+
+    add_location = np.transpose(binned_idx)
+
+    cube_coord_sum = np.zeros(bin_number + [3])
+
+    cube_idx_count = np.zeros(bin_number)
+
+    for idx in np.arange(len(coords)):
+        # print(cube_coord_sum[add_location[idx]])
+        add_idx = add_location[idx]
+        cube_coord_sum[add_idx[0], add_idx[1], add_idx[2]] += coords[idx]
+        cube_idx_count[add_idx[0], add_idx[1], add_idx[2]] += 1
+
+    non_zero_cube_idx = np.where(cube_idx_count > 0)
+    non_zero_cube_coord = np.divide(cube_coord_sum[non_zero_cube_idx],
+                                    np.expand_dims(cube_idx_count[non_zero_cube_idx], 1))
+
+    zmat = linkage(non_zero_cube_coord, method='average')
+    label = fcluster(zmat, distance, criterion='distance') - 1
+
+    tree = cKDTree(non_zero_cube_coord)
+    dist, ind = tree.query(coords, 1, n_jobs=-1)
+
+    pocket_label = label[ind]
+
+    return pocket_label

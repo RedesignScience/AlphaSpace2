@@ -38,10 +38,11 @@ def _load(files):
 def _load_and_run(i_item):
     i, item = i_item
 
+    no_pdbqt = True
     if isinstance(item, str):
         if len(item) >= 5 and item[-5:] == 'pdbqt':
             traj = load_pdbqt(item)
-            prot_types, hp_type, acc_type, don_type = pre_process_pdbqt(traj)
+            no_pdbqt = False
         else:
             traj = md.load(item)
     else:
@@ -53,9 +54,12 @@ def _load_and_run(i_item):
     ss._gen_beta()
     ss._gen_pocket()
 
-    # prot_types, hp_type, acc_type, don_type = gen_vina_type(ss.atom_names,
-    #                                                                              ss.residue_names,
-    #                                                                              ss.elements)
+    if no_pdbqt:
+        prot_types, hp_type, acc_type, don_type = gen_vina_type(ss.atom_names, ss.residue_names, ss.elements)
+    else:
+        prot_types, hp_type, acc_type, don_type = pre_process_pdbqt(traj)
+
+
 
     ss.beta_scores = get_probe_score(probe_coords=ss.beta_xyz * 10, prot_coord=traj.xyz[0] * 10, prot_types=prot_types,
                                      hp_type=hp_type,
