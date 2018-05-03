@@ -6,7 +6,7 @@ import sys
 
 if __name__ == '__main__':
 
-    universe = load_from_file(sys.argv[1])
+    universe = get_path(sys.argv[1])
 
     beta_xyz = universe.beta_xyz()
 

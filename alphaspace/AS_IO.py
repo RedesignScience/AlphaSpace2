@@ -1,100 +1,213 @@
 from __future__ import print_function, division
 
-import pickle
 from multiprocessing import Pool
 
-import numpy as np
 import mdtraj as md
+import numpy as np
 from alphaspace.AS_Snapshot import AS_Snapshot
 from alphaspace.AS_Universe import AS_Universe
-from alphaspace.AS_Vina import gen_vina_type, get_probe_score, pre_process_pdbqt
+from alphaspace.AS_Vina import get_probe_score, pre_process_pdbqt
 
 
-def _load(files):
+def _get_path(f):
     """
 
     Parameters
     ----------
-    files: list
+    f: list or str
 
     Returns
     -------
 
     """
-    if type(files) is not list:
-        files = [files]
+    if isinstance(f, list):
+        return f
+    elif isinstance(f, str):
+        with open(f, 'r') as handle:
+            lines = handle.read().splitlines()
+        return lines
+    else:
+        raise Exception
+
+
+def _load_traj_with_ref(*args, top=None, ref=None):
+    """
+
+    Parameters
+    ----------
+    args: str
+    top: str
+    ref: str
+
+    Returns
+    -------
+
+    """
+
+    trajectory = []
+    for arg in args:
+        traj = md.load_pdb(arg) if arg.endswith('pdbqt') else md.load(arg, top)
+        trajectory.append(traj)
+    trajectory = md.join(trajectory)
+
+    if ref is not None and ref.endswith('pdbqt'):
+        with open(ref, 'r') as handle:
+            lines = [line for line in handle.read().splitlines() if line.startswith("ATOM")]
+        atom_numbers = []
+        partial_charges = []
+        adv_atom_types = []
+
+        for pdb_line in lines:
+            serial_number = int(pdb_line[6:11])
+            atom_numbers.append(serial_number)
+            name_with_spaces = pdb_line[12:16]
+            alternate_location_indicator = pdb_line[16]
+            residue_name_with_spaces = pdb_line[17:20]
+            residue_number = int(pdb_line[22:26])
+            insertion_code = pdb_line[26]
+            x = float(pdb_line[30:38])
+            y = float(pdb_line[38:46])
+            z = float(pdb_line[46:54])
+            partial_charge = float(pdb_line[70:76])
+            partial_charges.append(partial_charge)
+            adv_atom_type = pdb_line[77:79].strip()
+            adv_atom_types.append(adv_atom_type)
+
+        retaining_atom_indices = [atom.index for atom in trajectory.top.atoms if
+                                  atom.serial in set(atom_numbers)]
+        trajectory.atom_slice(atom_indices=retaining_atom_indices, inplace=True)
+
+        trajectory.partial_charges = partial_charges
+        trajectory.adv_atom_types = adv_atom_types
+
+
+    else:
+
+        print(
+            'No reference structure selected, using all atoms in trajectory file and no vina score will be calculated'
+        )
+        trajectory.partial_charges = None
+        trajectory.adv_atom_types = None
+
+    return trajectory
+
+
+def load(f, top=None, ref=None):
+    file_path = _get_path(f)
+    trajectory = _load_traj_with_ref(*file_path, top=top, ref=ref)
+
+    return trajectory
+
+
+def process(trajectory):
+    snapshots = []
+    for i in range(trajectory.n_frames):
+        snapshot = trajectory[i]
+        snapshot.adv_atom_types = trajectory.adv_atom_types
+        snapshot.partial_charges = trajectory.partial_charges
+        snapshots.append(snapshot)
+
     u = AS_Universe()
 
     with Pool() as pool:
-        results = pool.map(_load_and_run, enumerate(files), 1)
-
-    print(results)
-    # print(results)
+        results = pool.map(_process_snapshot, enumerate(snapshots))
     u.update(dict(results))
 
     return u
 
 
-def _load_and_run(i_item):
-    i, item = i_item
-
-    no_pdbqt = True
-    if isinstance(item, str):
-        if len(item) >= 5 and item[-5:] == 'pdbqt':
-            traj = load_pdbqt(item)
-            no_pdbqt = False
-        else:
-            traj = md.load(item)
-    else:
-        traj = item
-
-    traj = traj.atom_slice(atom_indices=[atom.index for atom in traj.top.atoms if atom.element.atomic_number != 1])
+def _process_snapshot(isnapshot):
+    i, snapshot = isnapshot
     ss = AS_Snapshot()
-    ss.tessellation(traj, 0)
+    ss.tessellation(snapshot, snapshot_idx=0)
     ss._gen_beta()
     ss._gen_pocket()
 
-    if no_pdbqt:
-        prot_types, hp_type, acc_type, don_type = gen_vina_type(ss.atom_names, ss.residue_names, ss.elements)
+    if snapshot.adv_atom_types is not None:
+        prot_types, hp_type, acc_type, don_type = pre_process_pdbqt(snapshot)
+        ss.beta_scores = get_probe_score(probe_coords=ss.beta_xyz * 10, prot_coord=snapshot.xyz[0] * 10,
+                                         prot_types=prot_types,
+                                         hp_type=hp_type,
+                                         acc_type=acc_type, don_type=don_type)
     else:
-        prot_types, hp_type, acc_type, don_type = pre_process_pdbqt(traj)
-
-
-
-    ss.beta_scores = get_probe_score(probe_coords=ss.beta_xyz * 10, prot_coord=traj.xyz[0] * 10, prot_types=prot_types,
-                                     hp_type=hp_type,
-                                     acc_type=acc_type, don_type=don_type)
+        ss.beta_scores = np.zeros(len(ss.beta_xyz), dtype=np.float)
+        print("No Vina Typing found, this is because you did not supply a pdbqt file. No Beta Score will be computed")
     return i, ss
 
 
-def load_from_file(path_file):
-    with open(path_file, 'r') as handle:
-        lines = handle.read().splitlines()
-    return _load([line for line in lines if (not line.startswith('#')) and len(line) > 1])
+# def _load_and_run_score(i_item):
+#     i, item = i_item
+#
+#     no_pdbqt = True
+#     if isinstance(item, str):
+#         if len(item) >= 5 and item[-5:] == 'pdbqt':
+#             traj = load_pdbqt(item)
+#             no_pdbqt = False
+#         else:
+#             traj = md.load(item)
+#     else:
+#         traj = item
+#
+#     traj = traj.atom_slice(atom_indices=[atom.index for atom in traj.top.atoms if atom.element.atomic_number != 1])
+#     ss = AS_Snapshot()
+#     ss.tessellation(traj, 0)
+#     ss._gen_beta()
+#     ss._gen_pocket()
+#
+#     if no_pdbqt:
+#         prot_types, hp_type, acc_type, don_type = gen_vina_type(ss.atom_names, ss.residue_names, ss.elements)
+#     else:
+#         prot_types, hp_type, acc_type, don_type = pre_process_pdbqt(traj)
+#
+#     ss.beta_scores = get_probe_score(probe_coords=ss.beta_xyz * 10, prot_coord=traj.xyz[0] * 10, prot_types=prot_types,
+#                                      hp_type=hp_type,
+#                                      acc_type=acc_type, don_type=don_type)
+#
+#     return i, ss
 
 
-def load_pdbqt(filename, stride=None, atom_indices=None, frame=None, no_boxchk=False, standard_names=False):
-    traj = md.load_pdb(filename, stride, atom_indices, frame,
-                       no_boxchk, standard_names)
-
-    traj.atom_slice([atom.index for atom in traj.top.atoms if atom.element.atomic_number != 1], inplace=True)
-
-    charges = []
-    pdbqt_atom_name = []
-    with open(filename, 'r') as f:
-        for line in f.read().splitlines():
-            if line[:6] in {'ATOM  ', 'HETATM'}:
-                row = line.split()
-                pdbqt_name = str(row[-1]).strip()
-                charge = float(str(row[-2]).strip())
-                if pdbqt_name not in {'H', 'HD', 'HS'}:
-                    charges.append(charge)
-                    pdbqt_atom_name.append(pdbqt_name)
-
-    for atom in traj.top.atoms:
-        atom.charge = charges[atom.index]
-        atom.pdbqt_name = pdbqt_atom_name[atom.index]
-    return traj
+# def _load_and_run(i_item):
+#     i, item = i_item
+#
+#     if isinstance(item, str):
+#         traj = md.load(item)
+#     else:
+#         traj = item
+#     traj = traj.atom_slice(atom_indices=[atom.index for atom in traj.top.atoms if atom.element.atomic_number != 1])
+#     ss = AS_Snapshot()
+#     ss.tessellation(traj, 0)
+#     ss._gen_beta()
+#     ss._gen_pocket()
+#
+#     ss.beta_scores = np.zeros(len(ss.beta_xyz), dtype=np.float)
+#
+#     return i, ss
+#
+# def _load(files, score=True):
+#     """
+#
+#     Parameters
+#     ----------
+#     files: list
+#
+#     Returns
+#     -------
+#
+#     """
+#     if type(files) is not list:
+#         files = [files]
+#     u = AS_Universe()
+#
+#     if score:
+#         with Pool() as pool:
+#             results = pool.map(_load_and_run_score, enumerate(files), 1)
+#     else:
+#         with Pool() as pool:
+#             results = pool.map(_load_and_run, enumerate(files), 1)
+#     # print(results)
+#     u.update(dict(results))
+#
+#     return u
 
 
 def get_pdb_line(atom='ATOM', atomnum=0, atomname=' ', resname=' ', chain_idx=' ', resnum=0, x=0.0, y=0.0, z=0.0,
@@ -118,21 +231,3 @@ def get_pdb_line(atom='ATOM', atomnum=0, atomname=' ', resname=' ', chain_idx=' 
         j[0], j[1], j[2], j[3], j[4], j[5], j[6], j[7], j[8], j[9], j[10], j[11]))
 
     return line
-
-
-def save_universe(universe, file_path: str) -> bool:
-    try:
-        with open(file_path, 'wb') as handle:
-            pickle.dump(universe, handle)
-        return True
-    except:
-        print('Cannot save to {}'.format(file_path))
-        return False
-
-
-def load_universe(file_path: str):
-    try:
-        with open(file_path, 'rb') as handle:
-            return pickle.load(handle)
-    except:
-        print('Cannot load from {}'.format(file_path))

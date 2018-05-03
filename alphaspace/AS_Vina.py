@@ -207,8 +207,8 @@ def pre_process_pdbqt(traj, truncation_length=0):
     prot_coord = traj.xyz[0]
     prot_tree = spatial.cKDTree(prot_coord)
     prot_types = []
-    for atom in traj.top.atoms:
-        prot_types.append(atom.pdbqt_name)
+    for i, atom in enumerate(traj.top.atoms):
+        prot_types.append(traj.adv_atom_types[i])
         if atom.residue.name in types_dict.keys():
             if atom.name in types_dict[atom.residue.name].keys():
                 if atom.pdbqt_name in ali_atoms:
