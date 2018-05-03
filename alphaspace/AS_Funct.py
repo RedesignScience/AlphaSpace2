@@ -1,4 +1,3 @@
-import itertools
 import multiprocessing as mp
 from itertools import combinations_with_replacement
 
@@ -11,42 +10,6 @@ from scipy.spatial import Voronoi, Delaunay, cKDTree
 from scipy.spatial.distance import cdist
 from scipy.spatial.distance import squareform
 
-
-class Consumer(mp.Process):
-    """
-    Consumer for multiprocessing
-    """
-
-    def __init__(self, task_queue, result_queue):
-        mp.Process.__init__(self)
-        self.task_queue = task_queue
-        self.result_queue = result_queue
-
-    def run(self):
-
-        while True:
-            next_task = self.task_queue.get()
-            if next_task is None:
-                # Poison pill means shutdown
-                self.task_queue.task_done()
-                break
-            answer = next_task()
-            self.task_queue.task_done()
-            self.result_queue.put(answer)
-        return
-
-
-class Task(object):
-    def __init__(self, *args, info=None, **kwargs):
-        self.kwargs = kwargs
-        self.function = args[0]
-        self.info = info
-
-    def __call__(self, ):
-        if self.info is None:
-            return self.function(**self.kwargs)
-        else:
-            return self.function(**self.kwargs), self.info
 
 
 def getTetrahedronVolume(coord_list: list):
