@@ -651,3 +651,7 @@ def bin_cluster(coords, bin_size, bin_buffer_ratio=0.01, distance=5.4):
     pocket_label = label[ind]
 
     return pocket_label
+
+
+def mark_contact():
+    pass

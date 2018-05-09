@@ -55,7 +55,6 @@ class Alpha:
         """
         return np.linalg.norm(self.xyz - other.xyz)
 
-
     @property
     def xyz(self):
         """
@@ -83,7 +82,7 @@ class Alpha:
 
 
         """
-        return self.snapshot.alpha_space[self.index] * 100
+        return self.snapshot.alpha_space[self.index] * 1000
 
     @property
     def lining_atoms_idx(self):
@@ -146,8 +145,6 @@ class Beta:
         """
         return np.mean([alpha.centroid for alpha in self.alphas], axis=0)
 
-
-
     @property
     def alphas(self):
         for i in self.snapshot.beta_alpha_index_list[self.index]:
@@ -186,7 +183,6 @@ class Beta:
         """
         return np.min(self.scores)
 
-
     @property
     def is_contact(self):
         return bool(self.snapshot.beta_contact[self.index])
@@ -194,26 +190,30 @@ class Beta:
 
 class Pocket:
 
-    def __init__(self, snapshot, index):
+    def __init__(self, snapshot, index=None, beta_index=None):
 
         self.snapshot = snapshot
-        self.index = index
+        if index is not None:
+            self.beta_index = self.snapshot.pocket_beta_index_list[index]
+        elif beta_index is not None:
+            self.beta_index = beta_index
+        else:
+            raise Exception()
 
     @property
     def is_contact(self):
-        return self.snapshot.pocket_contact[self.index]
+        return np.any(self.snapshot.beta_contact[self.beta_index])
 
     @property
     def alphas(self):
-        for i in self.snapshot.pocket_beta_index_list[self.index]:
+        for i in self.beta_index:
             for j in self.snapshot.beta_alpha_index_list[i]:
                 yield Alpha(snapshot=self.snapshot, index=j)
+
     @property
     def betas(self):
-
-        for i in self.snapshot.pocket_beta_index_list[self.index]:
+        for i in self.beta_index:
             yield Beta(snapshot=self.snapshot, index=i)
-
 
     @property
     def space(self):
@@ -234,4 +234,61 @@ class Pocket:
             shape : (3)
         """
 
+        return np.mean([beta.centroid for beta in self.betas], axis=0)
+
+
+class DPocket:
+
+    def __init__(self, universe, beta_indices):
+        self.universe = universe
+        self._betas = self.universe.map_beta(beta_indices)
+
+    def __len__(self):
+
+        return len(self._betas)
+
+    @property
+    def ss_vector(self):
+        return np.array([len(self._betas[:, 1][self._betas[:, 0] == i]) for i in range(len(self.universe))])
+
+    @property
+    def varience(self):
+        return np.sum((self.ss_vector / float(len(self._betas)) - np.full(len(self.ss_vector),
+                                                                          fill_value=1. / len(self.universe))) ** 2)
+
+    @property
+    def betas(self):
+        for ss_idx, beta_idx in self._betas:
+            yield Beta(self.universe[ss_idx], beta_idx)
+
+    @property
+    def pockets(self):
+        """
+
+        Returns
+        -------
+        Yields:
+        Pocket
+
+
+        """
+        for i in range(len(self.universe)):
+            beta_indices = self._betas[:, 1][self._betas[:, 0] == i]
+            if len(beta_indices) > 0:
+                yield Pocket(snapshot=self.universe[i], beta_index=beta_indices)
+
+    @property
+    def scores(self):
+        return np.array([pocket.score for pocket in self.pockets])
+
+    @property
+    def spaces(self):
+        return np.array([pocket.space for pocket in self.pockets])
+
+    @property
+    def is_contact(self):
+        return np.any([beta.is_contact for beta in self.betas])
+
+    @property
+    def centroid(self):
         return np.mean([beta.centroid for beta in self.betas], axis=0)

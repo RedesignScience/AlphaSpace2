@@ -30,7 +30,9 @@ _COLOR_IDX = {0: "teal",
               11: "ltblue",
               12: "peach",
               }
-def view_structure(traj, surface_opacity=1.0, snapshot_idx=0):
+
+
+def _view_structure(traj, surface_opacity=1.0, snapshot_idx=0):
     _ngl_view = nv.show_mdtraj(traj[snapshot_idx])
 
     if surface_opacity > 0:
@@ -49,3 +51,8 @@ def draw_cylinder(view, start, end, radius, color):
                           radius=radius)
     return True
 
+
+def view(alphaspace_snapshot, mdtraj_snapshot, show_alpha=False, show_beta=True, show_pocket=False, contact_only=True):
+    view = _view_structure(mdtraj_snapshot)
+
+    # todo

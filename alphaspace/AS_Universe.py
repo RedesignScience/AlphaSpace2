@@ -41,6 +41,7 @@ You can checkout more on how to load and select molecular object in the receptor
 
 from collections import OrderedDict
 
+from alphaspace.AS_Funct import bin_cluster
 from alphaspace.AS_Snapshot import *
 
 from .AS_Cluster import *
@@ -818,11 +819,16 @@ class AS_Universe:
         if snapshots_dict is not None:
             self.update(snapshots_dict)
 
+        self.dpocket_beta_labels = None
+
     def __iter__(self):
         return self.snapshots.__iter__()
 
     def __getitem__(self, item):
         return self.snapshots.__getitem__(item)
+
+    def __len__(self):
+        return len(self.snapshots)
 
     def update(self, snapshots_dict):
         self.snapshots.update(snapshots_dict)
@@ -830,6 +836,7 @@ class AS_Universe:
     def sort(self, reverse=False):
         self.snapshots = OrderedDict(sorted(self.snapshots.items(), key=lambda x: x[0], reverse=reverse))
 
+    @property
     def beta_xyz(self):
         """
         First Generate a mapping of beta atom to snapshot index and per snapshot beta index,
@@ -853,8 +860,16 @@ class AS_Universe:
         return np.array(beta_xyz)
 
     def map_beta(self, beta_index):
-
         return self.beta_mapping[beta_index]
+
+    @property
+    def dpockets(self):
+        if self.dpocket_beta_labels is None:
+            beta_coords = self.beta_xyz * 10
+            beta_dpocket_labels = bin_cluster(coords=beta_coords, distance=4.7, bin_size=[0.5, 0.5, 0.5])
+            self.dpocket_beta_labels = group(beta_dpocket_labels)
+        for beta_indices in self.dpocket_beta_labels:
+            yield DPocket(self, beta_indices=beta_indices)
 
     def screen_by_contact(self, ref_traj, cutoff=3.6):
 
@@ -868,18 +883,16 @@ class AS_Universe:
         if len(ref_traj.shape) == 2:
             ref_traj = np.expand_dims(ref_traj, axis=0)
 
-        assert len(ref_traj.shape) == 3
-
         if ref_traj.shape[0] != len(self.snapshots):
-            print("provided trajectory has less snapshots({}) than in this universe({})".format(ref_traj.shape,
+            print("provided trajectory has less snapshots({}) than in this universe({})".format(ref_traj.shape[0],
                                                                                                 len(self.snapshots)))
-            ref_traj = ref_traj[0, :, :]
+            for i in range(len(self.snapshots)):
+                self.snapshots[i].screen_by_contact(ref_traj[0], cutoff=cutoff)
+        else:
 
-        if ref_traj.shape[0] == 1:
-            print("Using first as reference for all")
-
-        for i in np.arange(ref_traj.shape[0]):
-            self.snapshots[i].screen_by_contact(ref_points=ref_traj[i], cutoff=cutoff)
+            for i in range(len(self.snapshots)):
+                print(ref_traj.shape)
+                self.snapshots[i].screen_by_contact(ref_points=ref_traj[i], cutoff=cutoff)
 
     def draw_pocket(self, view, snapshot_idx: int = 0, contact_only=True, radius=1.0):
         """

@@ -7,6 +7,7 @@ import numpy as np
 from alphaspace.AS_Snapshot import AS_Snapshot
 from alphaspace.AS_Universe import AS_Universe
 from alphaspace.AS_Vina import get_probe_score, pre_process_pdbqt
+from alphaspace.AS_Funct import bin_cluster, group
 
 
 def _get_path(f):
@@ -95,7 +96,6 @@ def _load_traj_with_ref(*args, top=None, ref=None):
 def load(f, top=None, ref=None):
     file_path = _get_path(f)
     trajectory = _load_traj_with_ref(*file_path, top=top, ref=ref)
-
     return trajectory
 
 
@@ -109,16 +109,29 @@ def process(trajectory):
 
     u = AS_Universe()
 
+    # results  = []
+    # for isnapshot in enumerate(snapshots):
+    #     results.append(_process_snapshot(isnapshot))
+    # #
     with Pool() as pool:
         results = pool.map(_process_snapshot, enumerate(snapshots))
+    #     pool.join()
+    #     pool.close()
+
+
+
     u.update(dict(results))
 
     return u
 
 
 def _process_snapshot(isnapshot):
+    print(isnapshot)
     i, snapshot = isnapshot
     ss = AS_Snapshot()
+
+    print(snapshot)
+
     ss.tessellation(snapshot, snapshot_idx=0)
     ss._gen_beta()
     ss._gen_pocket()
