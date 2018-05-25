@@ -641,12 +641,11 @@ def bin_cluster(coords, bin_size, bin_buffer_ratio=0.01, distance=5.4):
     non_zero_cube_idx = np.where(cube_idx_count > 0)
     non_zero_cube_coord = np.divide(cube_coord_sum[non_zero_cube_idx],
                                     np.expand_dims(cube_idx_count[non_zero_cube_idx], 1))
-
     zmat = linkage(non_zero_cube_coord, method='average')
     label = fcluster(zmat, distance, criterion='distance') - 1
 
     tree = cKDTree(non_zero_cube_coord)
-    dist, ind = tree.query(coords, 1, n_jobs=-1)
+    dist, ind = tree.query(coords, 1, n_jobs=1)
 
     pocket_label = label[ind]
 

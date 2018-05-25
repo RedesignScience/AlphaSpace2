@@ -820,6 +820,7 @@ class AS_Universe:
             self.update(snapshots_dict)
 
         self.dpocket_beta_labels = None
+        self.beta_mapping = None
 
     def __iter__(self):
         return self.snapshots.__iter__()
@@ -829,6 +830,29 @@ class AS_Universe:
 
     def __len__(self):
         return len(self.snapshots)
+
+    def __add__(self, other):
+        """
+        Combine two universe, usually from two protein structures.
+
+        Parameters
+        ----------
+        other:AS_Universe
+
+        Returns
+        -------
+        AS_Universe
+        """
+
+        combined_universe = AS_Universe(self.snapshots)
+
+        idx = max(combined_universe.snapshots.keys()) + 1
+
+        for new_idx, ss in other.snapshots.items():
+            ss.snapshot_idx = idx + new_idx
+            combined_universe.snapshots[idx + new_idx] = ss
+
+        return combined_universe
 
     def update(self, snapshots_dict):
         self.snapshots.update(snapshots_dict)
@@ -847,29 +871,53 @@ class AS_Universe:
 
         """
 
-        self.sort()
-        beta_mapping = []
+        self.map_betas()
+
         beta_xyz = []
         for i, snapshot in self.snapshots.items():
-            # print(snapshot)
-            beta_mapping.extend([[i, beta_idx] for beta_idx in range(len(snapshot.beta_xyz))])
             beta_xyz.extend(snapshot.beta_xyz)
-            # print(beta_xyz)
-        self.beta_mapping = np.array(beta_mapping)
 
         return np.array(beta_xyz)
 
+    def map_betas(self):
+        if self.beta_mapping is None:
+            self.sort()
+            beta_mapping = []
+            for i, snapshot in self.snapshots.items():
+                # print(snapshot)
+                beta_mapping.extend([[i, beta_idx] for beta_idx in range(snapshot.n_betas)])
+                # print(beta_xyz)
+            self.beta_mapping = np.array(beta_mapping)
+
     def map_beta(self, beta_index):
+        """
+
+        Parameters
+        ----------
+        beta_index: array or int
+            total index of beta atoms
+
+        Returns
+        -------
+        [snapshot_idx, snapshot_beta_idx]
+
+
+        """
+        if self.beta_mapping is None:
+            self.map_betas()
         return self.beta_mapping[beta_index]
 
     @property
     def dpockets(self):
         if self.dpocket_beta_labels is None:
-            beta_coords = self.beta_xyz * 10
-            beta_dpocket_labels = bin_cluster(coords=beta_coords, distance=4.7, bin_size=[0.5, 0.5, 0.5])
-            self.dpocket_beta_labels = group(beta_dpocket_labels)
+            self.gen_dpockets(distance=4.7, bin_size=[1.8, 1.8, 1.8])
         for beta_indices in self.dpocket_beta_labels:
             yield DPocket(self, beta_indices=beta_indices)
+
+    def gen_dpockets(self, distance, bin_size):
+        beta_coords = self.beta_xyz * 10
+        beta_dpocket_labels = bin_cluster(coords=beta_coords, distance=distance, bin_size=bin_size)
+        self.dpocket_beta_labels = group(beta_dpocket_labels)
 
     def screen_by_contact(self, ref_traj, cutoff=3.6):
 
@@ -891,7 +939,6 @@ class AS_Universe:
         else:
 
             for i in range(len(self.snapshots)):
-                print(ref_traj.shape)
                 self.snapshots[i].screen_by_contact(ref_points=ref_traj[i], cutoff=cutoff)
 
     def draw_pocket(self, view, snapshot_idx: int = 0, contact_only=True, radius=1.0):
@@ -914,7 +961,7 @@ class AS_Universe:
             if (contact_only and pocket.is_contact) or not contact_only:
                 draw_sphere(view, list(pocket.centroid * 10), radius=radius, color=_COLOR_DICT[_COLOR_IDX[i]])
                 print("Pocket with index of {} is {}".format(pocket.index, _COLOR_IDX[i]))
-                i = (i + 1) % 13
+                i = (i + 1) % len(_COLOR_DICT)
 
     def draw_alpha(self, view, snapshot_idx: int = 0, contact_only=True, radius=0.2):
         i = 0
@@ -924,7 +971,7 @@ class AS_Universe:
                     draw_sphere(view, list(alpha.centroid * 10), radius, color=_COLOR_DICT[_COLOR_IDX[i]])
 
                 print("Pocket with index of {} is {}".format(pocket.index, _COLOR_IDX[i]))
-                i = (i + 1) % 13
+                i = (i + 1) % len(_COLOR_DICT)
 
     def draw_beta(self, view, snapshot_idx: int = 0, contact_only=True, radius=0.2):
         i = 0
@@ -933,4 +980,43 @@ class AS_Universe:
                 for beta in pocket.betas:
                     draw_sphere(view, list(beta.centroid * 10), radius, color=_COLOR_DICT[_COLOR_IDX[i]])
                 print("Pocket with index of {} is {}".format(pocket.index, _COLOR_IDX[i]))
-                i = (i + 1) % 13
+                i = (i + 1) % len(_COLOR_DICT)
+
+    def draw_dpocket(self, view, dpockets=None, contact_only=True, radius=1.0, label='index'):
+        """
+
+        Parameters
+        ----------
+        view
+        dpockets
+        contact_only
+        radius
+        label: str
+            types of label u wishes to display
+
+        Returns
+        -------
+
+        """
+        dpockets = self.dpockets if dpockets is None else dpockets
+
+        i = 0
+        for dpocket in dpockets:
+            if (contact_only and dpocket.is_contact) or not contact_only:
+                draw_sphere(view, list(dpocket.centroid * 10), radius=radius,
+                            color=_COLOR_DICT[_COLOR_IDX[i % len(_COLOR_DICT)]])
+
+                if label == 'index':
+                    view.shape.add_text(list(dpocket.centroid * 10), _COLOR_DICT[_COLOR_IDX[i % len(_COLOR_DICT)]],
+                                        4, "   {}".format(i))
+                elif label == 'score':
+                    view.shape.add_text(list(dpocket.centroid * 10), _COLOR_DICT[_COLOR_IDX[i % len(_COLOR_DICT)]],
+                                        4, "   {}".format(str(np.round(np.average(dpocket.scores), 2))))
+                elif label == 'space':
+                    view.shape.add_text(list(dpocket.centroid * 10), _COLOR_DICT[_COLOR_IDX[i % len(_COLOR_DICT)]],
+                                        4, "   {}".format(int(np.average(dpocket.spaces))))
+                else:
+                    print('Label {} not recognized as'.format(label), 'index', 'score', 'space')
+                    view.shape.add_text(list(dpocket.centroid * 10), _COLOR_DICT[_COLOR_IDX[i % len(_COLOR_DICT)]],
+                                        4, "   {}".format(i))
+                i += 1

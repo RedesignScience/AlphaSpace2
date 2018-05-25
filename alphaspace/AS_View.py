@@ -29,6 +29,8 @@ _COLOR_IDX = {0: "teal",
               10: "blue",
               11: "ltblue",
               12: "peach",
+              13: "rasp",
+              14: "teal"
               }
 
 

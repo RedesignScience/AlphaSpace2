@@ -39,8 +39,15 @@ class AS_Snapshot:
 
         self.beta_scores = None
 
+        self.snapshot_idx = snapshot_idx
+
         if traj is not None:
             self.tessellation(traj, snapshot_idx)
+
+    @property
+    def n_betas(self):
+        return len(self.beta_xyz)
+
 
     def tessellation(self, traj, snapshot_idx=0):
         """

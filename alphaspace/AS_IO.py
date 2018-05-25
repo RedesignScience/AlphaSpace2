@@ -31,7 +31,7 @@ def _get_path(f):
         raise Exception
 
 
-def _load_traj_with_ref(*args, top=None, ref=None):
+def _load_traj_with_ref(*args, top=None, ref=None, trim=False):
     """
 
     Parameters
@@ -74,9 +74,25 @@ def _load_traj_with_ref(*args, top=None, ref=None):
             adv_atom_type = pdb_line[77:79].strip()
             adv_atom_types.append(adv_atom_type)
 
-        retaining_atom_indices = [atom.index for atom in trajectory.top.atoms if
-                                  atom.serial in set(atom_numbers)]
-        trajectory.atom_slice(atom_indices=retaining_atom_indices, inplace=True)
+        if trim:
+            retaining_atom_indices = [atom.index for atom in trajectory.top.atoms if atom.serial in set(atom_numbers)]
+            trajectory.atom_slice(atom_indices=retaining_atom_indices, inplace=True)
+
+            if trajectory.top.n_atoms == 0:
+                print(
+                    'Warning: No Atoms are retained with the trimming process, make sure your input file has atom number.')
+
+        else:
+            if trajectory.top.n_atoms < len(adv_atom_types):
+                print("Redundant Atom types in pdbqt file found, trimming last {} entries".format(
+                    {trajectory.top.n_atoms - len(adv_atom_types)}))
+                adv_atom_types = adv_atom_types[:trajectory.top.n_atoms]
+                partial_charges = partial_charges[:trajectory.top.n_atoms]
+            elif trajectory.top.n_atoms > len(adv_atom_types):
+                raise Exception("Not enough atom types provided for structure: {} vs {}".format(len(adv_atom_types),
+                                                                                                trajectory.top.n_atoms, ))
+            else:
+                pass
 
         trajectory.partial_charges = partial_charges
         trajectory.adv_atom_types = adv_atom_types
@@ -93,9 +109,9 @@ def _load_traj_with_ref(*args, top=None, ref=None):
     return trajectory
 
 
-def load(f, top=None, ref=None):
+def load(f, top=None, ref=None, trim=False):
     file_path = _get_path(f)
-    trajectory = _load_traj_with_ref(*file_path, top=top, ref=ref)
+    trajectory = _load_traj_with_ref(*file_path, top=top, ref=ref, trim=trim)
     return trajectory
 
 
@@ -118,19 +134,14 @@ def process(trajectory):
     #     pool.join()
     #     pool.close()
 
-
-
     u.update(dict(results))
 
     return u
 
 
 def _process_snapshot(isnapshot):
-    print(isnapshot)
     i, snapshot = isnapshot
-    ss = AS_Snapshot()
-
-    print(snapshot)
+    ss = AS_Snapshot(snapshot_idx=i)
 
     ss.tessellation(snapshot, snapshot_idx=0)
     ss._gen_beta()
