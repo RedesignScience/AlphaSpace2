@@ -28,7 +28,7 @@ def main(top, coord):
     receptor_traj = traj.atom_slice(np.array(receptor_idx))
     binder_traj = traj.atom_slice(np.array(binder_idx))
 
-    universe = AS_Universe(receptor=receptor_traj, binder=binder_traj)
+    universe = Trajectory(receptor=receptor_traj, binder=binder_traj)
 
     universe.config.screen_by_lig_cntct = True
     """Run alphaspace with 4 cpu cores"""
@@ -47,7 +47,7 @@ def main(top, coord):
         for atom in universe.binder.atoms:
             if (len(atom.linked_alpha)) > 0:
                 total_space += sum([alpha.space for alpha in atom.linked_alpha])
-                occupied_space += sum([alpha.space for alpha in atom.linked_alpha if alpha.is_contact])
+                occupied_space += sum([alpha.space for alpha in atom.linked_alpha if alpha.isContact])
 
         print(total_space, occupied_space)
 

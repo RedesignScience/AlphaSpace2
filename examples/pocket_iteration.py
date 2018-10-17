@@ -13,6 +13,6 @@ pockets = list(universe.pockets(snapshot_idx))
 pockets.sort(key=lambda p: p.space, reverse=True)
 
 for pocket in pockets:
-    print("Pocket Space {}".format(pocket.space))
+    print("_Pocket Space {}".format(pocket.space))
     for beta in pocket.betas:
-        print("Beta Space {:.2f} at {}".format(beta.space, beta.centroid))
+        print("_Beta Space {:.2f} at {}".format(beta.space, beta.centroid))

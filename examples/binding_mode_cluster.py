@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from scipy.spatial.distance import cdist, squareform
 from scipy.cluster.hierarchy import fcluster, linkage, dendrogram
 import os
+
 from itertools import combinations_with_replacement
 
 
@@ -17,7 +18,7 @@ def binding_mode_cluster(traj_file, top_file, dend_out_file):
     # load system
     print('loading')
     traj = mdtraj.load(traj_file, top=top_file)
-    universe = AS_Universe(receptor=traj, guess_by_order=True)
+    universe = Trajectory(receptor=traj, guess_by_order=True)
 
     print('loading complete,running alphaspace')
 

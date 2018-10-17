@@ -7,7 +7,7 @@ testProteins_bcl2 = ['/Users/haotian/Dropbox/pycharm_project/AlphaSpace/examples
 
 testLigand_bcl2 = ['/Users/haotian/Dropbox/pycharm_project/AlphaSpace/examples/test/bcl2/lig/{}.pdb'.format(i) for i in range(1, 1 + 10)]
 
-u = alphaspace.AS_Universe()
+u = alphaspace.Trajectory()
 for _ in range(1):
     for test_protein_path, test_ligand_path in zip(testProteins_bcl2,testLigand_bcl2):
         # print(test_protein_path,test_ligand_path)

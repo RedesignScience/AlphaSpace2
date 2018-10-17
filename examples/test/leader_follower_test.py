@@ -18,7 +18,7 @@ def prune_dpockets(d_pocket_dict, sample_ratio=1):
 
 traj_path = '/Users/haotian/Desktop/bcl2.holo1.10.h5'
 traj = md.load_hdf5(traj_path)
-u = alpha.AS_Universe(traj, guess_by_order=False, guess_receptor_binder=True)
+u = alpha.Trajectory(traj, guess_by_order=False, guess_receptor_binder=True)
 u.run_alphaspace_mp()
 
 d_pockets = u._gen_d_pockets_iter(sample_frames=20, sample_ratio=1, pocket_space_cutoff=20)

@@ -21,7 +21,7 @@ for protein, system in index:
         lines = handle.readlines()
     lining_atoms = [int(i) for i in lines[0].split()]
 
-    u = al.AS_Universe()
+    u = al.Trajectory()
     u.load("/Users/haotian/Desktop/snapshots/{}/{}/vina_scored.as".format(protein, system))
     u._gen_community(100)
 

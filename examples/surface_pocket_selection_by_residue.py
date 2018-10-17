@@ -8,7 +8,7 @@ import sys
 
 receptor_path, binder_path = sys.argv[1], sys.argv[2]
 
-universe = alphaspace.AS_Universe()
+universe = alphaspace.Trajectory()
 universe.set_receptor(structure=mdtraj.load(receptor_path), keepH=True)
 universe.set_binder(structure=mdtraj.load(binder_path))
 

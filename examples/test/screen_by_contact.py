@@ -14,7 +14,7 @@ if __name__ == '__main__':
 
     ligand_traj = md.load(sys.argv[2])
 
-    u.screen_by_contact(ligand_traj.xyz[0])
+    u.calculateContact(ligand_traj.xyz[0])
 
     for snapshot in u.snapshots.values():
 

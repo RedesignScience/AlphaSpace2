@@ -6,8 +6,8 @@ def readme():
         return f.read()
 
 
-setup(name='alphaspace_lit',
-      version='2.5',
+setup(name='alphaspace',
+      version='2.6',
       description='Protein topographical mapping tool',
       url='http://github.com/lenhsherr/alphaspace',
       author='Haotian Li',
@@ -29,11 +29,9 @@ setup(name='alphaspace_lit',
           'scipy',
           'cython',
           'jupyter',
-          'nglview',
           'mdtraj',
           'ipywidgets',
           'networkx',
-          'numba',
           'scikit-learn'
 
       ],
