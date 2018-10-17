@@ -20,7 +20,6 @@ Key features:
 ```python 3.6
 numpy
 scipy
-cython
 jupyter notebook
 nglview
 mdtraj
@@ -31,28 +30,12 @@ ipywidgets
 Download the zip package and unzip it in you preferred installation location.
 Navigate to the AlphaSpace folder, where you should see this README.md file
 
-Due to a pip bug you need to install cython and numpy individualy by entering:
+You can install the AlphaSpace by entering:
 ```
-pip install cython
-pip install numpy
+pip install -e .
 ```
-And then you can install the AlphaSpace by entering:
-```
-pip install .
-```
-The rest of the dependencies should be automatically installed through pip.
+The dependencies should be automatically installed through pip.
 
-
-
-## Activate ipython widget environment
-To enable jupyter notebook visualization, you may need to enable ipython widget extension. 
-```
-jupyter-nbextension enable --py --sys-prefix widgetsnbextension
-jupyter-nbextension enable --py --sys-prefix nglview
-python -m ipykernel install --sys-prefix
-```
-
-## Running first AlphaSpace session
 
 ### Using jupyter notebook
 
@@ -60,19 +43,6 @@ For interactive session in jupyter notebook, type in
 ```
  jupyter notebook 
 ```
-To start, you can open the [FCTM_tutorial](examples/FCTM_tutorial.ipynb) in the [examples](examples) folder.
+To start, you can open the [FCTM_tutorial](examples/1_FCTM.ipynb) in the [examples](examples) folder.
 
-You might also want to checkout [Pocket Scoring](examples/PocketScoring.ipynb)
-
-### Using commandline
-
-__experimental__
-
-AlphaSpace also support command line usage, if you run AlphaSpace on a pdb file the mapping will be outputted in the working directory as PDB file and chimera .py file. You will be able to open them in chimera later. Alternatively, a binary pickled file can be saved, this allows for direct loading of results in python.   
-To run it in command line mode, do
-```
- python run_alphaspace.py -i [input_file] -o [output_file] -c [OPTIONAL:config_file_path] —-chimera/pickle
-```
-
-## Bugs and issue
-For any feature request or reporting any bugs, please create an issue.
+You might also want to checkout [Pocket Scoring](examples/2_Match.ipynb)

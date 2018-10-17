@@ -1,9 +1,7 @@
-numba
 numpy
 scipy
 cython
 jupyter
-nglview
 mdtraj
 ipywidgets
 networkx
