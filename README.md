@@ -32,7 +32,7 @@ Navigate to the AlphaSpace folder, where you should see this README.md file
 
 You can install the AlphaSpace by entering:
 ```
-pip install -e .
+pip install .
 ```
 The dependencies should be automatically installed through pip.
 
@@ -45,4 +45,4 @@ For interactive session in jupyter notebook, type in
 ```
 To start, you can open the [FCTM_tutorial](examples/1_FCTM.ipynb) in the [examples](examples) folder.
 
-You might also want to checkout [Pocket Scoring](examples/2_Match.ipynb)
+You might also want to checkout [Pocket Comparison](examples/2_Compare.ipynb)

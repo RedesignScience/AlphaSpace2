@@ -9,7 +9,7 @@ class Snapshot:
     min_r = 3.2
     max_r = 5.4
 
-    beta_cluster_dist = 1.3
+    beta_cluster_dist = 1.6
     pocket_cluster_dist = 4.7
 
     contact_cutoff = 1.6
@@ -38,6 +38,7 @@ class Snapshot:
         self._alpha_radii = None
 
         self._beta_alpha_index_list = None
+        self._pocket_alpha_index_list = None
         self._pocket_beta_index_list = None
 
     def genAlphas(self, receptor):
@@ -78,15 +79,30 @@ class Snapshot:
         self._alpha_xyz = np.take(raw_alpha_xyz, filtered_alpha_idx, axis=0)
 
     def genBetas(self):
-        assert self._alpha_xyz is not None
-        zmat = linkage(self._alpha_xyz, method='average')
 
-        alpha_beta_label = fcluster(zmat, self.beta_cluster_dist / 10, criterion='distance') - 1
+        self._beta_alpha_index_list = []
+        self._pocket_beta_index_list = []
 
-        self._beta_alpha_index_list = _group(alpha_beta_label)
+        for pocket in self.pockets:
+            alpha_xyz = np.array([alpha.xyz for alpha in pocket.alphas])
 
-        self._beta_xyz = [None] * (max(alpha_beta_label) + 1)
-        self._beta_space = [None] * (max(alpha_beta_label) + 1)
+            if len(alpha_xyz) > 1:
+
+                zmat = linkage(alpha_xyz, method='complete')
+                alpha_beta_label = fcluster(zmat, self.beta_cluster_dist / 10, criterion='distance') - 1
+            else:
+                alpha_beta_label = [0]
+
+            _beta_alpha_index_list = _group(alpha_beta_label)
+
+            self._pocket_beta_index_list.append(
+                [i + len(self._beta_alpha_index_list) for i in range(len(_beta_alpha_index_list))])
+
+            self._beta_alpha_index_list.extend(_beta_alpha_index_list)
+
+        self._beta_xyz = [None] * (len(self._beta_alpha_index_list))
+        self._beta_space = [None] * (len(self._beta_alpha_index_list))
+
         for i, indices in enumerate(self._beta_alpha_index_list):
             self._beta_xyz[i] = np.mean(self._alpha_xyz[indices], axis=0)
             self._beta_space[i] = np.sum(self._alpha_space[indices], axis=0)
@@ -95,15 +111,17 @@ class Snapshot:
         self._beta_space = np.array(self._beta_space)
 
     def genPockets(self):
-        zmat = linkage(self._beta_xyz, method='average')
-        beta_pocket_label = fcluster(zmat, self.pocket_cluster_dist / 10, criterion='distance') - 1
 
-        self._pocket_beta_index_list = _group(beta_pocket_label)
-        self._pocket_xyz = [None] * (max(beta_pocket_label) + 1)
-        self._pocket_space = [None] * (max(beta_pocket_label) + 1)
-        for i, indices in enumerate(self._pocket_beta_index_list):
-            self._pocket_xyz[i] = np.mean(self._beta_xyz[indices], axis=0)
-            self._pocket_space[i] = np.sum(self._beta_space[indices], axis=0)
+        zmat = linkage(self._alpha_xyz, method='average')
+        alpha_pocket_label = fcluster(zmat, self.pocket_cluster_dist / 10, criterion='distance') - 1
+
+        self._pocket_alpha_index_list = _group(alpha_pocket_label)
+        self._pocket_xyz = [None] * (max(alpha_pocket_label) + 1)
+        self._pocket_space = [None] * (max(alpha_pocket_label) + 1)
+
+        for i, indices in enumerate(self._pocket_alpha_index_list):
+            self._pocket_xyz[i] = np.mean(self._alpha_xyz[indices], axis=0)
+            self._pocket_space[i] = np.sum(self._alpha_space[indices], axis=0)
 
     def genBScore(self, receptor):
         from .VinaScoring import _pre_process_pdbqt, _get_probe_score
@@ -136,16 +154,20 @@ class Snapshot:
         """
 
         self._alpha_contact = _markInRange(self._alpha_xyz, ref_points=coords, cutoff=self.contact_cutoff / 10)
-        self._beta_contact = self._beta_contact = np.array(
+        self._beta_contact = np.array(
             [np.any(self._alpha_contact[alpha_indices]) for alpha_indices in self._beta_alpha_index_list])
+
         self._pocket_contact = np.array(
-            [np.any(self._beta_contact[beta_indices]) for beta_indices in self._pocket_beta_index_list])
+            [np.any(self._alpha_contact[alpha_indices]) for alpha_indices in self._pocket_alpha_index_list])
+
 
     def run(self, receptor, binder=None):
 
         self.genAlphas(receptor)
-        self.genBetas()
+
         self.genPockets()
+
+        self.genBetas()
 
         self.genBScore(receptor)
 

@@ -16,6 +16,8 @@ import numpy as np
 from scipy.cluster.hierarchy import linkage, fcluster
 
 import alphaspace
+from itertools import chain
+
 
 
 class _Alpha:
@@ -198,15 +200,19 @@ class _Beta:
 
 
 class _Pocket:
-    def __init__(self, snapshot, pocketIndex=None, betaIndex=None):
+    def __init__(self, snapshot, pocketIndex=None, alphaIndex=None, betaIndex=None):
         self.snapshot = snapshot
         self.isEmpty = False
         self.index = pocketIndex
-        if pocketIndex is not None:
-            self.beta_index = self.snapshot._pocket_beta_index_list[pocketIndex]
-        elif betaIndex is not None:
+        if betaIndex is not None:
             self.beta_index = betaIndex
+            self.alpha_index = list(chain(*[self.snapshot._beta_alpha_index_list[i] for i in betaIndex]))
+        elif alphaIndex is not None:
+            self.alpha_index = alphaIndex
+        elif pocketIndex is not None:
+            self.alpha_index = self.snapshot._pocket_alpha_index_list[pocketIndex]
         else:
+            self.alpha_index = []
             self.isEmpty = True
 
     def __repr__(self):
@@ -216,10 +222,15 @@ class _Pocket:
     def isContact(self):
         if self.isEmpty:
             return False
-        return np.any(self.snapshot._beta_contact[self.beta_index])
+        if self.index is None:
+            return np.any(self.snapshot._alpha_contact[self.alpha_index])
+        else:
+            return bool(self.snapshot._pocket_contact[self.index])
 
     @property
     def occupiedSpace(self):
+        if self.isEmpty:
+            return 0.0
         return np.sum(
             np.array([alpha.space for alpha in self.alphas]) * np.array([alpha.isContact for alpha in self.alphas]))
 
@@ -231,22 +242,26 @@ class _Pocket:
     def alphas(self):
         if self.isEmpty:
             return
-        for i in self.beta_index:
-            for j in self.snapshot._beta_alpha_index_list[i]:
-                yield _Alpha(snapshot=self.snapshot, index=j)
+        for i in self.alpha_index:
+            yield _Alpha(snapshot=self.snapshot, index=i)
 
     @property
     def betas(self):
         if self.isEmpty:
             return
-        for i in self.beta_index:
-            yield _Beta(snapshot=self.snapshot, index=i)
+        elif hasattr(self, 'beta_index'):
+            for i in self.beta_index:
+                yield _Beta(snapshot=self.snapshot, index=i)
+        else:
+            for i in self.snapshot._pocket_beta_index_list[self.index]:
+                yield _Beta(snapshot=self.snapshot, index=i)
+
 
     @property
     def space(self):
         if self.isEmpty:
             return 0
-        return np.sum([beta.space for beta in self.betas])
+        return np.sum([alpha.space for alpha in self.alphas])
 
     @property
     def score(self):
@@ -266,7 +281,7 @@ class _Pocket:
         """
         if self.isEmpty:
             return
-        return np.mean([beta.centroid for beta in self.betas], axis=0)
+        return np.mean([alphas.centroid for alphas in self.alphas], axis=0)
 
 
 class _DPocket:
@@ -324,7 +339,7 @@ class _DPocket:
         _Pocket
         """
         for i in range(len(self.trajectory)):
-            beta_indices = self._betas[:, 1][self._betas[:, 0] == i]
+            beta_indices = np.array(self._betas[:, 1][self._betas[:, 0] == i])
             if len(beta_indices) > 0:
                 yield _Pocket(snapshot=self.trajectory[i], betaIndex=beta_indices)
             else:
@@ -338,9 +353,6 @@ class _DPocket:
     def spaces(self):
         return np.array([pocket.space for pocket in self.pockets])
 
-    @property
-    def is_contact(self):
-        return np.any([beta.isContact for beta in self.betas])
 
     @property
     def centroid(self):

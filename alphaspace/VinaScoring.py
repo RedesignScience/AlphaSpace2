@@ -379,7 +379,11 @@ def _get_probe_score(prot_coord, prot_types, hp_type, don_type, acc_type, probe_
             else:
                 raise Exception()
 
+
             probe_scores[probe_idx][element_idx] = np.sum(np.array([g1, g2, rep, h1, h2]) * autodockVinaTerms)
+
+            # print(probe_scores[probe_idx][element_idx], g1,g2,rep,h1,h2)
+
 
     return probe_scores
 
