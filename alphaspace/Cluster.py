@@ -10,21 +10,18 @@ AS_AlphaAtom: A mast container for alpha atom, gets data from AS_Data
 AS_BetaATOM: same as alpha atom
 
 """
-import math
 
-import numpy as np
-from scipy.cluster.hierarchy import linkage, fcluster
 
-import alphaspace
 from itertools import chain
 
+import numpy as np
 
 
 class _Alpha:
     """
-    This is the alpha atom container, which is the constituents of the pocket object.
-
-    This object only contains reference of alpha atom id, and all info is stored in the array you can access by methods.
+    This is the alpha atom container, which is the constituents of the pocket
+    object. This object only contains reference of alpha atom id, and all info
+    is stored in the array you can access by methods.
     """
 
     def __init__(self, snapshot, index):
@@ -83,7 +80,7 @@ class _Alpha:
 
 
         """
-        return self.snapshot._alpha_space[self.index] * 1000
+        return self.snapshot._alpha_space[self.index]
 
     @property
     def lining_atoms_idx(self):
@@ -116,7 +113,8 @@ class _Alpha:
 
 class _Beta:
     """
-    This is the container for _Beta atom, which is simply a collection of alpha atoms.
+    This is the container for _Beta atom,
+    which is simply a collection of alpha atoms.
 
     It belongs to the AS_Pocket object.
     """
@@ -191,8 +189,9 @@ class _Beta:
     @property
     def occupiedSpace(self):
         return np.sum(
-            np.array([alpha.space for alpha in self.alphas]) * np.array([alpha.isContact for alpha in self.alphas])
-            )
+            np.array([alpha.space for alpha in self.alphas]) *
+            np.array([alpha.isContact for alpha in self.alphas])
+        )
 
     @property
     def occupancy(self):
@@ -206,7 +205,8 @@ class _Pocket:
         self.index = pocketIndex
         if betaIndex is not None:
             self.beta_index = betaIndex
-            self.alpha_index = list(chain(*[self.snapshot._beta_alpha_index_list[i] for i in betaIndex]))
+            self.alpha_index = list(
+                chain(*[self.snapshot._beta_alpha_index_list[i] for i in betaIndex]))
         elif alphaIndex is not None:
             self.alpha_index = alphaIndex
         elif pocketIndex is not None:
@@ -256,7 +256,6 @@ class _Pocket:
             for i in self.snapshot._pocket_beta_index_list[self.index]:
                 yield _Beta(snapshot=self.snapshot, index=i)
 
-
     @property
     def space(self):
         if self.isEmpty:
@@ -288,11 +287,11 @@ class _DPocket:
 
     def __init__(self, trajectory, beta_indices=None):
         self.trajectory = trajectory
-        self._betas = self.trajectory.map_beta(beta_indices) if beta_indices is not None else None
+        self._betas = self.trajectory.map_beta(
+            beta_indices) if beta_indices is not None else None
 
     def __len__(self):
         return self.n_pockets
-
 
     def __add__(self, other):
         """
@@ -323,7 +322,6 @@ class _DPocket:
     def __repr__(self):
         return "DPocket from {} snapshots {} beta atoms".format(str(len(self.trajectory)), str(len(self._betas)))
 
-
     @property
     def betas(self):
         for ss_idx, beta_idx in self._betas:
@@ -353,7 +351,6 @@ class _DPocket:
     def spaces(self):
         return np.array([pocket.space for pocket in self.pockets])
 
-
     @property
     def centroid(self):
         return np.mean([beta.centroid for beta in self.betas], axis=0)
@@ -367,3 +364,36 @@ class _DPocket:
         int
         """
         return np.unique(self._betas[:, 0], return_counts=True).astype(int)
+
+
+def write_to_pdb(snapshot,handle, write_subset = 'BAC'):
+
+    def _format_83(f):
+        """Format a single float into a string of width 8, with ideally 3 decimal
+        places of precision. If the number is a little too large, we can
+        gracefully degrade the precision by lopping off some of the decimal
+        places. If it's much too large, we throw a ValueError"""
+        if -999.999 < f < 9999.999:
+            return '%8.3f' % f
+        if -9999999 < f < 99999999:
+            return ('%8.3f' % f)[:8]
+        raise ValueError('coordinate "%s" could not be represented '
+                         'in a width-8 field' % f)
+
+    for pocket in snapshot.pockets:
+        for beta in pocket.betas:
+            atomIndex = beta.index
+            atomName = 'BAC'
+            resName = 'BAC'
+            resIndex = pocket.index
+            chainName = " "
+            bfactor = beta.score
+            element  = 'C'
+            xyz = beta.centroid
+
+            line = "ATOM  %5d %-4s %3s %1s%4d    %s%s%s  1.00 %5.2f      %-4s%-2s  \n" % (
+                atomIndex % 100000, atomName, resName, chainName,
+                resIndex % 10000, _format_83(xyz[0]),
+                _format_83(xyz[1]), _format_83(xyz[2]),
+                bfactor, " ", element)
+            handle.write(line)

@@ -133,7 +133,7 @@ def _pre_process_pdbqt(traj, truncation_length=0):
         tree = cKDTree(prot_coord) if tree is None else tree
 
         for ix in np.where(hp_type == 'UNK')[0]:
-            indx = np.array(tree.query_ball_point(prot_coord[ix], 2.0 / 10))
+            indx = np.array(tree.query_ball_point(prot_coord[ix], 2.0))
             if prot_types[ix] not in polarTypes:
                 if np.any(np.in1d(prot_types[indx[indx != ix]], polarTypes)):
                     hp_type[ix] = 'NNP'
@@ -166,7 +166,7 @@ def _pre_process_pdbqt(traj, truncation_length=0):
     def _assign_don(prot_coord, prot_types, hp_type, tree=None):
         tree = cKDTree(prot_coord) if tree is None else tree
         for ix in np.where(hp_type == 'UNK')[0]:
-            indx = np.array(tree.query_ball_point(prot_coord[ix], 2.0 / 10))
+            indx = np.array(tree.query_ball_point(prot_coord[ix], 2.0))
             if prot_types[ix] in ['N', 'NS', 'NA']:
                 if len(indx[indx != ix]) > 2:
                     hp_type[ix] = 'NPP'
@@ -182,7 +182,7 @@ def _pre_process_pdbqt(traj, truncation_length=0):
     hp_type = []
     don_type = []
     acc_type = []
-    prot_coord = traj.xyz[0]
+    prot_coord = traj.xyz[0]* 10
     prot_tree = spatial.cKDTree(prot_coord)
     prot_types = []
     for i, atom in enumerate(traj.top.atoms):

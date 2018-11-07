@@ -242,8 +242,8 @@ def _tessellation(**kwargs):
     raw_alpha_sphere_radii = np.linalg.norm(raw_alpha_lining_xyz - raw_alpha_xyz, axis=1)
 
     # Filter the data based on radii cutoff
-    filtered_alpha_idx = np.where(np.logical_and(config.min_r / 10.0 <= raw_alpha_sphere_radii,
-                                                 raw_alpha_sphere_radii <= config.max_r / 10.0))[0]
+    filtered_alpha_idx = np.where(np.logical_and(config.min_r<= raw_alpha_sphere_radii,
+                                                 raw_alpha_sphere_radii <= config.max_r))[0]
 
     filtered_alpha_radii = np.take(raw_alpha_sphere_radii, filtered_alpha_idx)
 

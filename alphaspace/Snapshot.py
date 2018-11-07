@@ -52,7 +52,7 @@ class Snapshot:
         self.residue_names, self.elements, self.atom_names = zip(
             *[(atom.residue.name, atom.element.symbol, atom.name) for atom in receptor.top.atoms])
 
-        protein_coords = receptor.xyz[0]
+        protein_coords = receptor.xyz[0] * 10.0
 
         raw_alpha_lining_idx = Delaunay(protein_coords).simplices
 
@@ -65,8 +65,8 @@ class Snapshot:
         raw_alpha_sphere_radii = np.linalg.norm(raw_alpha_lining_xyz - raw_alpha_xyz, axis=1)
 
         # Filter the data based on radii cutoff
-        filtered_alpha_idx = np.where(np.logical_and(self.min_r / 10.0 <= raw_alpha_sphere_radii,
-                                                     raw_alpha_sphere_radii <= self.max_r / 10.0))[0]
+        filtered_alpha_idx = np.where(np.logical_and(self.min_r<= raw_alpha_sphere_radii,
+                                                     raw_alpha_sphere_radii <= self.max_r))[0]
 
         self._alpha_radii = np.take(raw_alpha_sphere_radii, filtered_alpha_idx)
 
@@ -85,20 +85,27 @@ class Snapshot:
 
         for pocket in self.pockets:
             alpha_xyz = np.array([alpha.xyz for alpha in pocket.alphas])
+            alpha_indices = np.array([alpha.index for alpha in pocket.alphas])
+
+            from scipy.spatial.distance import pdist
+
+
+            
+
 
             if len(alpha_xyz) > 1:
-
+                
                 zmat = linkage(alpha_xyz, method='complete')
-                alpha_beta_label = fcluster(zmat, self.beta_cluster_dist / 10, criterion='distance') - 1
+
+                alpha_beta_label = fcluster(zmat, self.beta_cluster_dist, criterion='distance') - 1
             else:
                 alpha_beta_label = [0]
-
             _beta_alpha_index_list = _group(alpha_beta_label)
 
             self._pocket_beta_index_list.append(
                 [i + len(self._beta_alpha_index_list) for i in range(len(_beta_alpha_index_list))])
+            self._beta_alpha_index_list.extend([list(alpha_indices[a]) for a in _beta_alpha_index_list])
 
-            self._beta_alpha_index_list.extend(_beta_alpha_index_list)
 
         self._beta_xyz = [None] * (len(self._beta_alpha_index_list))
         self._beta_space = [None] * (len(self._beta_alpha_index_list))
@@ -113,7 +120,7 @@ class Snapshot:
     def genPockets(self):
 
         zmat = linkage(self._alpha_xyz, method='average')
-        alpha_pocket_label = fcluster(zmat, self.pocket_cluster_dist / 10, criterion='distance') - 1
+        alpha_pocket_label = fcluster(zmat, self.pocket_cluster_dist, criterion='distance') - 1
 
         self._pocket_alpha_index_list = _group(alpha_pocket_label)
         self._pocket_xyz = [None] * (max(alpha_pocket_label) + 1)
@@ -130,7 +137,7 @@ class Snapshot:
 
             prot_types, hp_type, acc_type, don_type = _pre_process_pdbqt(receptor)
 
-            self._beta_scores = _get_probe_score(probe_coords=self._beta_xyz * 10, prot_coord=receptor.xyz[0] * 10,
+            self._beta_scores = _get_probe_score(probe_coords=self._beta_xyz, prot_coord=receptor.xyz[0] * 10,
                                                  prot_types=prot_types,
                                                  hp_type=hp_type,
                                                  acc_type=acc_type, don_type=don_type)
@@ -153,7 +160,7 @@ class Snapshot:
         -------
         """
 
-        self._alpha_contact = _markInRange(self._alpha_xyz, ref_points=coords, cutoff=self.contact_cutoff / 10)
+        self._alpha_contact = _markInRange(self._alpha_xyz, ref_points=coords, cutoff=self.contact_cutoff)
         self._beta_contact = np.array(
             [np.any(self._alpha_contact[alpha_indices]) for alpha_indices in self._beta_alpha_index_list])
 
@@ -172,7 +179,7 @@ class Snapshot:
         self.genBScore(receptor)
 
         if binder is not None:
-            self.calculateContact(coords=binder.xyz[0])
+            self.calculateContact(coords=binder.xyz[0]* 10)
 
     @property
     def pockets(self):

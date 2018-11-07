@@ -67,10 +67,10 @@ class Trajectory(list):
     def gen_dpockets(self, clust_distance, bin_size=None):
         beta_coords = self.beta_xyz
         if bin_size is None:
-            beta_dpocket_labels = fcluster(linkage(self.beta_xyz, method='average'), clust_distance / 10,
+            beta_dpocket_labels = fcluster(linkage(self.beta_xyz, method='average'), clust_distance,
                                            criterion='distance') - 1
         else:
-            beta_dpocket_labels = _binCluster(coords=beta_coords, distance=clust_distance / 10, bin_size=bin_size / 10)
+            beta_dpocket_labels = _binCluster(coords=beta_coords, distance=clust_distance , bin_size=bin_size)
         self.dpocket_beta_labels = _group(beta_dpocket_labels)
 
     def screen_by_contact(self, ref_traj, cutoff=3.6):
@@ -113,7 +113,7 @@ class Trajectory(list):
         i = 0
         for pocket in self[snapshot_idx].pockets:
             if (contact_only and pocket.isContact) or not contact_only:
-                draw_sphere(view, list(pocket.centroid * 10), radius=radius, color=_COLOR_DICT[_COLOR_IDX[i]])
+                draw_sphere(view, list(pocket.centroid), radius=radius, color=_COLOR_DICT[_COLOR_IDX[i]])
                 print("_Pocket with index of {} is {}".format(pocket.index, _COLOR_IDX[i]))
                 i = (i + 1) % len(_COLOR_DICT)
 
@@ -122,7 +122,7 @@ class Trajectory(list):
         for pocket in self[snapshot_idx].pockets:
             if (contact_only and pocket.isContact) or not contact_only:
                 for alpha in pocket.alphas:
-                    draw_sphere(view, list(alpha.centroid * 10), radius, color=_COLOR_DICT[_COLOR_IDX[i]])
+                    draw_sphere(view, list(alpha.centroid), radius, color=_COLOR_DICT[_COLOR_IDX[i]])
 
                 print("_Pocket with index of {} is {}".format(pocket.index, _COLOR_IDX[i]))
                 i = (i + 1) % len(_COLOR_DICT)
@@ -132,7 +132,7 @@ class Trajectory(list):
         for pocket in self[snapshot_idx].pockets:
             if (contact_only and pocket.isContact) or not contact_only:
                 for beta in pocket.betas:
-                    draw_sphere(view, list(beta.centroid * 10), radius, color=_COLOR_DICT[_COLOR_IDX[i]])
+                    draw_sphere(view, list(beta.centroid), radius, color=_COLOR_DICT[_COLOR_IDX[i]])
                 print("_Pocket with index of {} is {}".format(pocket.index, _COLOR_IDX[i]))
                 i = (i + 1) % len(_COLOR_DICT)
 
@@ -157,20 +157,20 @@ class Trajectory(list):
         i = 0
         for dpocket in dpockets:
             if (contact_only and dpocket.is_contact) or not contact_only:
-                draw_sphere(view, list(dpocket.centroid * 10), radius=radius,
+                draw_sphere(view, list(dpocket.centroid ), radius=radius,
                             color=_COLOR_DICT[_COLOR_IDX[i % len(_COLOR_DICT)]])
 
                 if label == 'index':
-                    view.shape.add_text(list(dpocket.centroid * 10), _COLOR_DICT[_COLOR_IDX[i % len(_COLOR_DICT)]],
+                    view.shape.add_text(list(dpocket.centroid ), _COLOR_DICT[_COLOR_IDX[i % len(_COLOR_DICT)]],
                                         4, "   {}".format(i))
                 elif label == 'score':
-                    view.shape.add_text(list(dpocket.centroid * 10), _COLOR_DICT[_COLOR_IDX[i % len(_COLOR_DICT)]],
+                    view.shape.add_text(list(dpocket.centroid ), _COLOR_DICT[_COLOR_IDX[i % len(_COLOR_DICT)]],
                                         4, "   {}".format(str(np.round(np.average(dpocket.scores), 2))))
                 elif label == 'space':
-                    view.shape.add_text(list(dpocket.centroid * 10), _COLOR_DICT[_COLOR_IDX[i % len(_COLOR_DICT)]],
+                    view.shape.add_text(list(dpocket.centroid ), _COLOR_DICT[_COLOR_IDX[i % len(_COLOR_DICT)]],
                                         4, "   {}".format(int(np.average(dpocket.spaces))))
                 else:
                     print('Label {} not recognized as'.format(label), 'index', 'score', 'space')
-                    view.shape.add_text(list(dpocket.centroid * 10), _COLOR_DICT[_COLOR_IDX[i % len(_COLOR_DICT)]],
+                    view.shape.add_text(list(dpocket.centroid ), _COLOR_DICT[_COLOR_IDX[i % len(_COLOR_DICT)]],
                                         4, "   {}".format(i))
                 i += 1
