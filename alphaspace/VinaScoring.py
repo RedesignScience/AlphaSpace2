@@ -5,8 +5,6 @@ from scipy import spatial
 from scipy.spatial import cKDTree
 from scipy.spatial.distance import cdist
 
-"""
-"""
 polarTypes = np.array(['OA', 'OS', 'N', 'NS', 'NA', 'S', 'SA'])
 nonPolarTypes = np.array(['C', 'A'])
 autodockVinaAtomTypes = {'H': [1.0, False], 'HD': [1.0, True], 'HS': [1.0, True], 'C': [2.0, False], 'A': [2.0, False],
@@ -19,11 +17,6 @@ autodockVinaAtomTypes = {'H': [1.0, False], 'HD': [1.0, True], 'HS': [1.0, True]
                          'Mn': [0.65, False], 'MN': [0.65, False], 'Fe': [0.65, False], 'FE': [0.65, False],
                          'Zn': [0.74, False],
                          'ZN': [0.74, False], 'Br': [2.165, False], 'BR': [2.165, False], 'I': [2.36, False]}
-# autodockVinaTerms = {"gauss_1": -0.035579,
-#                     "gauss_2": -0.005156,
-#                     "repulsion": 0.840245,
-#                     "hydrophobic": -0.035069,
-#                     "Hydrogen": -0.587439}
 autodockVinaTerms = np.array([-0.035579, -0.005156, 0.840245, -0.035069, -0.587439])
 probElements = ['C', 'Br', 'F', 'Cl', 'I', 'OA', 'SA', 'N', 'P']
 
@@ -59,7 +52,6 @@ def _get_typing_dicts(hp_types_dat_path, typing_pdb_dat_path, autodock_atom_type
 
 
 def _pre_process_pdb(pdb_lines):
-
     this_dir, this_filename = os.path.split(__file__)
 
     types_dict, typing_pdb_dict, cofactor_match_dict, autodock_types_dict = \
@@ -124,8 +116,6 @@ def _pre_process_pdb(pdb_lines):
 
 
 def _pre_process_pdbqt(traj, truncation_length=0):
-
-
     def _assign_hp(prot_coord, prot_types, hp_type, tree=None):
         """
         """
@@ -182,7 +172,7 @@ def _pre_process_pdbqt(traj, truncation_length=0):
     hp_type = []
     don_type = []
     acc_type = []
-    prot_coord = traj.xyz[0]* 10
+    prot_coord = traj.xyz[0] * 10
     prot_tree = spatial.cKDTree(prot_coord)
     prot_types = []
     for i, atom in enumerate(traj.top.atoms):
@@ -379,11 +369,9 @@ def _get_probe_score(prot_coord, prot_types, hp_type, don_type, acc_type, probe_
             else:
                 raise Exception()
 
-
             probe_scores[probe_idx][element_idx] = np.sum(np.array([g1, g2, rep, h1, h2]) * autodockVinaTerms)
 
             # print(probe_scores[probe_idx][element_idx], g1,g2,rep,h1,h2)
-
 
     return probe_scores
 

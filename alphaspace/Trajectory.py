@@ -1,8 +1,10 @@
-from .Snapshot import *
+from scipy.cluster.hierarchy import fcluster, linkage
+from .Snapshot import Snapshot
 from .functions import _binCluster, _group
 from .Configs import _COLOR_DICT, _COLOR_IDX
 from .View import draw_sphere
 from .Cluster import _DPocket
+import numpy as np
 
 
 class Trajectory(list):
@@ -28,8 +30,8 @@ class Trajectory(list):
         self.map_betas()
 
         beta_xyz = []
-        for snapshot in self:
-            beta_xyz.extend(snapshot._beta_xyz)
+        for ss in self:
+            beta_xyz.extend(ss._beta_xyz)
 
         return np.array(beta_xyz)
 
