@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import alphaspace as al
+import alphaspace2 as al
 import mdtraj
 import os
 import argparse
@@ -14,6 +14,11 @@ def alphaspace_main():
     parser.add_argument("-l", "--ligand", help="ligand pdb file", required=False)
     parser.add_argument("-qt", "--pdbqt", help="protein pdbqt file", required=False)
     parser.add_argument("-o", "--output", help="output directory", required=False, default='.')
+    parser.add_argument("-H","--keepH", help="remove H at run time, default True", required=False, action='store_true')
+
+
+
+
 
     parser.add_argument("--writepdb", help="whether to write the protein and ligand pdb to the pdb_out folder",
                         action="store_true", default=False)
@@ -44,6 +49,9 @@ def alphaspace_main():
     if args.pdbqt:
         al.annotateVinaAtomTypes(pdbqt=args.pdbqt, receptor=receptor)
 
+    if not args.keepH:
+        receptor = receptor.atom_slice([atom.index for atom in receptor.topology.atoms if atom.element.symbol != 'H'])
+
     # Initialize a snapshot object, this will contain the receptor and the binder informations
     ss = al.Snapshot()
     ss.beta_cluster_dist = 1.6
@@ -63,6 +71,7 @@ def alphaspace_main():
             binder.save(os.path.join(out_path, 'pdb_out', 'lig.pdb'))
     al.write_snapshot(folder_path=out_path, snapshot=ss, receptor=receptor)
     al.write_chimera_scripts(folder=out_path)
+
 
 
 if __name__ == '__main__':

@@ -1,4 +1,4 @@
-import alphaspace as al
+import alphaspace2 as al
 import mdtraj
 import os
 
