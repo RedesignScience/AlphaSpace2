@@ -1,0 +1,69 @@
+#!/usr/bin/env python
+
+import alphaspace as al
+import mdtraj
+import os
+import argparse
+
+
+def alphaspace_main():
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("-v", "--verbose", action="store_true", help="increase output verbosity")
+    parser.add_argument("-p", "--protein", help="protein pdb file", required=True)
+    parser.add_argument("-l", "--ligand", help="ligand pdb file", required=False)
+    parser.add_argument("-qt", "--pdbqt", help="protein pdbqt file", required=False)
+    parser.add_argument("-o", "--output", help="output directory", required=False, default='.')
+
+    parser.add_argument("--writepdb", help="whether to write the protein and ligand pdb to the pdb_out folder",
+                        action="store_true", default=False)
+    parser.add_argument("-c", "--config", help="config file", required=False)
+
+    args = parser.parse_args()
+
+    if args.config:
+        import configparser
+        config = configparser.ConfigParser()
+        config.read(args.config)
+
+    if args.ligand:
+        receptor = mdtraj.load(args.protein)
+        binder = mdtraj.load(args.ligand)
+    else:
+        complex = mdtraj.load(args.protein)
+        molecules = complex.topology.find_molecules()
+
+        if molecules >= 2:
+            print('No ligand was found, using second molecule in protein file')
+            receptor = complex.atom_slice(atom_indices=molecules[0])
+            binder = complex.atom_slice(atom_indices=molecules[1])
+        else:
+            print('No ligand was found, mapping all protein surface')
+            receptor = complex
+            binder = None
+    if args.pdbqt:
+        al.annotateVinaAtomTypes(pdbqt=args.pdbqt, receptor=receptor)
+
+    # Initialize a snapshot object, this will contain the receptor and the binder informations
+    ss = al.Snapshot()
+    ss.beta_cluster_dist = 1.6
+    ss.contact_cutoff = 1.6
+    ss.pocket_cluster_dist = 4.7
+    # Run the snapshot object by feeding it receptor and binder mdtraj objects.
+    ss.run(receptor=receptor, binder=binder)
+
+    # Write out files to PDB
+    out_path = args.output
+
+    if args.writepdb:
+        if not os.path.isdir(os.path.join(out_path, 'pdb_out')):
+            os.makedirs(os.path.join(out_path, 'pdb_out'))
+        receptor.save(os.path.join(out_path, 'pdb_out', 'prot.pdb'))
+        if binder:
+            binder.save(os.path.join(out_path, 'pdb_out', 'lig.pdb'))
+    al.write_snapshot(folder_path=out_path, snapshot=ss, receptor=receptor)
+    al.write_chimera_scripts(folder=out_path)
+
+
+if __name__ == '__main__':
+    alphaspace_main()

@@ -2,7 +2,6 @@ from scipy.cluster.hierarchy import fcluster, linkage
 from .Snapshot import Snapshot
 from .functions import _binCluster, _group
 from .Configs import _COLOR_DICT, _COLOR_IDX
-from .View import draw_sphere
 from .Cluster import _DPocket
 import numpy as np
 
@@ -97,82 +96,4 @@ class Trajectory(list):
             for i in range(len(self)):
                 self[i].calculateContact(coords=ref_traj[i], cutoff=cutoff)
 
-    def draw_pocket(self, view, snapshot_idx: int = 0, contact_only=True, radius=1.0):
-        """
-        Draw and view the current snapshot in jupyter notebook.
 
-        Parameters
-        ----------
-        view
-        snapshot_idx
-
-        Returns
-        -------
-        view
-            nglview widget object
-        """
-
-        i = 0
-        for pocket in self[snapshot_idx].pockets:
-            if (contact_only and pocket.isContact) or not contact_only:
-                draw_sphere(view, list(pocket.centroid), radius=radius, color=_COLOR_DICT[_COLOR_IDX[i]])
-                print("_Pocket with index of {} is {}".format(pocket.index, _COLOR_IDX[i]))
-                i = (i + 1) % len(_COLOR_DICT)
-
-    def draw_alpha(self, view, snapshot_idx: int = 0, contact_only=True, radius=0.2):
-        i = 0
-        for pocket in self[snapshot_idx].pockets:
-            if (contact_only and pocket.isContact) or not contact_only:
-                for alpha in pocket.alphas:
-                    draw_sphere(view, list(alpha.centroid), radius, color=_COLOR_DICT[_COLOR_IDX[i]])
-
-                print("_Pocket with index of {} is {}".format(pocket.index, _COLOR_IDX[i]))
-                i = (i + 1) % len(_COLOR_DICT)
-
-    def draw_beta(self, view, snapshot_idx: int = 0, contact_only=True, radius=0.2):
-        i = 0
-        for pocket in self[snapshot_idx].pockets:
-            if (contact_only and pocket.isContact) or not contact_only:
-                for beta in pocket.betas:
-                    draw_sphere(view, list(beta.centroid), radius, color=_COLOR_DICT[_COLOR_IDX[i]])
-                print("_Pocket with index of {} is {}".format(pocket.index, _COLOR_IDX[i]))
-                i = (i + 1) % len(_COLOR_DICT)
-
-    def draw_dpocket(self, view, dpockets=None, contact_only=True, radius=1.0, label='index'):
-        """
-
-        Parameters
-        ----------
-        view
-        dpockets
-        contact_only
-        radius
-        label: str
-            types of label u wishes to display
-
-        Returns
-        -------
-
-        """
-        dpockets = self.dpockets if dpockets is None else dpockets
-
-        i = 0
-        for dpocket in dpockets:
-            if (contact_only and dpocket.is_contact) or not contact_only:
-                draw_sphere(view, list(dpocket.centroid ), radius=radius,
-                            color=_COLOR_DICT[_COLOR_IDX[i % len(_COLOR_DICT)]])
-
-                if label == 'index':
-                    view.shape.add_text(list(dpocket.centroid ), _COLOR_DICT[_COLOR_IDX[i % len(_COLOR_DICT)]],
-                                        4, "   {}".format(i))
-                elif label == 'score':
-                    view.shape.add_text(list(dpocket.centroid ), _COLOR_DICT[_COLOR_IDX[i % len(_COLOR_DICT)]],
-                                        4, "   {}".format(str(np.round(np.average(dpocket.scores), 2))))
-                elif label == 'space':
-                    view.shape.add_text(list(dpocket.centroid ), _COLOR_DICT[_COLOR_IDX[i % len(_COLOR_DICT)]],
-                                        4, "   {}".format(int(np.average(dpocket.spaces))))
-                else:
-                    print('Label {} not recognized as'.format(label), 'index', 'score', 'space')
-                    view.shape.add_text(list(dpocket.centroid ), _COLOR_DICT[_COLOR_IDX[i % len(_COLOR_DICT)]],
-                                        4, "   {}".format(i))
-                i += 1

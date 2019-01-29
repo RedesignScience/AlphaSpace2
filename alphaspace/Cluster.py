@@ -95,7 +95,7 @@ class _Alpha:
             size (4)
 
         """
-        return self.snapshot._alpha_contact(self.index)
+        return self.snapshot._alpha_lining[self.index]
 
     @property
     def isContact(self) -> bool:
@@ -282,6 +282,10 @@ class _Pocket:
             return
         return np.mean([alphas.centroid for alphas in self.alphas], axis=0)
 
+    @property
+    def lining_atoms_idx(self):
+        return np.unique([alpha.lining_atoms_idx for alpha in self.alphas])
+
 
 class _DPocket:
 
@@ -365,35 +369,3 @@ class _DPocket:
         """
         return np.unique(self._betas[:, 0], return_counts=True).astype(int)
 
-
-def write_to_pdb(snapshot,handle, write_subset = 'BAC'):
-
-    def _format_83(f):
-        """Format a single float into a string of width 8, with ideally 3 decimal
-        places of precision. If the number is a little too large, we can
-        gracefully degrade the precision by lopping off some of the decimal
-        places. If it's much too large, we throw a ValueError"""
-        if -999.999 < f < 9999.999:
-            return '%8.3f' % f
-        if -9999999 < f < 99999999:
-            return ('%8.3f' % f)[:8]
-        raise ValueError('coordinate "%s" could not be represented '
-                         'in a width-8 field' % f)
-
-    for pocket in snapshot.pockets:
-        for beta in pocket.betas:
-            atomIndex = beta.index
-            atomName = 'BAC'
-            resName = 'BAC'
-            resIndex = pocket.index
-            chainName = " "
-            bfactor = beta.score
-            element  = 'C'
-            xyz = beta.centroid
-
-            line = "ATOM  %5d %-4s %3s %1s%4d    %s%s%s  1.00 %5.2f      %-4s%-2s  \n" % (
-                atomIndex % 100000, atomName, resName, chainName,
-                resIndex % 10000, _format_83(xyz[0]),
-                _format_83(xyz[1]), _format_83(xyz[2]),
-                bfactor, " ", element)
-            handle.write(line)

@@ -14,24 +14,15 @@ setup(name='alphaspace',
       author_email='hl2368@nyu.edu',
       license='MIT',
       packages=['alphaspace'],
-
-      package_data={
-          '': ['*.txt', '*.md'],
-          'Examples.bcl': ['*.pdb', "*.pdbqt"],
-          'Examples.mdm2_p53': ['*.pdb', "*.pdbqt"],
-
-      },
-
-      install_requires=[
-          'numpy',
-          'scipy',
-          'jupyter',
-          'mdtraj',
-          'ipywidgets',
-          'scikit-learn'
-
-      ],
+      package_data={'Examples': ['*'], },
+      scripts=['bin/alphaspace2'],
       include_package_data=True,
       zip_safe=False,
+
+      install_requires=['mdtraj',
+                        'cython',
+                        'configargparser',
+                        'scipy',
+                        ]
 
       )
