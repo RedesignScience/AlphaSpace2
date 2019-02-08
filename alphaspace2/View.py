@@ -5,7 +5,7 @@ To provide compatibility to original AlphaSpace, write out files to a designated
 from .Cluster import _Alpha, _Beta, _Pocket
 
 import os
-
+import shutil
 
 def _format_83(f):
     """Format a single float into a string of width 8, with ideally 3 decimal
@@ -22,70 +22,93 @@ def _format_83(f):
 
 def write_chimera_scripts(folder):
     from shutil import copy
-    scripts_path = os.path.join(os.path.abspath(os.path.join(os.path.realpath(__file__), os.path.pardir)), 'data')
 
+    import os
+
+    _ROOT = os.path.abspath(os.path.dirname(__file__))
+
+    def get_data(path):
+        return os.path.join(_ROOT, 'data', path)
     if not os.path.isdir(folder):
         os.mkdir(folder)
 
-    copy(os.path.join(scripts_path, 'AS_Chimera_beta.py'), folder)
-    copy(os.path.join(scripts_path, 'AS_Chimera_alpha.py'), folder)
-    copy(os.path.join(scripts_path, 'colors_table.txt'), folder)
-    copy(os.path.join(scripts_path, 'colors_chimera.txt'), folder)
+    copy(get_data('AS_Chimera_beta.py'), folder)
+    copy(get_data('AS_Chimera_alpha.py'), folder)
+    copy(get_data('colors_table.txt'), folder)
+    copy(get_data('colors_chimera.txt'), folder)
 
 
-def write_snapshot(folder_path, snapshot, receptor=None):
-    if not os.path.isdir(os.path.join(folder_path, 'pockets')):
-        os.makedirs(os.path.join(folder_path, 'pockets'))
+def write_snapshot(folder_path, snapshot, receptor=None, binder=None, chimera_scripts=True):
 
-    for pocket in snapshot.pockets:
-        if pocket.isContact:
-            if receptor:
-                lining_atoms = receptor.atom_slice(pocket.lining_atoms_idx)
-                lining_atoms.save((folder_path, 'pockets', '{}_alpha.pdb'.format(pocket.index)))
-                lining_atoms.save((folder_path, 'pockets', '{}_beta.pdb'.format(pocket.index)))
 
-            with open(os.path.join(folder_path, 'pockets', '{}_beta.pdb'.format(pocket.index)), 'a') as handle:
-                for beta in pocket.betas:
-                    handle.write(gen_pdb_line(atomIndex=beta.index,
-                                              atomName='BAO' if beta.isContact else 'BAU',
-                                              resName='BAC',
-                                              resIndex=pocket.index,
-                                              chainName=" ",
-                                              bfactor=beta.score,
-                                              element='C',
-                                              xyz=beta.centroid,
-                                              occupancy=" ")
-                                 )
-                handle.write(gen_pdb_line(atomIndex=pocket.index,
-                                          atomName='BCC',
-                                          resName='BCC',
-                                          resIndex=pocket.index,
+    if os.path.isdir(os.path.join(folder_path, 'pockets')):
+        shutil.rmtree(os.path.join(folder_path, 'pockets'))
+    os.makedirs(os.path.join(folder_path, 'pockets'))
+
+
+    if chimera_scripts:
+        write_chimera_scripts(folder_path)
+
+    if receptor or binder:
+        if not os.path.isdir(os.path.join(folder_path, 'pdb_out')):
+            os.makedirs(os.path.join(folder_path, 'pdb_out'))
+    if receptor:
+        receptor.save(os.path.join(folder_path, 'pdb_out', 'prot.pdb'))
+    if binder:
+        binder.save(os.path.join(folder_path, 'pdb_out', 'lig.pdb'))
+
+    pocket_index = 0
+    pockets = sorted([p for p in snapshot.pockets if p.isContact],key=lambda p: p.space, reverse=True)
+    for pocket in pockets:
+        pocket_index += 1
+        if receptor:
+            lining_atoms = receptor.atom_slice(pocket.lining_atoms_idx)
+            lining_atoms.save(os.path.join(folder_path, 'pockets', '{}_alpha.pdb'.format(pocket_index)))
+            lining_atoms.save(os.path.join(folder_path, 'pockets', '{}_beta.pdb'.format(pocket_index)))
+
+        with open(os.path.join(folder_path, 'pockets', '{}_beta.pdb'.format(pocket_index)), 'a') as handle:
+            for beta in pocket.betas:
+                handle.write(gen_pdb_line(atomIndex=beta.index,
+                                          atomName='BAO' if beta.isContact else 'BAU',
+                                          resName='BAC',
+                                          resIndex=pocket_index,
                                           chainName=" ",
-                                          bfactor=pocket.score,
+                                          bfactor=beta.score,
                                           element='C',
-                                          xyz=pocket.centroid))
+                                          xyz=beta.centroid,
+                                          occupancy=" ")
+                             )
+            handle.write(gen_pdb_line(atomIndex=pocket_index,
+                                      atomName='BCC',
+                                      resName='BCC',
+                                      resIndex=pocket_index,
+                                      chainName=" ",
+                                      bfactor=pocket.score,
+                                      element='C',
+                                      xyz=pocket.centroid))
 
-            with open(os.path.join(folder_path, 'pockets', '{}_alpha.pdb'.format(pocket.index)), 'a') as handle:
-                for alpha in pocket.alphas:
-                    line = gen_pdb_line(atomIndex=alpha.index,
-                                        atomName='AAO' if alpha.isContact else 'AAU',
-                                        resName='AAC',
-                                        resIndex=pocket.index,
-                                        chainName=" ",
-                                        bfactor=alpha.space,
-                                        occupancy=" ",
-                                        element='C',
-                                        xyz=alpha.centroid,
-                                        )
-                    handle.write(line)
-                handle.write(gen_pdb_line(atomIndex=pocket.index,
-                                          atomName='ACC',
-                                          resName='ACC',
-                                          resIndex=pocket.index,
-                                          chainName=" ",
-                                          bfactor=pocket.score,
-                                          element='C',
-                                          xyz=pocket.centroid))
+        with open(os.path.join(folder_path, 'pockets', '{}_alpha.pdb'.format(pocket_index)), 'a') as handle:
+            for alpha in pocket.alphas:
+                line = gen_pdb_line(atomIndex=alpha.index,
+                                    atomName='AAO' if alpha.isContact else 'AAU',
+                                    resName='AAC',
+                                    resIndex=pocket_index,
+                                    chainName=" ",
+                                    bfactor=alpha.space,
+                                    occupancy=" ",
+                                    element='C',
+                                    xyz=alpha.centroid,
+                                    )
+                handle.write(line)
+            handle.write(gen_pdb_line(atomIndex=pocket_index,
+                                      atomName='ACC',
+                                      resName='ACC',
+                                      resIndex=pocket_index,
+                                      chainName=" ",
+                                      bfactor=pocket.score,
+                                      element='C',
+                                      xyz=pocket.centroid))
+
 
 
 def gen_pdb_line(atomIndex, atomName, resName, resIndex, chainName, bfactor, element, xyz, occupancy=" "):

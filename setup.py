@@ -7,7 +7,7 @@ def readme():
 
 
 setup(name='alphaspace2',
-      version='0.1',
+      version='0.1.2',
       description='Protein topographical mapping tool',
       long_description="""
       AlphaSpace2 is a surface topographical mapping tool.
@@ -21,7 +21,6 @@ setup(name='alphaspace2',
       author_email='hl2368@nyu.edu',
       license='gpl-3.0',
       packages=['alphaspace2'],
-      package_data={'examples': ['*'], },
       scripts=['bin/alphaspace2'],
       include_package_data=True,
       zip_safe=False,

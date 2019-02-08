@@ -4,7 +4,7 @@ import alphaspace2 as al
 import mdtraj
 import os
 import argparse
-
+import logging
 
 def alphaspace_main():
     parser = argparse.ArgumentParser()
@@ -15,16 +15,16 @@ def alphaspace_main():
     parser.add_argument("-qt", "--pdbqt", help="protein pdbqt file", required=False)
     parser.add_argument("-o", "--output", help="output directory", required=False, default='.')
     parser.add_argument("-H","--keepH", help="remove H at run time, default True", required=False, action='store_true')
-
-
-
-
+    parser.add_argument("-O","--overwrite", help="if overwrite", default=False, action='store_true')
 
     parser.add_argument("--writepdb", help="whether to write the protein and ligand pdb to the pdb_out folder",
                         action="store_true", default=False)
     parser.add_argument("-c", "--config", help="config file", required=False)
 
     args = parser.parse_args()
+
+    if args.verbose:
+        logging.basicConfig(level=logging.DEBUG)
 
     if args.config:
         import configparser
@@ -39,18 +39,20 @@ def alphaspace_main():
         molecules = complex.topology.find_molecules()
 
         if molecules >= 2:
-            print('No ligand was found, using second molecule in protein file')
+            logging.debug('No ligand was found, using second molecule in protein file')
             receptor = complex.atom_slice(atom_indices=molecules[0])
             binder = complex.atom_slice(atom_indices=molecules[1])
         else:
-            print('No ligand was found, mapping all protein surface')
+            logging.debug('No ligand was found, mapping all protein surface')
             receptor = complex
             binder = None
-    if args.pdbqt:
-        al.annotateVinaAtomTypes(pdbqt=args.pdbqt, receptor=receptor)
+
 
     if not args.keepH:
         receptor = receptor.atom_slice([atom.index for atom in receptor.topology.atoms if atom.element.symbol != 'H'])
+
+    if args.pdbqt:
+        al.annotateVinaAtomTypes(pdbqt=args.pdbqt, receptor=receptor)
 
     # Initialize a snapshot object, this will contain the receptor and the binder informations
     ss = al.Snapshot()

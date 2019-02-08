@@ -1,6 +1,7 @@
 import os
 
 import numpy as np
+import logging
 from scipy import spatial
 from scipy.spatial import cKDTree
 from scipy.spatial.distance import cdist

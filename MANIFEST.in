@@ -1,0 +1,3 @@
+include README.md
+include alphaspace2/data/*
+include examples/*

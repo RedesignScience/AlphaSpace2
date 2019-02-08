@@ -3,6 +3,7 @@ from .functions import _group, _getTetrahedronVolumes, _markInRange
 from scipy.cluster.hierarchy import fcluster, linkage
 from scipy.spatial import Delaunay, Voronoi
 from .Cluster import _Pocket
+import logging
 
 
 class Snapshot:
@@ -134,17 +135,16 @@ class Snapshot:
         from .VinaScoring import _pre_process_pdbqt, _get_probe_score
 
         if hasattr(receptor, 'adv_atom_types'):
-
+            logging.debug('Vina Atom type found, calculating beta scores')
             prot_types, hp_type, acc_type, don_type = _pre_process_pdbqt(receptor)
 
             self._beta_scores = _get_probe_score(probe_coords=self._beta_xyz, prot_coord=receptor.xyz[0] * 10,
                                                  prot_types=prot_types,
                                                  hp_type=hp_type,
                                                  acc_type=acc_type, don_type=don_type)
-            print("Vina Atom Type found, calculating BScore")
         else:
+            logging.debug('Vina atom type not found, ignoring beta scores')
             self._beta_scores = np.zeros(len(self._beta_xyz), dtype=np.float)
-            print("No Vina Atom Type found")
 
     def calculateContact(self, coords):
         """
@@ -201,3 +201,15 @@ class Snapshot:
         for p in self.pockets:
             for a in p.alphas:
                 yield a
+
+
+    def save(self, output_dir = '.',receptor = None,binder = None, chimera_scripts = True):
+        """
+        Write Chimera
+        Returns
+        -------
+        """
+
+        from .View import write_snapshot
+
+        write_snapshot(output_dir,self,receptor = receptor,binder = binder, chimera_scripts=chimera_scripts)

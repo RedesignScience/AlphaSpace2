@@ -1,0 +1,100 @@
+MODEL 1
+ATOM      0  BAC BAC     1      12.336  -8.865   4.767   0.0   0.0           C
+ATOM      1  BAC BAC     1      11.333  -8.576   6.053   0.0   0.0           C
+ATOM      2  BAC BAC     1      10.335  -7.447   5.622   0.0   0.0           C
+ATOM      3  BAC BAC     1       13.56 -10.263    2.58   0.0   0.0           C
+ATOM      4  BAC BAC     1      13.955  -8.928   3.734   0.0   0.0           C
+ATOM      5  BAC BAC     1      14.756   -9.42   2.833   0.0   0.0           C
+ATOM      6  BAC BAC     1      13.467   -8.18   0.503   0.0   0.0           C
+ATOM      1  BAC BCC     1       12.82  -8.811   3.727   0.0   0.0           C
+TER
+ENDMDL
+MODEL 2
+ATOM      0  BAC BAC     4      17.176    0.29  -2.666   0.0   0.0           C
+ATOM      1  BAC BAC     4      16.899   1.198  -1.637   0.0   0.0           C
+ATOM      2  BAC BAC     4      16.769   0.001   -1.02   0.0   0.0           C
+ATOM      3  BAC BAC     4      18.246   0.205  -1.594   0.0   0.0           C
+ATOM      4  BAC BAC     4        19.8   1.709  -1.121   0.0   0.0           C
+ATOM      1  BAC BCC     4      17.778    0.68  -1.608   0.0   0.0           C
+TER
+ENDMDL
+MODEL 3
+ATOM      0  BAC BAC     8      14.376 -11.893   2.573   0.0   0.0           C
+ATOM      1  BAC BAC     8      13.436 -12.644   2.122   0.0   0.0           C
+ATOM      2  BAC BAC     8      13.851 -14.211   2.762   0.0   0.0           C
+ATOM      3  BAC BAC     8      12.843 -15.123   2.649   0.0   0.0           C
+ATOM      4  BAC BAC     8      13.676 -15.501   3.554   0.0   0.0           C
+ATOM      5  BAC BAC     8      14.937   -14.6   1.549   0.0   0.0           C
+ATOM      6  BAC BAC     8       11.54 -15.887   3.366   0.0   0.0           C
+ATOM      7  BAC BAC     8      12.613  -15.23   1.393   0.0   0.0           C
+ATOM      1  BAC BCC     8      13.409 -14.386   2.496   0.0   0.0           C
+TER
+ENDMDL
+MODEL 4
+ATOM      0  BAC BAC    17      19.469  -7.829   2.327   0.0   0.0           C
+ATOM      1  BAC BAC    17      19.408   -5.93   3.914   0.0   0.0           C
+ATOM      2  BAC BAC    17      18.627  -3.339   3.134   0.0   0.0           C
+ATOM      3  BAC BAC    17      19.897  -1.951   1.315   0.0   0.0           C
+ATOM      4  BAC BAC    17      20.365  -1.634   3.122   0.0   0.0           C
+ATOM      5  BAC BAC    17      19.526  -1.353   3.948   0.0   0.0           C
+ATOM      1  BAC BCC    17      19.549  -3.673    2.96   0.0   0.0           C
+TER
+ENDMDL
+MODEL 5
+ATOM      0  BAC BAC    18      23.302  -3.537  -1.676   0.0   0.0           C
+ATOM      1  BAC BAC    18       18.98  -2.956  -2.586   0.0   0.0           C
+ATOM      2  BAC BAC    18      20.739  -3.564  -0.688   0.0   0.0           C
+ATOM      3  BAC BAC    18      19.418  -5.103  -2.018   0.0   0.0           C
+ATOM      4  BAC BAC    18      18.976  -6.387  -1.697   0.0   0.0           C
+ATOM      5  BAC BAC    18       21.17  -6.056  -1.224   0.0   0.0           C
+ATOM      6  BAC BAC    18      20.061  -6.682  -0.821   0.0   0.0           C
+ATOM      7  BAC BAC    18      22.061  -5.842  -2.096   0.0   0.0           C
+ATOM      1  BAC BCC    18      20.588  -5.016  -1.601   0.0   0.0           C
+TER
+ENDMDL
+MODEL 6
+ATOM      0  BAC BAC    28       16.17   2.936  -1.101   0.0   0.0           C
+ATOM      1  BAC BAC    28      15.751   4.146    0.32   0.0   0.0           C
+ATOM      2  BAC BAC    28      14.616   3.937  -0.976   0.0   0.0           C
+ATOM      3  BAC BAC    28       17.57   4.871   0.293   0.0   0.0           C
+ATOM      4  BAC BAC    28      18.239   5.356   2.015   0.0   0.0           C
+ATOM      5  BAC BAC    28      17.968   7.398  -1.898   0.0   0.0           C
+ATOM      6  BAC BAC    28      15.414   6.714   0.753   0.0   0.0           C
+ATOM      7  BAC BAC    28      15.774   6.489   0.169   0.0   0.0           C
+ATOM      8  BAC BAC    28      16.393   7.027  -0.666   0.0   0.0           C
+ATOM      1  BAC BCC    28      16.433    5.43  -0.121   0.0   0.0           C
+TER
+ENDMDL
+MODEL 7
+ATOM      0  BAC BAC    34      19.209   5.441   4.374   0.0   0.0           C
+ATOM      1  BAC BAC    34       18.54   6.206   5.437   0.0   0.0           C
+ATOM      2  BAC BAC    34      20.508   5.198    3.21   0.0   0.0           C
+ATOM      1  BAC BCC    34      19.419   5.615    4.34   0.0   0.0           C
+TER
+ENDMDL
+MODEL 8
+ATOM      0  BAC BAC    45      22.033  -7.943  10.403   0.0   0.0           C
+ATOM      1  BAC BAC    45      20.177  -7.563   9.441   0.0   0.0           C
+ATOM      2  BAC BAC    45      19.363  -5.951   8.611   0.0   0.0           C
+ATOM      3  BAC BAC    45      19.722  -8.626   7.386   0.0   0.0           C
+ATOM      1  BAC BCC    45      20.324  -7.521    8.96   0.0   0.0           C
+TER
+ENDMDL
+MODEL 9
+ATOM      0  BAC BAC    56      15.399  -9.995   6.796   0.0   0.0           C
+ATOM      1  BAC BAC    56       17.94 -10.296   7.832   0.0   0.0           C
+ATOM      2  BAC BAC    56      16.802 -10.966   6.892   0.0   0.0           C
+ATOM      1  BAC BCC    56      16.714 -10.419   7.174   0.0   0.0           C
+TER
+ENDMDL
+MODEL 10
+ATOM      0  BAC BAC    57      14.519 -15.167   9.267   0.0   0.0           C
+ATOM      1  BAC BAC    57      15.926  -14.55   7.911   0.0   0.0           C
+ATOM      2  BAC BAC    57      15.145 -12.774   8.156   0.0   0.0           C
+ATOM      1  BAC BCC    57      15.197 -14.164   8.445   0.0   0.0           C
+TER
+ENDMDL
+MODEL 11
+ENDMDL
+MODEL 12
+ENDMDL
