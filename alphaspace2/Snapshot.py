@@ -66,7 +66,7 @@ class Snapshot:
         raw_alpha_sphere_radii = np.linalg.norm(raw_alpha_lining_xyz - raw_alpha_xyz, axis=1)
 
         # Filter the data based on radii cutoff
-        filtered_alpha_idx = np.where(np.logical_and(self.min_r<= raw_alpha_sphere_radii,
+        filtered_alpha_idx = np.where(np.logical_and(self.min_r <= raw_alpha_sphere_radii,
                                                      raw_alpha_sphere_radii <= self.max_r))[0]
 
         self._alpha_radii = np.take(raw_alpha_sphere_radii, filtered_alpha_idx)
@@ -90,12 +90,8 @@ class Snapshot:
 
             from scipy.spatial.distance import pdist
 
-
-            
-
-
             if len(alpha_xyz) > 1:
-                
+
                 zmat = linkage(alpha_xyz, method='complete')
 
                 alpha_beta_label = fcluster(zmat, self.beta_cluster_dist, criterion='distance') - 1
@@ -106,7 +102,6 @@ class Snapshot:
             self._pocket_beta_index_list.append(
                 [i + len(self._beta_alpha_index_list) for i in range(len(_beta_alpha_index_list))])
             self._beta_alpha_index_list.extend([list(alpha_indices[a]) for a in _beta_alpha_index_list])
-
 
         self._beta_xyz = [None] * (len(self._beta_alpha_index_list))
         self._beta_space = [None] * (len(self._beta_alpha_index_list))
@@ -167,7 +162,6 @@ class Snapshot:
         self._pocket_contact = np.array(
             [np.any(self._alpha_contact[alpha_indices]) for alpha_indices in self._pocket_alpha_index_list])
 
-
     def run(self, receptor, binder=None):
 
         self.genAlphas(receptor)
@@ -179,7 +173,7 @@ class Snapshot:
         self.genBScore(receptor)
 
         if binder is not None:
-            self.calculateContact(coords=binder.xyz[0]* 10)
+            self.calculateContact(coords=binder.xyz[0] * 10)
 
     @property
     def pockets(self):
@@ -202,8 +196,7 @@ class Snapshot:
             for a in p.alphas:
                 yield a
 
-
-    def save(self, output_dir = '.',receptor = None,binder = None, chimera_scripts = True):
+    def save(self, output_dir='.', receptor=None, binder=None, chimera_scripts=True, contact_only=True):
         """
         Write Chimera
         Returns
@@ -212,4 +205,5 @@ class Snapshot:
 
         from .View import write_snapshot
 
-        write_snapshot(output_dir,self,receptor = receptor,binder = binder, chimera_scripts=chimera_scripts)
+        write_snapshot(output_dir, self, receptor=receptor, binder=binder, chimera_scripts=chimera_scripts,
+                       contact_only=contact_only)

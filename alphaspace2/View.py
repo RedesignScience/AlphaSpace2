@@ -38,7 +38,7 @@ def write_chimera_scripts(folder):
     copy(get_data('colors_chimera.txt'), folder)
 
 
-def write_snapshot(folder_path, snapshot, receptor=None, binder=None, chimera_scripts=True):
+def write_snapshot(folder_path, snapshot, receptor=None, binder=None, chimera_scripts=True, contact_only=True):
 
 
     if os.path.isdir(os.path.join(folder_path, 'pockets')):
@@ -58,7 +58,13 @@ def write_snapshot(folder_path, snapshot, receptor=None, binder=None, chimera_sc
         binder.save(os.path.join(folder_path, 'pdb_out', 'lig.pdb'))
 
     pocket_index = 0
-    pockets = sorted([p for p in snapshot.pockets if p.isContact],key=lambda p: p.space, reverse=True)
+
+    if contact_only:
+
+        pockets = sorted([p for p in snapshot.pockets if p.isContact], key=lambda p: p.space, reverse=True)
+    else:
+        pockets = sorted([p for p in snapshot.pockets], key=lambda p: p.space, reverse=True)
+
     for pocket in pockets:
         pocket_index += 1
         if receptor:
