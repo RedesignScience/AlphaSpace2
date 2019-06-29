@@ -80,7 +80,7 @@ def write_snapshot(folder_path, snapshot, receptor=None, binder=None, chimera_sc
                                           resIndex=pocket_index,
                                           chainName=" ",
                                           bfactor=beta.score,
-                                          element='C',
+                                          element=beta.best_probe_type,
                                           xyz=beta.centroid,
                                           occupancy=" ")
                              )
