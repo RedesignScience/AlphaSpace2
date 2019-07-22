@@ -100,7 +100,7 @@ def CoreCluster(pkt_core_list, ftdict, nclust, clust, CC_cut=8.5):
     :param ftdict: dict of pocket information
     :param nclust: number of original cluster
     :param clust: cluste index
-    :param CC_cut: the cutoff distance 
+    :param CC_cut: the cutoff distance
     """
     pktdict = dict(zip(pkt_core_list, clust))
     for i in range(nclust):
