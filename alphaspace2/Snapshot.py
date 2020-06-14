@@ -1,5 +1,5 @@
 import numpy as np
-from .functions import _group, _getTetrahedronVolumes, _markInRange
+from .functions import _group, _getTetrahedronVolumes, _markInRange, _getNonpolarRatio
 from scipy.cluster.hierarchy import fcluster, linkage
 from scipy.spatial import Delaunay, Voronoi
 from .Cluster import _Pocket
@@ -22,6 +22,7 @@ class Snapshot:
 
         self._alpha_xyz = None
         self._alpha_space = None
+        self._alpha_space_nonpolar_ratio = None
         self._alpha_contact = None
 
         self._beta_xyz = None
@@ -76,6 +77,8 @@ class Snapshot:
         alpha_lining_xyz = np.take(protein_coords, self._alpha_lining, axis=0).astype(np.float32)
 
         self._alpha_space = _getTetrahedronVolumes(alpha_lining_xyz)
+
+        self._alpha_space_nonpolar_ratio = _getNonpolarRatio(receptor, alpha_lining_idx=self._alpha_lining)
 
         self._alpha_xyz = np.take(raw_alpha_xyz, filtered_alpha_idx, axis=0)
 

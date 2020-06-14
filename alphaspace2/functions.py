@@ -3,6 +3,7 @@ from itertools import combinations_with_replacement
 import numpy as np
 from mdtraj.geometry import _geometry
 from mdtraj.geometry.sasa import _ATOMIC_RADII
+from mdtraj.core import element
 from scipy.cluster.hierarchy import linkage, fcluster
 from scipy.spatial import Voronoi, Delaunay, cKDTree
 from scipy.spatial.distance import cdist
@@ -28,6 +29,19 @@ def _getTetrahedronVolumes(coord_group_list):
         volumes[i] = _getTetrahedronVolume(coord_group_list[i])
 
     return volumes
+
+def _getNonpolarRatio(protein_snapshot, alpha_lining_idx):
+    areas = getSASA(protein_snapshot=protein_snapshot)
+
+
+    is_nonpolar = np.array(
+        [atom.element not in [element.oxygen,element.nitrogen,element.sulfur]
+         for atom in protein_snapshot.topology.atoms]).astype(int)
+
+    nonpolar_ratio = (areas * is_nonpolar)[alpha_lining_idx].sum(axis=1).astype(float) / (
+            areas[alpha_lining_idx].astype(float).sum(axis=1) + 0.00001)
+
+    return nonpolar_ratio
 
 
 def _getContactMatrix(coord_list_1, coord_list_2, threshold):
@@ -165,6 +179,7 @@ def count_intersect(a, b):
     return np.count_nonzero(a + b)
 
 
+
 def getSASA(protein_snapshot, cover_atom_coords=None):
     """
     Calculate the absolute solvent accessible surface area.
@@ -178,10 +193,6 @@ def getSASA(protein_snapshot, cover_atom_coords=None):
     if cover_atom_coords is None:
         xyz = np.array(protein_snapshot.xyz, dtype=np.float32)
         atom_radii = [_ATOMIC_RADII[atom.element.symbol] for atom in protein_snapshot.topology.atoms]
-        # atom_mapping = np.arrange(xyz.shape[1],dtype=np.int32)
-        # out = np.zeros((1,xyz.shape[1]),dtype=np.float32)
-        # radii = np.array(atom_radii,np.float32) + probe_radius
-        # _geometry._sasa(xyz,radii,int(n_sphere_points),atom_mapping,out)
     else:
         xyz = np.array(np.expand_dims(np.concatenate((protein_snapshot.xyz[0], cover_atom_coords), axis=0), axis=0),
                        dtype=np.float32)

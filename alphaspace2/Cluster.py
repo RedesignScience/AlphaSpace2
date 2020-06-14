@@ -78,9 +78,12 @@ class _Alpha:
         -------
         space : float
 
-
         """
         return self.snapshot._alpha_space[self.index]
+
+    @property
+    def nonpolar_space(self):
+        return self.snapshot._alpha_space[self.index] * self.snapshot._alpha_space_nonpolar_ratio[self.index]
 
     @property
     def lining_atoms_idx(self):
@@ -163,6 +166,10 @@ class _Beta:
         return np.sum([alpha.space for alpha in self.alphas])
 
     @property
+    def nonpolar_space(self):
+        return np.sum([alpha.nonpolar_space for alpha in self.alphas])
+
+    @property
     def scores(self):
         return self.snapshot._beta_scores[self.index]
 
@@ -194,8 +201,19 @@ class _Beta:
         )
 
     @property
+    def occupiedNonpolarSpace(self):
+        return np.sum(
+            np.array([alpha.nonpolar_space for alpha in self.alphas]) *
+            np.array([alpha.isContact for alpha in self.alphas])
+        )
+
+    @property
     def occupancy(self):
         return self.occupiedSpace / self.space
+
+    @property
+    def occupancy_nonpolar(self):
+        return self.occupiedNonpolarSpace / self.nonpolar_space
 
 
 class _Pocket:
@@ -235,8 +253,19 @@ class _Pocket:
             np.array([alpha.space for alpha in self.alphas]) * np.array([alpha.isContact for alpha in self.alphas]))
 
     @property
+    def occupiedNonpolarSpace(self):
+        if self.isEmpty:
+            return 0.0
+        return np.sum(
+            np.array([alpha.nonpolar_space for alpha in self.alphas]) * np.array([alpha.isContact for alpha in self.alphas]))
+
+    @property
     def occupancy(self):
         return self.occupiedSpace / self.space
+
+    @property
+    def occupancy_nonpolar(self):
+        return self.occupiedNonpolarSpace / self.nonpolar_space
 
     @property
     def alphas(self):
@@ -261,6 +290,13 @@ class _Pocket:
         if self.isEmpty:
             return 0
         return np.sum([alpha.space for alpha in self.alphas])
+
+    @property
+    def nonpolar_space(self):
+        if self.isEmpty:
+            return 0
+        return np.sum([alpha.nonpolar_space for alpha in self.alphas])
+
 
     @property
     def score(self):
