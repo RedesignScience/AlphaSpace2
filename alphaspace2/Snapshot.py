@@ -177,6 +177,13 @@ class Snapshot:
 
         if binder is not None:
             self.calculateContact(coords=binder.xyz[0] * 10)
+        else:
+            self._alpha_contact = np.zeros(len(self._alpha_xyz))
+            self._beta_contact = np.array(
+                [np.any(self._alpha_contact[alpha_indices]) for alpha_indices in self._beta_alpha_index_list])
+
+            self._pocket_contact = np.array(
+                [np.any(self._alpha_contact[alpha_indices]) for alpha_indices in self._pocket_alpha_index_list])
 
     @property
     def pockets(self):
@@ -208,5 +215,9 @@ class Snapshot:
 
         from .View import write_snapshot
 
-        write_snapshot(output_dir, self, receptor=receptor, binder=binder, chimera_scripts=chimera_scripts,
+        if np.any(self._alpha_contact):
+            write_snapshot(output_dir, self, receptor=receptor, binder=binder, chimera_scripts=chimera_scripts,
                        contact_only=contact_only)
+        else:
+            write_snapshot(output_dir, self, receptor=receptor, binder=binder, chimera_scripts=chimera_scripts,
+                           contact_only=False)
