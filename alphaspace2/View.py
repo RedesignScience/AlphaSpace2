@@ -4,6 +4,7 @@ To provide compatibility to original AlphaSpace, write out files to a designated
 
 from .Cluster import _Alpha, _Beta, _Pocket
 
+
 import os
 import shutil
 
@@ -116,9 +117,54 @@ def write_snapshot(folder_path, snapshot, receptor=None, binder=None, chimera_sc
                                       xyz=pocket.centroid))
 
 
+def write_trajectory(folder_path, trajectory, contact_only=False):
 
-def gen_pdb_line(atomIndex, atomName, resName, resIndex, chainName, bfactor, element, xyz, occupancy=" "):
-    line = "ATOM  %5d %-4s %3s %1s%4d    %s%s%s  1.00 %5.2f      %-4s%-2s  \n" % (
+
+    if os.path.isdir(os.path.join(folder_path, 'dpockets')):
+        shutil.rmtree(os.path.join(folder_path, 'dpockets'))
+    os.makedirs(os.path.join(folder_path, 'dpockets'))
+
+    dpocket_index = 0
+
+    if contact_only:
+        pockets = sorted([p for p in trajectory.dpockets if p.isContact], key=lambda p: p.spaces.sum(), reverse=True)
+    else:
+        pockets = sorted([p for p in trajectory.dpockets], key=lambda p: p.spaces.sum(), reverse=True)
+
+    for pocket in pockets:
+        dpocket_index += 1
+        # if receptor:
+        #     lining_atoms = receptor.atom_slice(pocket.lining_atoms_idx)
+        #     lining_atoms.save(os.path.join(folder_path, 'pockets', '{}_alpha.pdb'.format(dpocket_index)))
+        #     lining_atoms.save(os.path.join(folder_path, 'pockets', '{}_beta.pdb'.format(dpocket_index)))
+
+        with open(os.path.join(folder_path, 'dpockets', '{}_dpocket.pdb'.format(dpocket_index)), 'a') as handle:
+
+            for ss_idx, beta_idx in pocket._betas:
+                beta = _Beta(trajectory[ss_idx], beta_idx)
+                handle.write(gen_pdb_line(atomIndex=beta_idx,
+                                          atomName='BAO' if beta.isContact else 'BAU',
+                                          resName='BAC',
+                                          resIndex=ss_idx,
+                                          chainName=" ",
+                                          bfactor=beta.space,
+                                          element="C",
+                                          xyz=beta.centroid,
+                                          occupancy=beta.nonpolar_space)
+                             )
+            handle.write(gen_pdb_line(atomIndex=dpocket_index,
+                                      atomName='BCC',
+                                      resName='BCC',
+                                      resIndex=dpocket_index,
+                                      chainName=" ",
+                                      element=beta.best_probe_type,
+                                      xyz=beta.centroid,
+                                      bfactor=pocket.spaces.sum(),
+                                      occupancy=pocket.nonpolar_spaces.sum(),
+                                      ))
+
+def gen_pdb_line(atomIndex, atomName, resName, resIndex, chainName, bfactor, element, xyz, occupancy=0):
+    line = "ATOM  %5d %-4s %3s %1s%4d    %s%s%s  1.00 %6.2f      %6.2f%-2s  \n" % (
         atomIndex % 100000, atomName, resName, chainName,
         resIndex % 10000, _format_83(xyz[0]),
         _format_83(xyz[1]), _format_83(xyz[2]),

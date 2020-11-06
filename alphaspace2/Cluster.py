@@ -392,6 +392,10 @@ class _DPocket:
         return np.array([pocket.space for pocket in self.pockets])
 
     @property
+    def nonpolar_spaces(self):
+        return np.array([pocket.nonpolar_space for pocket in self.pockets])
+
+    @property
     def centroid(self):
         return np.mean([beta.centroid for beta in self.betas], axis=0)
 
