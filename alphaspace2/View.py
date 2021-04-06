@@ -83,7 +83,7 @@ def write_snapshot(folder_path, snapshot, receptor=None, binder=None, chimera_sc
                                           bfactor=beta.score,
                                           element=beta.best_probe_type,
                                           xyz=beta.centroid,
-                                          occupancy=" ")
+                                          )
                              )
             handle.write(gen_pdb_line(atomIndex=pocket_index,
                                       atomName='BCC',
@@ -102,7 +102,6 @@ def write_snapshot(folder_path, snapshot, receptor=None, binder=None, chimera_sc
                                     resIndex=pocket_index,
                                     chainName=" ",
                                     bfactor=alpha.space,
-                                    occupancy=" ",
                                     element='C',
                                     xyz=alpha.centroid,
                                     )
