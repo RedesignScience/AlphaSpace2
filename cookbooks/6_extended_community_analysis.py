@@ -1,8 +1,8 @@
-import mdtraj
+import mdtraj as md
 import alphaspace2 as al
 from alphaspace2.Community import genCommunityPocket, extendedCommunityAnalysis
 
-protein = mdtraj.load('your_protein.pdb')
+protein = md.load('your_protein.pdb')
 protein = protein.atom_slice(protein.top.select("type != H")) # BE SURE TO STRIP HYDROGENS BEFORE RUNNING ALFASPACE!
 
 snapshot = al.Snapshot()
