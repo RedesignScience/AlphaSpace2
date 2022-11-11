@@ -515,7 +515,7 @@ def _binCluster(coords, bin_size, bin_buffer_ratio=0.01, distance=5.4):
     label = fcluster(zmat, distance, criterion='distance') - 1
 
     tree = cKDTree(non_zero_cube_coord)
-    dist, ind = tree.query(coords, 1, n_jobs=1)
+    dist, ind = tree.query(coords, 1, workers=1)
 
     pocket_label = label[ind]
 
