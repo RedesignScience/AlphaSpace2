@@ -446,7 +446,7 @@ def _findInRange(query_points, ref_points, cutoff):
 
 def _markInRange(query_points, ref_points, cutoff):
     indices = _findInRange(query_points, ref_points, cutoff)
-    query_bool = np.zeros(len(query_points), dtype=np.bool)
+    query_bool = np.zeros(len(query_points), dtype=bool)
     query_bool[indices] = 1
     return query_bool
 
