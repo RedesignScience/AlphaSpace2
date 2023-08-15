@@ -414,11 +414,11 @@ def annotateVinaAtomTypes(receptor, pdbqt):
         adv_atom_type = line[77:79].strip()
         adv_atom_types.append(adv_atom_type)
 
-        if receptor.top.n_atoms < len(adv_atom_types):
-            print("Redundant Atom types in pdbqt file found, trimming last {} entries".format(
-                {receptor.top.n_atoms - len(adv_atom_types)}))
-            adv_atom_types = adv_atom_types[:receptor.top.n_atoms]
-            partial_charges = partial_charges[:receptor.top.n_atoms]
+    if receptor.top.n_atoms < len(adv_atom_types):
+        print("Redundant Atom types in pdbqt file found, trimming last {} entries".format(
+            {receptor.top.n_atoms - len(adv_atom_types)}))
+        adv_atom_types = adv_atom_types[:receptor.top.n_atoms]
+        partial_charges = partial_charges[:receptor.top.n_atoms]
 
     receptor.partial_charges = partial_charges
     receptor.adv_atom_types = adv_atom_types
