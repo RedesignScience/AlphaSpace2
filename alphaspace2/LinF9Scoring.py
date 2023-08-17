@@ -1,65 +1,48 @@
-import os
-
+import sys, os
 import numpy as np
 import logging
 from scipy import spatial
 from scipy.spatial import cKDTree
 from scipy.spatial.distance import cdist
 
-polarTypes = np.array(['OA', 'OS', 'N', 'NS', 'NA', 'S', 'SA'])
-nonPolarTypes = np.array(['C', 'A'])
-autodockVinaAtomTypes = {'H': [1.0, False], 'HD': [1.0, True], 'HS': [1.0, True], 'C': [2.0, False], 'A': [2.0, False],
-                         'N': [1.75, False], 'NA': [1.75, True], 'NS': [1.75, True], 'OA': [1.6, True],
-                         'OS': [1.6, True],
-                         'F': [1.545, False], 'Mg': [0.65, False], 'MG': [0.65, False], 'P': [2.1, False],
-                         'SA': [2.0, True],
-                         'S': [2.0, False], 'Cl': [2.045, False], 'CL': [2.045, False], 'Ca': [0.99, False],
-                         'CA': [0.99, False],
-                         'Mn': [0.65, False], 'MN': [0.65, False], 'Fe': [0.65, False], 'FE': [0.65, False],
-                         'Zn': [0.74, False],
-                         'ZN': [0.74, False], 'Br': [2.165, False], 'BR': [2.165, False], 'I': [2.36, False]}
-autodockVinaTerms = np.array([-0.035579, -0.005156, 0.840245, -0.035069, -0.587439])
-probElements = ['C', 'Br', 'F', 'Cl', 'I', 'OA', 'SA', 'N', 'P']
+polarTypes = np.array(['OA', 'O', 'N', 'NA', 'S', 'SA'])
+nonPolarTypes = np.array(['C', 'A', 'Cl', 'CL', 'Br', 'BR', 'F', 'I'])
 
+autodockVinaAtomTypes = {'H': 0.00, 'HD': 0.00, 'C': 1.90, 'A': 1.90,
+                         'N': 1.80, 'NA': 1.80, 'OA': 1.70, 'O':1.70, 'S': 2.00,
+                         'SA': 2.00, 'P': 2.10, 'F': 1.50, 'Cl': 1.80, 'CL': 1.80,
+                         'Br': 2.00, 'BR': 2.00, 'I': 2.20, 'Mn': 1.20, 'MN': 1.20,
+                         'Mg': 1.20, 'MG': 1.20, 'Zn': 1.20, 'ZN': 1.20, 'Ca': 1.20,
+                         'CA': 1.20, 'Fe': 1.20, 'FE': 1.20, 'Ni': 1.20, 'NI': 1.20,
+                         'Na': 1.20, 'Co': 1.20, 'CO': 1.20, 'Cu': 1.20, 'CU': 1.20,
+                         'Cd': 1.20, 'CD': 1.20, 'K': 1.20, 'Se': 1.75, 'SE': 1.75}
+                         
+#autodockVinaTerms = np.array([-0.035579, -0.005156, 0.840245, -0.035069, -0.587439])
+Lin_F9_Terms = np.array([-0.032879, -0.000896, -0.006915, 0.244318, -0.007459, -0.170027])
+probElements = ['C', 'Br', 'F', 'Cl', 'I', 'OA', 'O', 'S', 'SA', 'N', 'NA', 'P']
+cofactor_match_dict = {'C': 'C', 'N': 'N', 'P': 'P', 'O': 'OA', 'S': 'SA', 
+                       'F': 'F', 'Cl': 'Cl', 'Br': 'Br','I': 'I'}
 
-def _get_typing_dicts(hp_types_dat_path, typing_pdb_dat_path, autodock_atom_type_dat_path):
+def _get_typing_dicts(hp_types_dat_path, autodock_atom_type_dat_path):
     hp_lines = np.loadtxt(hp_types_dat_path, dtype=str, delimiter=',')
     hp_types_dict = {str(i): {} for i in hp_lines[:, 0]}
-
-    for i1, i2, i3, i4 in hp_lines:
-        hp_types_dict[i1][i2] = (i3, i4)
-
-    ### typing_pdb_dict maps to autodock atom type
-    typing_pdb_array = np.loadtxt(typing_pdb_dat_path, dtype=str, delimiter=',')
-    typing_pdb_dict = {str(i): {} for i in typing_pdb_array[:, 0]}
-    for resname, atom_name, atom_type in typing_pdb_array:
-        typing_pdb_dict[resname][atom_name] = atom_type
-
-    # resname_list = sorted(typing_pdb_dict.keys())
-
-    ### cofactor is to find atom type for non protein cofactors
-    cofactor_match_dict = {'C': 'C', 'N': 'N', 'P': 'P', 'O': 'OA', 'S': 'SA', 'F': 'F', 'Cl': 'Cl', 'Br': 'Br',
-                           'I': 'I'}
+    for i1, i2, i3, i4, i5 in hp_lines:
+        hp_types_dict[i1][i2] = (i3, i4, i5)
 
     autodock_lines = np.loadtxt(autodock_atom_type_dat_path, dtype=str, delimiter=',')
-    autodock_types_dict = {str(i).strip(): {} for i in hp_lines[:, 0]}
+    autodock_types_dict = {str(i).strip(): float(j) for i,j in autodock_lines}
 
-    for i1, i2, i3, i4 in hp_lines:
-        hp_types_dict[i1][i2] = (i3, i4)
-
-    for items in autodock_lines:
-        autodock_types_dict[items[0].strip()] = [float(items[1]) / 2.0, True if int(items[7]) else False]
-    return hp_types_dict, typing_pdb_dict, cofactor_match_dict, autodock_types_dict
+    return hp_types_dict, autodock_types_dict
 
 
 def _pre_process_pdb(pdb_lines):
     this_dir, this_filename = os.path.split(__file__)
 
-    types_dict, typing_pdb_dict, cofactor_match_dict, autodock_types_dict = \
-        _get_typing_dicts(os.path.join(this_dir, "data", "hp_types_dict.dat"),
-                          os.path.join(this_dir, "data", "typing_from_pdb.dat"),
-                          os.path.join(this_dir, "data", "autodock_atom_type_info.dat"))
-    polar_atoms = np.array(['OA', 'OS', 'N', 'NS', 'NA', 'S', 'SA'])
+    types_dict, autodock_types_dict = \
+        _get_typing_dicts(os.path.join(this_dir, "LinF9data", "hp_types_dict.dat"),
+                          os.path.join(this_dir, "LinF9data", "Vina_atom_radii.dat"))
+                          
+    polar_atoms = np.array(['O','OA','OS','N','NS','NA','S','SA','P'])
     ali_atoms = np.array(['C', 'A'])
 
     prot_types = []
@@ -68,8 +51,7 @@ def _pre_process_pdb(pdb_lines):
     acc_type = []
     prot_coord = []
     ### process heavy atom lines in pdb
-    clean_pdb_lines = [t for t in pdb_lines if
-                       t[0:6] in ['ATOM  ', 'HETATM'] and t[76:].strip() not in ['H', 'HD', 'HS']]
+    clean_pdb_lines = [t for t in pdb_lines if t[0:6] in ['ATOM  ', 'HETATM'] and t[76:].strip() not in ['H', 'HD', 'HS']]
 
     for ind, t in enumerate(clean_pdb_lines):
         resname = t[17:20].strip()
@@ -83,37 +65,37 @@ def _pre_process_pdb(pdb_lines):
         prot_coord.append([x_coords, y_coords, z_coords])
         ### prot_types is a list of autodock atom types for heavy atoms in pdb
 
-        if resname in typing_pdb_dict:
-            if atom_type in typing_pdb_dict[resname]:
-                prot_types.append(typing_pdb_dict[resname][atom_type])
+        if resname in types_dict:
+            if atom_type in types_dict[resname]:
+                prot_types.append(types_dict[resname][atom_type][0])
         else:
             prot_types.append(cofactor_match_dict[element_type])
-        ### hp_type is acceptor type for aliphatic atoms
-        #### don_type and acc_type is donor and acceptor type for polar atoms
+            
         if resname in types_dict and atom_type in types_dict[resname]:
             if prot_types[ind] in ali_atoms:
-                hp_type.append(types_dict[resname][atom_type][0])
+                hp_type.append(types_dict[resname][atom_type][1])
                 don_type.append('XXX')
                 acc_type.append('XXX')
             elif prot_types[ind] in polar_atoms:
-                don_type.append(types_dict[resname][atom_type][0])
+                don_type.append(types_dict[resname][atom_type][2])
                 acc_type.append(types_dict[resname][atom_type][1])
                 hp_type.append('XXX')
+            else:
+                print(t)
+                hp_type.append('UNK')
+                don_type.append('UNK')
+                acc_type.append('UNK')
         else:
-            # print(t)
+            print(t)
             hp_type.append('UNK')
             don_type.append('UNK')
-            acc_type.append('UNK')
-
     prot_coord = np.array(prot_coord)
     prot_types = np.array(prot_types)
     hp_type = np.array(hp_type)
     acc_type = np.array(acc_type)
     don_type = np.array(don_type)
-    # if np.any(hp_type == 'UNK'):
-    # print(hp_type)
 
-    return prot_coord, prot_types, hp_type, acc_type, don_type, autodock_types_dict
+    return prot_types, hp_type, acc_type, don_type
 
 
 def _pre_process_pdbqt(traj, truncation_length=0):
@@ -134,40 +116,35 @@ def _pre_process_pdbqt(traj, truncation_length=0):
                 hp_type[ix] = 'XXX'
         return hp_type
 
-    def _assign_acc(prot_types, hp_type):
+    def _assign_acc(prot_types, acc_type):
         """
-
-        Parameters
-        ----------
-        prot_coord
-        prot_types
-        hp_type
-
-        Returns
-        -------
-
         """
-        for ix in np.where(hp_type == 'UNK')[0]:
+        for ix in np.where(acc_type == 'UNK')[0]:
             if prot_types[ix] in ['OA', 'OS', 'SA', 'S']:
-                hp_type[ix] = 'P'
+                acc_type[ix] = 'P'
             else:
-                hp_type[ix] = 'XXX'
-        return hp_type
+                acc_type[ix] = 'XXX'
+        return acc_type
 
-    def _assign_don(prot_coord, prot_types, hp_type, tree=None):
+    def _assign_don(prot_coord, prot_types, don_type, tree=None):
         tree = cKDTree(prot_coord) if tree is None else tree
-        for ix in np.where(hp_type == 'UNK')[0]:
+        for ix in np.where(don_type == 'UNK')[0]:
             indx = np.array(tree.query_ball_point(prot_coord[ix], 2.0))
             if prot_types[ix] in ['N', 'NS', 'NA']:
                 if len(indx[indx != ix]) > 2:
-                    hp_type[ix] = 'NPP'
+                    don_type[ix] = 'NPP'
                 else:
-                    hp_type[ix] = 'P'
+                    don_type[ix] = 'P'
             else:
-                hp_type[ix] = 'XXX'
-        return hp_type
-
-    types_dict = autodockVinaAtomTypes
+                don_type[ix] = 'XXX'
+        return don_type
+    
+    this_dir, this_filename = os.path.split(__file__)
+    #types_dict = autodockVinaAtomTypes  why????
+    # change happens
+    types_dict, autodock_types_dict = \
+                _get_typing_dicts(os.path.join(this_dir, "LinF9data", "hp_types_dict.dat"),
+                                  os.path.join(this_dir, "LinF9data", "Vina_atom_radii.dat"))
     ali_atoms = {'C', 'A'}
 
     hp_type = []
@@ -176,18 +153,24 @@ def _pre_process_pdbqt(traj, truncation_length=0):
     prot_coord = traj.xyz[0] * 10
     prot_tree = spatial.cKDTree(prot_coord)
     prot_types = []
+    
     for i, atom in enumerate(traj.top.atoms):
         prot_types.append(traj.adv_atom_types[i])
         if atom.residue.name in types_dict.keys():
             if atom.name in types_dict[atom.residue.name].keys():
-                if atom.pdbqt_name in ali_atoms:
-                    hp_type.append(types_dict[atom.residue.name][atom.name][0])
+                ## if atom.pdbqt_name in ali_atom:  why???
+                if types_dict[atom.residue.name][atom.name][0] in ali_atoms: ## change
+                    hp_type.append(types_dict[atom.residue.name][atom.name][1])
                     don_type.append('XXX')
                     acc_type.append('XXX')
-                if atom.pdbqt_name in polarTypes:
-                    don_type.append(types_dict[atom.residue.name][atom.name][0])
+                elif types_dict[atom.residue.name][atom.name][0] in polarTypes: ## change
+                    don_type.append(types_dict[atom.residue.name][atom.name][2])
                     acc_type.append(types_dict[atom.residue.name][atom.name][1])
                     hp_type.append('XXX')
+                else:
+                    hp_type.append('UNK')
+                    don_type.append('UNK')
+                    acc_type.append('UNK')
             else:
                 hp_type.append('UNK')
                 don_type.append('UNK')
@@ -201,6 +184,7 @@ def _pre_process_pdbqt(traj, truncation_length=0):
     hp_type = np.array(hp_type)
     acc_type = np.array(acc_type)
     don_type = np.array(don_type)
+    
     if np.any(hp_type == 'UNK'):
         _assign_hp(prot_coord, prot_types, hp_type, prot_tree)
         _assign_don(prot_coord, prot_types, don_type, prot_tree)
@@ -208,14 +192,12 @@ def _pre_process_pdbqt(traj, truncation_length=0):
 
     if truncation_length != 0:
         return prot_types[:truncation_length], hp_type[:truncation_length], \
-               acc_type[:truncation_length], don_type[:truncation_length]
+               acc_type[:truncation_length], don_type[:truncation_length], metal_type[:truncation_length]
     else:
         return prot_types, hp_type, acc_type, don_type
 
 
-def _gen_vina_type(atom_names, residue_names, elements,
-                   # types_dict_typing_pdb_dict_cofactor_match_dict_autodock_types_dict
-                   ):
+def _gen_vina_type(atom_names, residue_names, elements):
     """
 
     Parameters
@@ -229,12 +211,11 @@ def _gen_vina_type(atom_names, residue_names, elements,
 
     this_dir, this_filename = os.path.split(__file__)
 
-    types_dict, typing_pdb_dict, cofactor_match_dict, autodock_types_dict = _get_typing_dicts(
-        os.path.join(this_dir, "data", "hp_types_dict.dat"),
-        os.path.join(this_dir, "data", "typing_from_pdb.dat"),
-        os.path.join(this_dir, "data", "autodock_atom_type_info.dat"))
+    types_dict, autodock_types_dict = _get_typing_dicts(
+        os.path.join(this_dir, "LinF9data", "hp_types_dict.dat"),
+        os.path.join(this_dir, "LinF9data", "Vina_atom_radii.dat"))
 
-    polar_atoms = np.array(['OA', 'OS', 'N', 'NS', 'NA', 'S', 'SA'])
+    polar_atoms = np.array(['OA', 'O', 'N', 'NA', 'S', 'SA'])
     ali_atoms = np.array(['C', 'A'])
 
     prot_types = []
@@ -247,9 +228,9 @@ def _gen_vina_type(atom_names, residue_names, elements,
         if atom_name == 'OXT':  ### c terminal O is considered as OA
             atom_name = 'O'
 
-        if resname in typing_pdb_dict:
-            if atom_name in typing_pdb_dict[resname]:
-                prot_types.append(typing_pdb_dict[resname][atom_name])
+        if resname in types_dict:
+            if atom_name in types_dict[resname]:
+                prot_types.append(types_dict[resname][atom_name][0])
         elif element in cofactor_match_dict:
             prot_types.append(cofactor_match_dict[element])
         else:
@@ -260,15 +241,18 @@ def _gen_vina_type(atom_names, residue_names, elements,
         if resname in types_dict:
             if atom_name in types_dict[resname]:
                 if prot_types[idx] in ali_atoms:
-                    hp_type.append(types_dict[resname][atom_name][0])
+                    hp_type.append(types_dict[resname][atom_name][1])
                     don_type.append('XXX')
                     acc_type.append('XXX')
                 elif prot_types[idx] in polar_atoms:
-                    don_type.append(types_dict[resname][atom_name][0])
+                    don_type.append(types_dict[resname][atom_name][2])
                     acc_type.append(types_dict[resname][atom_name][1])
                     hp_type.append('XXX')
+            else:
+                hp_type.append('UNK')
+                don_type.append('UNK')
+                acc_type.append('UNK')                
         else:
-            # print(t)
             hp_type.append('UNK')
             don_type.append('UNK')
             acc_type.append('UNK')
@@ -277,7 +261,6 @@ def _gen_vina_type(atom_names, residue_names, elements,
     hp_type = np.array(hp_type)
     acc_type = np.array(acc_type)
     don_type = np.array(don_type)
-
     return prot_types, hp_type, acc_type, don_type
 
 
@@ -295,7 +278,7 @@ def _get_probe_score(prot_coord, prot_types, hp_type, don_type, acc_type, probe_
 
     prot_coord : np.ndarray
         shape = (n,3)
-    prot_types : np.ndarray
+    prot_types : np.ndarrayNPP
         shape = (n)
     hp_type : np.ndarray
         shape = (n)
@@ -315,7 +298,7 @@ def _get_probe_score(prot_coord, prot_types, hp_type, don_type, acc_type, probe_
 
     """
 
-    def _NP_interp(r):
+    def _hydrophobic_interp(r):
         """
         """
         if r < 0.5:
@@ -324,10 +307,9 @@ def _get_probe_score(prot_coord, prot_types, hp_type, don_type, acc_type, probe_
             x = 0.0
         else:
             x = 1.5 - r
-        #        x=np.interp(r, [0.i5,1.5], [1,0])
         return x
 
-    def _P_interp(r):  ##step for polar
+    def _hbond_interp(r):
         if r < -0.7:
             x = 1.0
         elif r >= 0:
@@ -342,35 +324,37 @@ def _get_probe_score(prot_coord, prot_types, hp_type, don_type, acc_type, probe_
 
     for probe_idx in range(probe_coords.shape[0]):
 
-        dist_bool = probe_prot_dist[probe_idx] <= 8.0
+        dist_bool = probe_prot_dist[probe_idx] <= 12.0
         temp_dist = probe_prot_dist[probe_idx][dist_bool]
-
-        # print(prot_types)
+        
         temp_type = prot_types[dist_bool]
         NP_type = (hp_type[dist_bool] == 'NP')
         Pdon_type = (don_type[dist_bool] == 'P')
         Pacc_type = (acc_type[dist_bool] == 'P')
-        dist_radii = np.array([autodockVinaAtomTypes[ty][0] for ty in temp_type])
+        dist_radii = np.array([autodockVinaAtomTypes[x] for x in temp_type])
 
         for element_idx, probe_element in enumerate(probElements):
-            probe_dist = autodockVinaAtomTypes[probe_element][0]
+            probe_dist = autodockVinaAtomTypes[probe_element]
             proc_dist = temp_dist - dist_radii - probe_dist
             g1 = np.sum(np.exp(-(proc_dist / 0.5) ** 2))
-            g2 = np.sum(np.exp(-((proc_dist - 3.0) / 2.0) ** 2))
+            #g2 = np.sum(np.exp(-((proc_dist - 3.0) / 2.0) ** 2))
+            g61 = np.sum(np.exp(-((proc_dist - 2.5) / 0.5) ** 2))
+            g62 = np.sum(np.exp(-((proc_dist - 5.0) / 0.5) ** 2))
             rep = np.sum([dd ** 2 if dd < 0.0 else 0.0 for dd in proc_dist])
-            if probe_element in {'C', 'Br', 'Cl', 'F', 'I'}:
-                h1 = np.sum([_NP_interp(dd) for dd in proc_dist[NP_type]])
+            
+            if probe_element in {'C', 'Br', 'Cl', 'F', 'I', 'S'}:
+                h1 = np.sum([_hydrophobic_interp(dd) for dd in proc_dist[NP_type]])
                 h2 = 0.0
-            elif probe_element in {'OA', 'SA'}:
+            elif probe_element in {'OA', 'NA', 'SA'}:
                 h1 = 0.0
-                h2 = np.sum([_P_interp(dd) for dd in proc_dist[Pdon_type]])
-            elif probe_element in {'N', 'P'}:
+                h2 = np.sum([_hbond_interp(dd) for dd in proc_dist[Pdon_type]])
+            elif probe_element in {'N', 'O', 'P'}:
                 h1 = 0.0
-                h2 = np.sum([_P_interp(dd) for dd in proc_dist[Pacc_type]])
+                h2 = np.sum([_hbond_interp(dd) for dd in proc_dist[Pacc_type]])
             else:
                 raise Exception()
 
-            probe_scores[probe_idx][element_idx] = np.sum(np.array([g1, g2, rep, h1, h2]) * autodockVinaTerms)
+            probe_scores[probe_idx][element_idx] = np.sum(np.array([g1, g61, g62, rep, h1, h2]) * Lin_F9_Terms)
 
             # print(probe_scores[probe_idx][element_idx], g1,g2,rep,h1,h2)
 
@@ -393,7 +377,7 @@ def annotateVinaAtomTypes(receptor, pdbqt):
     """
 
     with open(pdbqt, 'r') as handle:
-        lines = [line for line in handle.read().splitlines() if line.startswith("ATOM")]
+        lines = [line for line in handle.read().splitlines() if line.startswith(("ATOM","HETATM"))]
     atom_numbers = []
     partial_charges = []
     adv_atom_types = []
@@ -413,12 +397,12 @@ def annotateVinaAtomTypes(receptor, pdbqt):
         partial_charges.append(partial_charge)
         adv_atom_type = line[77:79].strip()
         adv_atom_types.append(adv_atom_type)
+        
 
     if receptor.top.n_atoms < len(adv_atom_types):
         print("Redundant Atom types in pdbqt file found, trimming last {} entries".format(
             {receptor.top.n_atoms - len(adv_atom_types)}))
         adv_atom_types = adv_atom_types[:receptor.top.n_atoms]
         partial_charges = partial_charges[:receptor.top.n_atoms]
-
     receptor.partial_charges = partial_charges
     receptor.adv_atom_types = adv_atom_types

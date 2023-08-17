@@ -129,8 +129,13 @@ class Snapshot:
             self._pocket_xyz[i] = np.mean(self._alpha_xyz[indices], axis=0)
             self._pocket_space[i] = np.sum(self._alpha_space[indices], axis=0)
 
-    def genBScore(self, receptor):
-        from .VinaScoring import _pre_process_pdbqt, _get_probe_score
+    def genBScore(self, receptor, score_function="Vina"):
+        if score_function == "Vina":
+            from .VinaScoring import _pre_process_pdbqt, _get_probe_score
+        elif score_function == "Lin_F9":
+            from .LinF9Scoring import _pre_process_pdbqt, _get_probe_score
+        else:
+            raise ValueError("The scoring function " + score_function + " has not been implemented yet")
 
         if hasattr(receptor, 'adv_atom_types'):
             logging.debug('Vina Atom type found, calculating beta scores')
@@ -165,7 +170,7 @@ class Snapshot:
         self._pocket_contact = np.array(
             [np.any(self._alpha_contact[alpha_indices]) for alpha_indices in self._pocket_alpha_index_list])
 
-    def run(self, receptor, binder=None):
+    def run(self, receptor, binder=None, score_function="Vina"):
 
         self.genAlphas(receptor)
 
@@ -173,7 +178,7 @@ class Snapshot:
 
         self.genBetas()
 
-        self.genBScore(receptor)
+        self.genBScore(receptor, score_function=score_function)
 
         if binder is not None:
             self.calculateContact(coords=binder.xyz[0] * 10)
