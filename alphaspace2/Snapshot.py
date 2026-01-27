@@ -142,7 +142,7 @@ class Snapshot:
                                                  acc_type=acc_type, don_type=don_type)
         else:
             logging.debug('Vina atom type not found, ignoring beta scores')
-            self._beta_scores = np.zeros(len(self._beta_xyz), dtype=np.float)
+            self._beta_scores = np.zeros(len(self._beta_xyz), dtype=float)
 
     def calculateContact(self, coords):
         """
